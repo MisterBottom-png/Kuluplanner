@@ -37,7 +37,11 @@
   .content{padding:20px;border-top:1px solid rgba(124,155,255,.15);display:flex;flex-direction:column;gap:14px}
   .row{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
   label{font-size:13px;color:var(--muted);min-width:220px}
+  label.checkboxLabel{min-width:0;font-size:14px;display:flex;align-items:center;gap:10px;color:var(--muted);cursor:pointer}
   input,select,textarea{width:100%;padding:14px 16px;border-radius:14px;border:1px solid rgba(124,155,255,.18);background:rgba(7,10,25,.72);color:var(--ink);outline:none;font-size:16px;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;min-height:46px}
+  input[type="checkbox"]{width:auto;min-height:0;height:auto;padding:0}
+  input,select,textarea{width:100%;padding:14px 16px;border-radius:14px;border:1px solid rgba(124,155,255,.18);background:rgba(7,10,25,.72);color:var(--ink);outline:none;font-size:16px;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;min-height:46px}
+ main
   input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,155,255,.2);background:rgba(7,10,25,.92)}
   textarea{min-height:110px;resize:vertical}
   .mono{font-variant-numeric:tabular-nums}
@@ -78,6 +82,26 @@
   tr.paid td{opacity:.75}
   .upcomingItem{padding:10px 0;border-bottom:1px solid rgba(124,155,255,.12)}
   .upcomingItem:last-child{border-bottom:none;padding-bottom:0}
+  .debtActions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .debtActions .btn{flex:0 0 auto}
+  .debtSummary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:12px 0 6px}
+  .debtSummary .item{background:rgba(7,10,25,.72);border:1px solid rgba(124,155,255,.18);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;box-shadow:0 16px 32px -28px rgba(7,10,25,.9)}
+  .debtSummary .label{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+  .debtSummary .value{font-size:20px;font-weight:600}
+  .debtsList{display:flex;flex-direction:column;gap:14px;margin-top:10px}
+  .debtCard{background:rgba(7,10,25,.65);border:1px solid rgba(124,155,255,.18);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:16px;box-shadow:0 18px 36px -28px rgba(7,10,25,.85);position:relative}
+  .debtCard.paid{opacity:.75}
+  .debtCard__head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+  .debtCard__head .debtField{flex:1}
+  .debtField{display:flex;flex-direction:column;gap:6px}
+  .debtField label{display:block;font-size:12px;color:var(--muted);margin-bottom:0;min-width:0}
+  .debtField input{width:100%}
+  .debtCard__grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .debtCard__grid .debtField:last-child{grid-column:1/-1}
+  .debtCard__footer{display:flex;justify-content:flex-end}
+  .debtCard__footer .btn{max-width:220px}
+  .btn.icon{padding:10px 12px;min-height:42px;line-height:1}
+  .toggleRow{margin-top:4px} main
 
   @media (max-width: 900px){
     header{padding:16px 16px}
@@ -106,6 +130,27 @@
     .tableWrap{margin:0 -10px;padding:0 10px}
     table{min-width:560px}
     th,td{padding:12px 12px}
+    .debtActions{flex-direction:column}
+    .debtActions .btn{width:100%}
+    .debtSummary{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+    .debtCard{padding:16px}
+    .debtCard__head{flex-direction:column-reverse;align-items:stretch;gap:14px}
+    .debtCard__grid{grid-template-columns:1fr}
+    .debtCard__footer{justify-content:stretch}
+    .debtCard__footer .btn{max-width:none;width:100%}
+  }
+
+  @media (max-width: 520px){
+    body{font-size:16px}
+    header{padding:14px 12px 0}
+    header .sub{flex-direction:column;align-items:flex-start;font-size:12px}
+    main{padding:0 12px 72px}
+    summary{padding:16px}
+    .content{padding:16px}
+    .row{gap:12px}
+    .kpi .box{width:100%}
+    .btn,.payWrap button,input,select,textarea{min-height:48px}
+    .debtSummary{grid-template-columns:1fr}
   }
 
   @media (max-width: 520px){
@@ -206,6 +251,10 @@
           <div class="pill" id="pillDebt">—</div>
         </summary>
         <div class="content">
+          <div class="debtActions"><button class="btn primary" id="addDebt">+ Lisa võlg</button><button class="btn" id="exportDebtCsv">Ekspordi CSV</button></div>
+          <div class="debtSummary">
+            <div class="item"><span class="label">Jäägid kokku</span><span class="value mono" id="sumBal">0</span></div>
+            <div class="item"><span class="label">Miinimumid kokku</span><span class="value mono" id="sumMin">0</span></div>
           <div class="row"><button class="btn" id="addDebt">+ Lisa võlg</button> <button class="btn" id="exportDebtCsv">Ekspordi CSV</button></div>
           <div class="tableWrap">
             <table id="debtsTbl">
@@ -221,7 +270,8 @@
               </tfoot>
             </table>
           </div>
-          <div class="row"><label><input type="checkbox" id="autoApply" /> Rakenda kuu maksed automaatselt</label></div>
+          <div class="debtsList" id="debtsList"></div>
+          <div class="toggleRow"><label class="checkboxLabel"><input type="checkbox" id="autoApply" /> Rakenda kuu maksed automaatselt</label></div>
           <div class="kpi" style="margin-top:10px">
             <div class="box"><div class="label">Aeg võlavabaks</div><div class="val mono" id="kpiMonths">—</div></div>
             <div class="box"><div class="label">Esimesena tasutav</div><div class="val mono" id="kpiFirstDone">—</div></div>
@@ -612,10 +662,11 @@
   function reflectDebtPaid(id){
     const marks = getPayMarks();
     const paid = !!(marks.debts && marks.debts[id]);
-    const row = debtsTbl.querySelector(`tr[data-id="${id}"]`);
-    if(row){
-      row.classList.toggle("paid", paid);
-      const btn = row.querySelector("[data-pay-debt]");
+    if(!debtsList) return;
+    const card = debtsList.querySelector(`.debtCard[data-id="${id}"]`);
+    if(card){
+      card.classList.toggle("paid", paid);
+      const btn = card.querySelector(`[data-pay-debt="${id}"]`);
       if(btn){
         btn.textContent = paid ? "Makstud ✓" : "Märgi makstuks";
         btn.classList.toggle("paid", paid);
@@ -723,10 +774,54 @@
   }
 
   // ===== Võlaplaan =====
-  const debtsTbl=$("#debtsTbl tbody");
+  const debtsList=$("#debtsList");
   const sumBal=$("#sumBal");
   const sumMin=$("#sumMin");
   function addDebtRow(d={name:"Laen",balance:0,min:0,due:"",contractEnd:"",notes:"",id:null}){
+    if(!debtsList) return;
+    const card=document.createElement("article");
+    card.className="debtCard";
+    const rowId=d.id||`d-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
+    card.dataset.id=rowId;
+    card.innerHTML=`
+      <div class="debtCard__head">
+        <div class="debtField"><label>Võlg</label><input class="debtName" value="${d.name||''}" /></div>
+        <button class="btn icon" data-action="remove" aria-label="Eemalda võlg">✕</button>
+      </div>
+      <div class="debtCard__grid">
+        <div class="debtField"><label>Jääk (€)</label><input type="number" class="mono debtBalance" value="${d.balance||0}" step="1" min="0" /></div>
+        <div class="debtField"><label>Miinimum (€)</label><input type="number" class="mono debtMin" value="${d.min||0}" step="1" min="0" /></div>
+        <div class="debtField"><label>Tähtaeg (PP)</label><input class="debtDue" value="${d.due||''}" placeholder="PP" /></div>
+        <div class="debtField"><label>Lõppkuupäev</label><input type="date" class="mono debtEnd" value="${toDateInputValue(d.contractEnd)}" /></div>
+        <div class="debtField"><label>Märkused</label><input class="debtNotes" value="${d.notes||''}" /></div>
+      </div>
+      <div class="debtCard__footer"><button class="btn payToggle" data-pay-debt="${rowId}">Märgi makstuks</button></div>`;
+    const removeBtn=card.querySelector('[data-action="remove"]');
+    if(removeBtn){
+      removeBtn.addEventListener("click",()=>{ card.remove(); clearDebtPaid(rowId); updateDebtTotals(); persist(); simulatePayoff(); renderUpcomingPays(); });
+    }
+    card.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",()=>{ updateDebtTotals(); persist(); simulatePayoff(); renderUpcomingPays(); }));
+    const payBtn=card.querySelector(`[data-pay-debt="${rowId}"]`);
+    if(payBtn){
+      payBtn.addEventListener("click",()=>{ toggleDebtPaid(rowId); });
+    }
+    debtsList.appendChild(card); updateDebtTotals(); simulatePayoff(); renderUpcomingPays();
+    reflectDebtPaid(rowId);
+  }
+  function readDebts(){
+    if(!debtsList) return [];
+    return [...debtsList.querySelectorAll(".debtCard")].map(card=>{
+      const getVal=sel=>{ const el=card.querySelector(sel); return el?el.value:""; };
+      const id=card.dataset.id||"";
+      return {
+        id,
+        name:getVal(".debtName"),
+        balance:+getVal(".debtBalance")||0,
+        min:+getVal(".debtMin")||0,
+        due:getVal(".debtDue"),
+        contractEnd:getVal(".debtEnd"),
+        notes:getVal(".debtNotes")
+      };
     const tr=document.createElement("tr");
     const rowId=d.id||`d-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
     tr.dataset.id=rowId;
@@ -755,13 +850,13 @@
     return [...debtsTbl.querySelectorAll("tr")].map(r=>{
       const [name,balance,min,due,contractEnd,notes]=[...r.querySelectorAll("input")].map(x=>x.value);
       const id=r.dataset.id||"";
-      return {id, name, balance:+balance||0, min:+min||0, due, contractEnd, notes};
+      return {id, name, balance:+balance||0, min:+min||0, due, contractEnd, notes}; main
     });
   }
   function updateDebtTotals(){
     const d=readDebts();
-    sumBal.textContent=fmt(d.reduce((a,b)=>a+b.balance,0));
-    sumMin.textContent=fmt(d.reduce((a,b)=>a+b.min,0));
+    if(sumBal) sumBal.textContent=fmt(d.reduce((a,b)=>a+b.balance,0));
+    if(sumMin) sumMin.textContent=fmt(d.reduce((a,b)=>a+b.min,0));
   }
   $("#addDebt").addEventListener("click",()=>addDebtRow());
   function simulatePayoff(){
@@ -934,7 +1029,7 @@
     if(d.debtSettings){
       if(inputs.autoApply) inputs.autoApply.checked=!!d.debtSettings.autoApply;
     }
-    if(d.debts){ debtsTbl.innerHTML=""; d.debts.forEach(addDebtRow); }
+    if(d.debts && debtsList){ debtsList.innerHTML=""; d.debts.forEach(addDebtRow); }
     if(d.user&&inputs.paydays){ inputs.paydays.value=d.user.paydays||""; }
     if(d.psych&&$("#implIntents")){ $("#implIntents").value=d.psych.impl||""; }
   }
