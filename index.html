@@ -38,6 +38,10 @@
   .btn{border:1px solid var(--line);background:#0b0e1d;color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer}
   .btn:hover{border-color:#2b315a}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#0b0e1d;font-weight:600}
+  .payWrap{display:flex;gap:8px;width:100%;align-items:center}
+  .payWrap input{flex:1}
+  .btn.payToggle{white-space:nowrap}
+  .btn.payToggle.paid{background:var(--good);border-color:var(--good);color:#0b0e1d;font-weight:600}
   .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted);margin-left:10px}
   .kpi{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
   .kpi .box{flex:1;background:#0b0e1d;border:1px solid var(--line);border-radius:12px;padding:12px;min-width:180px}
@@ -51,11 +55,13 @@
   .good{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
   .muted{color:var(--muted)}
   .small{font-size:12px;color:var(--muted)}
+  .row.is-paid label{color:var(--good)}
   .divider{height:1px;background:var(--line);margin:12px 0}
   .progress{height:10px;background:#0b0e1d;border:1px solid var(--line);border-radius:999px;overflow:hidden}
   .progress > div{height:100%;background:var(--accent);width:0%}
   .note{font-size:12px;color:var(--muted);margin-top:6px}
   .archiveItem{padding:10px;border:1px dashed var(--line);border-radius:10px;margin:6px 0}
+  tr.paid td{opacity:.75}
 </style>
 </head>
 <body>
@@ -81,8 +87,8 @@
           <div class="row"><label>Kuu netosissetulek (€)</label><input id="income" type="number" class="mono" value="1400" min="0" step="1"></div>
           <h3 class="small muted" style="margin:6px 0 0">Püsikohustused</h3>
           <div class="row"><label>Laenud (min kokku) (€)</label><input id="loans" type="number" class="mono" value="800" min="0" step="1"></div>
-          <div class="row"><label>Toetus emale (€)</label><input id="mom" type="number" class="mono" value="85" min="0" step="1"></div>
-          <div class="row"><label>Korteri tugi õele (€)</label><input id="aptSupport" type="number" class="mono" value="140" min="0" step="1"></div>
+          <div class="row"><label>Toetus emale (€)</label><div class="payWrap"><input id="mom" type="number" class="mono" value="85" min="0" step="1"><button class="btn payToggle" data-pay-support="mom">Märgi makstuks</button></div></div>
+          <div class="row"><label>Korteri tugi õele (€)</label><div class="payWrap"><input id="aptSupport" type="number" class="mono" value="140" min="0" step="1"><button class="btn payToggle" data-pay-support="aptSupport">Märgi makstuks</button></div></div>
           <div class="row"><label>Telefon/Internet (€)</label><input id="phone" type="number" class="mono" value="30" min="0" step="1"></div>
           <div class="row"><label>Transport (€)</label><input id="transport" type="number" class="mono" value="60" min="0" step="1"></div>
           <div class="row"><label>Toit (€)</label><input id="groceries" type="number" class="mono" value="200" min="0" step="1"></div>
@@ -147,13 +153,13 @@
           <table id="debtsTbl">
             <thead>
               <tr>
-                <th>Võlg</th><th class="right">Jääk (€)</th><th class="right">Miinimum (€)</th><th>Tähtaeg (PP)</th><th>Märkused</th><th></th>
+                <th>Võlg</th><th class="right">Jääk (€)</th><th class="right">Miinimum (€)</th><th>Tähtaeg (PP)</th><th>Märkused</th><th>Makstud?</th><th></th>
               </tr>
             </thead>
             <tbody></tbody>
             <tfoot>
               <tr><td><strong>Kokku</strong></td><td class="right mono" id="sumBal">0</td>
-                  <td class="right mono" id="sumMin">0</td><td></td><td></td><td></td></tr>
+                  <td class="right mono" id="sumMin">0</td><td></td><td></td><td></td><td></td></tr>
             </tfoot>
           </table>
           <div class="row"><label><input type="checkbox" id="autoApply" /> Rakenda kuu maksed automaatselt</label></div>
@@ -325,8 +331,36 @@
   // ===== Kuu‑põhine püsivus =====
   const KEY = "rahakask-v5";
   const KEY_EXP = "rahakask-v5-expenses"; // ainult jooksva kuu kulud
+  const CUR_MONTH = monthKey(new Date());
+  let payMarksCache = null;
+  const defaultPayMarks = () => ({supports:{mom:false,aptSupport:false}, debts:{}});
   function readState(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
   function writeState(obj){ localStorage.setItem(KEY, JSON.stringify(obj)); }
+  function getPayMarks(){
+    if(payMarksCache) return payMarksCache;
+    const state = readState();
+    state.payMarks = state.payMarks || {};
+    const existing = state.payMarks[CUR_MONTH];
+    if(existing){
+      payMarksCache = {
+        supports: Object.assign({mom:false,aptSupport:false}, existing.supports||{}),
+        debts: Object.assign({}, existing.debts||{})
+      };
+    } else {
+      payMarksCache = defaultPayMarks();
+    }
+    state.payMarks[CUR_MONTH] = payMarksCache;
+    writeState(state);
+    return payMarksCache;
+  }
+  function savePayMarks(){
+    if(!payMarksCache) return;
+    const state = readState();
+    state.payMarks = state.payMarks || {};
+    state.payMarks[CUR_MONTH] = payMarksCache;
+    writeState(state);
+  }
+  function resetPayMarksCache(){ payMarksCache = null; }
 
   
   
@@ -412,6 +446,12 @@
 
       // Clear only expenses (new month starts fresh)
       localStorage.removeItem(KEY_EXP);
+
+      // Reset paid markers for the new month
+      state.payMarks = state.payMarks || {};
+      state.payMarks[prevMonth] && delete state.payMarks[prevMonth];
+      state.payMarks[cur] = defaultPayMarks();
+      resetPayMarksCache();
     }
 
     // Update current meta month
@@ -436,6 +476,69 @@
         <div class="small muted">Kirje sisaldab kogu kuu seisu (eelarve, võlad, sätted) ja kõiki kulusid.</div>
       </div>`;
     }).join("");
+  }
+
+  function reflectSupportPaid(key){
+    const marks = getPayMarks();
+    const paid = !!(marks.supports && marks.supports[key]);
+    const btn = document.querySelector(`[data-pay-support="${key}"]`);
+    if(btn){
+      btn.textContent = paid ? "Makstud ✓" : "Märgi makstuks";
+      btn.classList.toggle("paid", paid);
+      const row = btn.closest(".row");
+      if(row) row.classList.toggle("is-paid", paid);
+    }
+  }
+  function toggleSupportPaid(key){
+    const marks = getPayMarks();
+    marks.supports = marks.supports || {mom:false,aptSupport:false};
+    marks.supports[key] = !marks.supports[key];
+    savePayMarks();
+    reflectSupportPaid(key);
+  }
+  let supportButtonsInit=false;
+  function refreshSupportButtons(){
+    document.querySelectorAll('[data-pay-support]').forEach(btn=>{
+      const key=btn.getAttribute('data-pay-support');
+      reflectSupportPaid(key);
+    });
+  }
+  function initSupportButtons(){
+    if(!supportButtonsInit){
+      document.querySelectorAll('[data-pay-support]').forEach(btn=>{
+        const key=btn.getAttribute('data-pay-support');
+        btn.addEventListener('click',()=>{ toggleSupportPaid(key); });
+      });
+      supportButtonsInit=true;
+    }
+    refreshSupportButtons();
+  }
+  function reflectDebtPaid(id){
+    const marks = getPayMarks();
+    const paid = !!(marks.debts && marks.debts[id]);
+    const row = debtsTbl.querySelector(`tr[data-id="${id}"]`);
+    if(row){
+      row.classList.toggle("paid", paid);
+      const btn = row.querySelector("[data-pay-debt]");
+      if(btn){
+        btn.textContent = paid ? "Makstud ✓" : "Märgi makstuks";
+        btn.classList.toggle("paid", paid);
+      }
+    }
+  }
+  function toggleDebtPaid(id){
+    const marks = getPayMarks();
+    marks.debts = marks.debts || {};
+    marks.debts[id] = !marks.debts[id];
+    savePayMarks();
+    reflectDebtPaid(id);
+  }
+  function clearDebtPaid(id){
+    const marks = getPayMarks();
+    if(marks.debts && marks.debts[id]){
+      delete marks.debts[id];
+      savePayMarks();
+    }
   }
 
   // ===== Payday helperid =====
@@ -527,23 +630,35 @@
   const debtsTbl=$("#debtsTbl tbody");
   const sumBal=$("#sumBal");
   const sumMin=$("#sumMin");
-  function addDebtRow(d={name:"Laen",balance:0,min:0,due:"",notes:""}){
+  function addDebtRow(d={name:"Laen",balance:0,min:0,due:"",notes:"",id:null}){
     const tr=document.createElement("tr");
+    const rowId=d.id||`d-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
+    tr.dataset.id=rowId;
     tr.innerHTML=`
       <td><input value="${d.name||''}" /></td>
       <td class="right"><input type="number" class="mono" value="${d.balance||0}" step="1" min="0" /></td>
       <td class="right"><input type="number" class="mono" value="${d.min||0}" step="1" min="0" /></td>
       <td><input value="${d.due||''}" placeholder="PP" /></td>
       <td><input value="${d.notes||''}" /></td>
-      <td><button class="btn">✕</button></td>`;
-    tr.querySelector("button").addEventListener("click",()=>{ tr.remove(); updateDebtTotals(); persist(); renderUpcomingPays(); simulatePayoff(); });
+      <td><button class="btn payToggle" data-pay-debt="${rowId}">Märgi makstuks</button></td>
+      <td><button class="btn" data-action="remove">✕</button></td>`;
+    const removeBtn=tr.querySelector('[data-action="remove"]');
+    if(removeBtn){
+      removeBtn.addEventListener("click",()=>{ tr.remove(); clearDebtPaid(rowId); updateDebtTotals(); persist(); renderUpcomingPays(); simulatePayoff(); });
+    }
     tr.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",()=>{ updateDebtTotals(); persist(); renderUpcomingPays(); simulatePayoff(); }));
+    const payBtn=tr.querySelector(`[data-pay-debt="${rowId}"]`);
+    if(payBtn){
+      payBtn.addEventListener("click",()=>{ toggleDebtPaid(rowId); });
+    }
     debtsTbl.appendChild(tr); updateDebtTotals(); renderUpcomingPays(); simulatePayoff();
+    reflectDebtPaid(rowId);
   }
   function readDebts(){
     return [...debtsTbl.querySelectorAll("tr")].map(r=>{
       const [name,balance,min,due,notes]=[...r.querySelectorAll("input")].map(x=>x.value);
-      return {name, balance:+balance||0, min:+min||0, due, notes};
+      const id=r.dataset.id||"";
+      return {id, name, balance:+balance||0, min:+min||0, due, notes};
     });
   }
   function updateDebtTotals(){
@@ -687,6 +802,7 @@
 
   function load(){
     archiveIfMonthRolled();
+    initSupportButtons();
     const state=readState(); applyData(state.data||{});
     // init
     recomputeZaza(); recomputeBudget(); renderExpenses(); renderUpcomingPays(); updatePayInfo(); simulatePayoff(); renderArchives();
