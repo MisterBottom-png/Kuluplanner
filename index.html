@@ -546,6 +546,8 @@
       const ds = (state.data && state.data.debtSettings) || {};
       const autoApply = !!ds.autoApply;
 
+      const snapshotData = JSON.parse(JSON.stringify(state.data || {}));
+
       if (autoApply && debts.length){
         // 1) Apply per-debt minimums (reduce balances)
         debts.forEach(d => {
@@ -557,9 +559,6 @@
             minsPaid.push({name:d.name, amount:pay});
           }
         });
-
-        // Write updated debts back
-        state.data.debts = debts;
 
         // Archive snapshot incl. payments summary
         const snapshotData = JSON.parse(JSON.stringify(state.data || {}));
@@ -575,6 +574,9 @@
           }
         };
         state.archives.push(archiveEntry);
+
+        // Write updated debts back for the new month after archiving snapshot
+        state.data.debts = debts;
       } else {
         // No auto-apply: archive without altering debts
         const snapshotData = JSON.parse(JSON.stringify(state.data || {}));
