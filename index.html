@@ -854,7 +854,7 @@
     return [...debtsTbl.querySelectorAll("tr")].map(r=>{
       const [name,balance,min,due,contractEnd,notes]=[...r.querySelectorAll("input")].map(x=>x.value);
       const id=r.dataset.id||"";
-      return {id, name, balance:+balance||0, min:+min||0, due, contractEnd, notes}; main
+      return {id, name, balance:+balance||0, min:+min||0, due, contractEnd, notes};
     });
   }
   function updateDebtTotals(){
