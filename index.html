@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="et">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Money Coach – Budget + Debt + Psychology</title>
+<title>Rahakäsk – Kuu‑põhine eelarve + võlad</title>
 <style>
   :root{
     --bg:#0f1221; --card:#171a2e; --ink:#e9ecff; --muted:#aab1d9; --accent:#7c9bff;
@@ -13,29 +13,34 @@
   html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
   header{padding:18px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:linear-gradient(180deg,#0f1221 0%,rgba(15,18,33,.8) 100%);backdrop-filter: blur(6px);z-index:5}
   header h1{margin:0;font-size:18px;letter-spacing:.4px}
-  header .sub{color:var(--muted);font-size:12px;margin-top:4px}
-  main{max-width:1100px;margin:24px auto;padding:0 16px 80px}
+  header .sub{color:var(--muted);font-size:12px;margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  header .date{padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:#0b0e1d;font-variant-numeric:tabular-nums}
+  .monthBadge{padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:#0b0e1d}
+  main{max-width:1150px;margin:24px auto;padding:0 16px 80px}
 
   .grid{display:grid;gap:16px}
-  @media (min-width: 880px){
+  @media (min-width: 980px){
     .grid-2{grid-template-columns:1.2fr .8fr}
-    .grid-3{grid-template-columns:1fr 1fr 1fr}
   }
 
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
-  .card h2{margin:0 0 10px;font-size:16px}
-  .card h3{margin:16px 0 6px;font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0;overflow:hidden}
+  summary{list-style:none;padding:14px 16px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+  summary::-webkit-details-marker{display:none}
+  .sum-left{display:flex;align-items:center;gap:10px}
+  .chev{transition:transform .2s ease}
+  details[open] .chev{transform:rotate(90deg)}
+  .content{padding:14px 16px;border-top:1px solid var(--line)}
   .row{display:flex;gap:10px;align-items:center;margin:8px 0}
-  label{font-size:13px;color:var(--muted);min-width:140px}
+  label{font-size:13px;color:var(--muted);min-width:200px}
   input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0b0e1d;color:var(--ink);outline:none}
   textarea{min-height:80px;resize:vertical}
   .mono{font-variant-numeric:tabular-nums}
   .btn{border:1px solid var(--line);background:#0b0e1d;color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer}
   .btn:hover{border-color:#2b315a}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#0b0e1d;font-weight:600}
-  .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted);margin-right:6px}
-  .kpi{display:flex;justify-content:space-between;gap:8px}
-  .kpi .box{flex:1;background:#0b0e1d;border:1px solid var(--line);border-radius:12px;padding:12px}
+  .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted);margin-left:10px}
+  .kpi{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .kpi .box{flex:1;background:#0b0e1d;border:1px solid var(--line);border-radius:12px;padding:12px;min-width:180px}
   .kpi .box .label{color:var(--muted);font-size:11px;margin-bottom:6px}
   .kpi .box .val{font-size:20px;font-weight:700}
   table{width:100%;border-collapse:collapse}
@@ -47,173 +52,229 @@
   .muted{color:var(--muted)}
   .small{font-size:12px;color:var(--muted)}
   .divider{height:1px;background:var(--line);margin:12px 0}
-  .tag{background:#101533;border:1px solid #27306b;color:#cdd6ff;padding:4px 8px;border-radius:8px;font-size:11px;margin-right:6px}
-  details summary{cursor:pointer;color:#cfd6ff}
-  .flex{display:flex;gap:10px;align-items:center}
-  .note{font-size:12px;color:var(--muted);margin-top:4px}
-  .caps{letter-spacing:.06em;text-transform:uppercase}
+  .progress{height:10px;background:#0b0e1d;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .progress > div{height:100%;background:var(--accent);width:0%}
+  .note{font-size:12px;color:var(--muted);margin-top:6px}
+  .archiveItem{padding:10px;border:1px dashed var(--line);border-radius:10px;margin:6px 0}
 </style>
 </head>
 <body>
 <header>
-  <h1>Money Coach • Budget + Debt + Psychology</h1>
-  <div class="sub">Zero-based plan • Debt Snowball/Avalanche • Habit tools • Family agreement</div>
+  <h1>Rahakäsk • Kuu‑põhine eelarve + võlad</h1>
+  <div class="sub">
+    <span class="monthBadge" id="monthBadge">—</span>
+    <span class="date" id="todayDate">—</span>
+  </div>
 </header>
 
 <main class="grid grid-2">
-  <!-- LEFT COLUMN -->
+  <!-- VASAK VEERG -->
   <section class="grid">
-    <!-- Income & Fixed -->
+    <!-- 1) Eelarve -->
     <div class="card">
-      <h2>1) Income & Fixed Costs</h2>
-      <div class="row"><label>Monthly Net Income (€)</label><input id="income" type="number" class="mono" value="1400" min="0" step="1"></div>
-      <h3>Fixed commitments</h3>
-      <div class="row"><label>Loans (min total) (€)</label><input id="loans" type="number" class="mono" value="800" min="0" step="1"></div>
-      <div class="row"><label>Mom contribution (€)</label><input id="mom" type="number" class="mono" value="85" min="0" step="1"></div>
-      <div class="row"><label>Apartment support for sister (€)</label><input id="aptSupport" type="number" class="mono" value="140" min="0" step="1"></div>
-      <div class="row"><label>Phone/Internet (€)</label><input id="phone" type="number" class="mono" value="30" min="0" step="1"></div>
-      <div class="row"><label>Transport (€)</label><input id="transport" type="number" class="mono" value="60" min="0" step="1"></div>
-      <div class="row"><label>Groceries/Food (€)</label><input id="groceries" type="number" class="mono" value="200" min="0" step="1"></div>
-      <div class="row"><label>Other Essentials (€)</label><input id="otherEss" type="number" class="mono" value="0" min="0" step="1"></div>
-      <div class="divider"></div>
-      <h3>Discretionary</h3>
-      <div class="row"><label>Entertainment (€)</label><input id="fun" type="number" class="mono" value="20" min="0" step="1"></div>
-      <div class="row"><label>Clothes/Personal (€)</label><input id="personal" type="number" class="mono" value="10" min="0" step="1"></div>
-      <div class="row"><label>Cannabis cap (€)</label><input id="zazaCap" type="number" class="mono" value="120" min="0" step="1"></div>
+      <details open>
+        <summary>
+          <div class="sum-left"><span class="chev">▶</span><h2>1) Sissetulek ja püsikulud (kuu‑põhine)</h2></div>
+          <div class="pill" id="pillBudget">—</div>
+        </summary>
+        <div class="content">
+          <div class="row"><label>Kuu netosissetulek (€)</label><input id="income" type="number" class="mono" value="1400" min="0" step="1"></div>
+          <h3 class="small muted" style="margin:6px 0 0">Püsikohustused</h3>
+          <div class="row"><label>Laenud (min kokku) (€)</label><input id="loans" type="number" class="mono" value="800" min="0" step="1"></div>
+          <div class="row"><label>Toetus emale (€)</label><input id="mom" type="number" class="mono" value="85" min="0" step="1"></div>
+          <div class="row"><label>Korteri tugi õele (€)</label><input id="aptSupport" type="number" class="mono" value="140" min="0" step="1"></div>
+          <div class="row"><label>Telefon/Internet (€)</label><input id="phone" type="number" class="mono" value="30" min="0" step="1"></div>
+          <div class="row"><label>Transport (€)</label><input id="transport" type="number" class="mono" value="60" min="0" step="1"></div>
+          <div class="row"><label>Toit (€)</label><input id="groceries" type="number" class="mono" value="200" min="0" step="1"></div>
+          <div class="row"><label>Muud esmavajadused (€)</label><input id="otherEss" type="number" class="mono" value="0" min="0" step="1"></div>
+          <div class="divider"></div>
+          <h3 class="small muted" style="margin:6px 0 0">Vaba valik</h3>
+          <div class="row"><label>Meelelahutus (€)</label><input id="fun" type="number" class="mono" value="20" min="0" step="1"></div>
+          <div class="row"><label>Riided/Isiklik (€)</label><input id="personal" type="number" class="mono" value="10" min="0" step="1"></div>
+          <div class="row"><label>Kanepi kulu ülempiir (€)</label><input id="zazaCap" type="number" class="mono" value="120" min="0" step="1"></div>
+          <div class="divider"></div>
+          <h3 class="small muted" style="margin:6px 0 0">Ohutus ja eesmärgid</h3>
+          <div class="row"><label>Hädaabifondi siht (€)</label><input id="efTarget" type="number" class="mono" value="300" min="0" step="1"></div>
+          <div class="row"><label>Hädaabifondi jääk (€)</label><input id="efNow" type="number" class="mono" value="0" min="0" step="1"></div>
 
-      <div class="divider"></div>
-      <h3>Safety & Goals</h3>
-      <div class="row"><label>Emergency Fund (target €)</label><input id="efTarget" type="number" class="mono" value="300" min="0" step="1"></div>
-      <div class="row"><label>Current EF balance (€)</label><input id="efNow" type="number" class="mono" value="0" min="0" step="1"></div>
+          <div class="divider"></div>
+          <div class="row">
+            <label>Palgapäev (PP või mitu: 5,20)</label>
+            <input id="paydaysInput" placeholder="nt 5 või 5,20" />
+          </div>
+          <div class="small" id="nextPayInfo"></div>
 
-      <div class="divider"></div>
-      <div class="kpi">
-        <div class="box"><div class="label">Total Planned Outflows</div><div class="val mono" id="kpiOut">—</div></div>
-        <div class="box"><div class="label">Leftover / Shortfall</div><div class="val mono" id="kpiLeft">—</div></div>
-        <div class="box"><div class="label">Surplus Allocation</div><div class="val mono" id="kpiAlloc">—</div></div>
-      </div>
-      <div class="note">Aim for <span class="caps">Leftover = 0</span> by allocating surplus to Emergency Fund until target is reached, then to Extra Debt Payment.</div>
-    </div>
-
-    <!-- Cannabis calculator -->
-    <div class="card">
-      <h2>2) Cannabis Reality Check</h2>
-      <div class="row"><label>Price per gram (€)</label><input id="pricePerGram" type="number" class="mono" value="10" min="0" step="0.1"></div>
-      <div class="row"><label>Grams per week</label><input id="gramsPerWeek" type="number" class="mono" value="3" min="0" step="0.1"></div>
-      <div class="row"><label>Monthly spend (auto) (€)</label><input id="zazaAuto" type="number" class="mono" value="—" disabled></div>
-      <div class="row"><label>Reduce by (%)</label><input id="zazaCutPct" type="number" class="mono" value="25" min="0" max="100"></div>
-      <div class="row"><button class="btn" id="applyCap">Set Cap & Move Savings → EF</button><span class="small" id="capMsg"></span></div>
-      <p class="note">We estimate monthly as <span class="mono">price × grams/week × 4.3</span>. Savings from the cut are earmarked to the Emergency Fund automatically in the plan.</p>
-    </div>
-
-    <!-- Debt Planner -->
-    <div class="card">
-      <h2>3) Debt Snowball / Avalanche</h2>
-      <div class="row">
-        <label>Strategy</label>
-        <select id="strategy">
-          <option value="avalanche">Avalanche (highest APR first)</option>
-          <option value="snowball">Snowball (smallest balance first)</option>
-        </select>
-      </div>
-      <div class="row"><label>Extra payment (auto from surplus) (€)</label><input id="extraDebt" type="number" class="mono" value="0" min="0" step="1"></div>
-      <div class="row"><button class="btn" id="addDebt">+ Add Debt</button> <button class="btn" id="exportDebtCsv">Export Debts CSV</button></div>
-      <table id="debtsTbl">
-        <thead>
-          <tr>
-            <th>Debt</th><th class="right">Balance (€)</th><th class="right">APR %</th><th class="right">Min (€)</th><th>Due (DD)</th><th>Notes</th><th></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot>
-          <tr><td><strong>Totals</strong></td><td class="right mono" id="sumBal">0</td><td></td>
-              <td class="right mono" id="sumMin">0</td><td></td><td></td><td></td></tr>
-        </tfoot>
-      </table>
-      <div class="divider"></div>
-      <button class="btn primary" id="simulate">Simulate Payoff</button>
-      <div class="kpi" style="margin-top:10px">
-        <div class="box"><div class="label">Time to Debt-Free</div><div class="val mono" id="kpiMonths">—</div></div>
-        <div class="box"><div class="label">Total Interest (est.)</div><div class="val mono" id="kpiInterest">—</div></div>
-        <div class="box"><div class="label">Earliest Payoff</div><div class="val mono" id="kpiFirstDone">—</div></div>
-      </div>
-      <p class="note">Sim uses monthly compounding at APR/12, pays all minimums, then directs <span class="mono">Extra</span> to the target per chosen strategy. When a debt is paid, its minimum “snowballs” to the next.</p>
-    </div>
-  </section>
-
-  <!-- RIGHT COLUMN -->
-  <section class="grid">
-    <!-- Psychology Coach -->
-    <div class="card">
-      <h2>Psychology Coach</h2>
-      <h3>Implementation intentions</h3>
-      <textarea id="implIntents">If it's after 22:30 and I crave, I will make tea and do an 8-min stretch; if I still want it after, I’ll keep to my cap.</textarea>
-      <h3>Urge-surfing timer (3 minutes)</h3>
-      <div class="row">
-        <button class="btn" id="startUrge">Start 3:00</button>
-        <div id="urgeClock" class="pill mono">03:00</div>
-      </div>
-      <h3>Weekly Check-in (keep it 10 minutes)</h3>
-      <ul class="small">
-        <li>Log Actuals in the budget.</li>
-        <li>Check cannabis envelope/sub-account.</li>
-        <li>If overshooting, trim this week (not next month).</li>
-        <li>Celebrate one win (e.g., “€40 → Emergency Fund”).</li>
-      </ul>
-      <h3>Boundary scripts</h3>
-      <details open><summary>Open scripts</summary>
-        <ul class="small">
-          <li><strong>Payday:</strong> “Debts + mom + apartment get paid first; I live on what’s left.”</li>
-          <li><strong>Shop:</strong> “My cap for today is €… ; if I hit it, I’m done.”</li>
-          <li><strong>Friends:</strong> “Cutting back this month—I’m on a savings streak.”</li>
-          <li><strong>Lenders:</strong> “I’m current but stretched. Any hardship or rate-reduction options?”</li>
-        </ul>
+          <div class="divider"></div>
+          <div class="kpi">
+            <div class="box"><div class="label">Väljavool kokku</div><div class="val mono" id="kpiOut">—</div></div>
+            <div class="box"><div class="label">Ülejääk / Puudujääk</div><div class="val mono" id="kpiLeft">—</div></div>
+            <div class="box"><div class="label">Jaotus</div><div class="val mono" id="kpiAlloc">—</div></div>
+          </div>
+          <div class="note">Iga kuu alguses (või palgapäeval) arhiveeritakse eelmine kuu automaatselt ning alustad värske kuuga.</div>
+        </div>
       </details>
     </div>
 
-    <!-- Family Agreement Planner -->
+    <!-- 2) Kanepi kalkulaator -->
     <div class="card">
-      <h2>Family Agreement Planner (Apartment)</h2>
-      <div class="row"><label>Purpose</label><input id="famPurpose" value="Support apartment for sister & niece"></div>
-      <div class="row"><label>Parties & Roles</label><input id="famParties" value="You (payer), Friend (owner/landlord), Sister (occupant)"></div>
-      <div class="row"><label>Monthly Amount (€)</label><input id="famAmount" type="number" class="mono" value="140"></div>
-      <div class="row"><label>Start Date</label><input id="famStart" type="date"></div>
-      <div class="row"><label>Review</label><input id="famReview" value="Every 6 months"></div>
-      <div class="row"><label>Duration/End</label><input id="famEnd" value="5–6 years remaining"></div>
-      <div class="row"><label>If late</label><input id="famLate" value="Grace ___ days; then plan ___"></div>
-      <div class="row"><label>Adjustments</label><input id="famAdj" value="Change only at review or with written agreement"></div>
-      <div class="row"><label>Future options</label><textarea id="famNotes">Option A: You move in later (terms for utilities/repairs). Option B: Transfer/sell to sister—agree fair price and schedule.</textarea></div>
+      <details>
+        <summary>
+          <div class="sum-left"><span class="chev">▶</span><h2>2) Kanepi tegelikkuse kontroll</h2></div>
+          <div class="pill" id="pillZaza">Zaza alles: —</div>
+        </summary>
+        <div class="content">
+          <div class="row"><label>Hind €/g</label><input id="pricePerGram" type="number" class="mono" value="10" min="0" step="0.1"></div>
+          <div class="row"><label>Gramme nädalas</label><input id="gramsPerWeek" type="number" class="mono" value="3" min="0" step="0.1"></div>
+          <div class="row"><label>Kuu kulu (auto) (€)</label><input id="zazaAuto" type="number" class="mono" value="" disabled></div>
+          <div class="row"><label>Vähenda (%)</label><input id="zazaCutPct" type="number" class="mono" value="25" min="0" max="100"></div>
+          <div class='row'><button class="btn" id="applyCap">Sea ülempiir ja liiguta sääst EF-i</button><span class="small" id="capMsg" style="margin-left:8px;"></span></div>
+          <div class="divider"></div>
+          <div class="small">Kulude jälgija all arvestatakse Zaza kulud eraldi.</div>
+          <div class="progress"><div id="zazaProg"></div></div>
+        </div>
+      </details>
     </div>
 
-    <!-- Data Tools -->
+    <!-- 3) Võlaplaan -->
     <div class="card">
-      <h2>Data & Tools</h2>
-      <div class="row">
-        <button class="btn" id="save">Save</button>
-        <button class="btn" id="reset">Reset to Defaults</button>
-      </div>
-      <div class="row">
-        <button class="btn" id="exportJson">Export JSON</button>
-        <label style="min-width:auto">Import JSON</label>
-        <input id="importJson" type="file" accept="application/json" />
-      </div>
-      <p class="small muted">Autosaves to your browser (localStorage). Export before switching devices or clearing history.</p>
+      <details>
+        <summary>
+          <div class="sum-left"><span class="chev">▶</span><h2>3) Võlaplaan (snowball, ilma intressita)</h2></div>
+          <div class="pill" id="pillDebt">—</div>
+        </summary>
+        <div class="content">
+          <div class="row"><label>Lisamakse (automaatne ülejäägist) (€)</label><input id="extraDebt" type="number" class="mono" value="0" min="0" step="1"></div>
+          <div class="row"><button class="btn" id="addDebt">+ Lisa võlg</button> <button class="btn" id="exportDebtCsv">Ekspordi CSV</button></div>
+          <table id="debtsTbl">
+            <thead>
+              <tr>
+                <th>Võlg</th><th class="right">Jääk (€)</th><th class="right">Miinimum (€)</th><th>Tähtaeg (PP)</th><th>Märkused</th><th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr><td><strong>Kokku</strong></td><td class="right mono" id="sumBal">0</td>
+                  <td class="right mono" id="sumMin">0</td><td></td><td></td><td></td></tr>
+            </tfoot>
+          </table>
+          <div class="row"><label><input type="checkbox" id="autoApply" /> Rakenda kuu maksed automaatselt</label></div>
+          <div class="divider"></div>
+          <button class="btn primary" id="simulate">Simuleeri tasumist</button>
+          <div class="kpi" style="margin-top:10px">
+            <div class="box"><div class="label">Aeg võlavabaks</div><div class="val mono" id="kpiMonths">—</div></div>
+            <div class="box"><div class="label">Esimesena tasutav</div><div class="val mono" id="kpiFirstDone">—</div></div>
+            <div class="box"><div class="label">Võlavaba kuupäev</div><div class="val mono" id="kpiDebtFreeDate">—</div></div>
+          </div>
+          <p class="small muted">Intressi ei arvestata. Kõik miinimumid makstakse; ülejääk suunatakse väikseima jäägiga võlale.</p>
+        </div>
+      </details>
     </div>
 
-    <!-- Live Summary -->
+    <!-- 4) Kulutuste jälgija -->
     <div class="card">
-      <h2>Live Summary</h2>
-      <div id="liveSummary" class="small"></div>
+      <details open>
+        <summary>
+          <div class="sum-left"><span class="chev">▶</span><h2>4) Kulutuste jälgija (selle kuu)</h2></div>
+          <div class="pill" id="pillSpent">Sel kuul: —</div>
+        </summary>
+        <div class="content">
+          <div class="row">
+            <label>Kategooria</label>
+            <select id="expCat">
+              <option>Zaza</option>
+              <option>Toit</option>
+              <option>Transport</option>
+              <option>Meelelahutus</option>
+              <option>Riided/Isiklik</option>
+              <option>Muu</option>
+            </select>
+          </div>
+          <div class="row"><label>Summa (€)</label><input id="expAmt" type="number" class="mono" min="0" step="0.01" /></div>
+          <div class="row"><label>Kuupäev</label><input id="expDate" type="date" /></div>
+          <div class="row"><label>Märkus</label><input id="expNote" type="text" placeholder="mis, kus, kelle jaoks"></div>
+          <div class="row"><button class="btn primary" id="addExp">+ Lisa kulu</button></div>
+
+          <div class="divider"></div>
+          <table id="expTbl">
+            <thead><tr><th>Kuupäev</th><th>Kategooria</th><th>Märkus</th><th class="right">€</th><th></th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr><td colspan="3"><strong>Kokku (kuu):</strong></td><td class="right mono" id="expSum">0.00</td><td></td></tr></tfoot>
+          </table>
+
+          <div class="divider"></div>
+          <h3>Sel kuul kategooriate kaupa</h3>
+          <div id="expBreakdown" class="small"></div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- PAREM VEERG -->
+  <section class="grid">
+    <!-- Arhiiv (loe‑ainult) -->
+    <div class="card">
+      <details>
+        <summary>
+          <div class="sum-left"><span class="chev">▶</span><h2>Arhiiv (varasemad kuud)</h2></div>
+        </summary>
+        <div class="content">
+          <div id="archivesList" class="small"></div>
+          <div class="note">Arhiivi kirjed tekivad automaatselt, kui kuu vahetub. Sisaldab kogu eelmise kuu seisu.</div>
+        </div>
+      </details>
+    </div>
+
+    <!-- Psühholoogia -->
+    <div class="card">
+      <details>
+        <summary>
+          <div class="sum-left"><span class="chev">▶</span><h2>Psühholoogianipid</h2></div>
+        </summary>
+        <div class="content">
+          <h3>Tegevuskavad</h3>
+          <textarea id="implIntents">Kui kell on pärast 22:30 ja tekib isu, teen teed ja teen 8-min venituse; kui ikka tahan, jään oma piirangu juurde.</textarea>
+          <h3>Tahtmise laine (3 minutit)</h3>
+          <div class="row">
+            <button class="btn" id="startUrge">Käivita 3:00</button>
+            <div id="urgeClock" class="pill mono">03:00</div>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <!-- Jooksev kokkuvõte + maksepäevad -->
+    <div class="card">
+      <details open>
+        <summary>
+          <div class="sum-left"><span class="chev">▶</span><h2>Jooksev kokkuvõte & maksepäevad</h2></div>
+        </summary>
+        <div class="content">
+          <div id="liveSummary" class="small"></div>
+          <div class="divider"></div>
+          <h3>Lähenevad maksepäevad (võlad PP)</h3>
+          <div id="upcomingPays" class="small"></div>
+        </div>
+      </details>
     </div>
   </section>
 </main>
 
 <script>
-  // ===== Helpers =====
+  // ===== Abi =====
   const $ = sel => document.querySelector(sel);
   const fmt = n => isFinite(n) ? (Number(n).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})) : '—';
+  const fmt2 = n => isFinite(n) ? (Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})) : '—';
   const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+  const monthKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 
+  // Päis
+  const todayDate = $("#todayDate");
+  const monthBadge = $("#monthBadge");
+  const now = new Date();
+  todayDate.textContent = now.toLocaleDateString(undefined,{weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  monthBadge.textContent = now.toLocaleDateString(undefined,{month:'long', year:'numeric'});
+
+  // Elemendid
   const inputs = {
     income:      $("#income"),
     loans:       $("#loans"),
@@ -228,15 +289,13 @@
     zazaCap:     $("#zazaCap"),
     efTarget:    $("#efTarget"),
     efNow:       $("#efNow"),
-
     pricePerGram:$("#pricePerGram"),
     gramsPerWeek:$("#gramsPerWeek"),
     zazaAuto:    $("#zazaAuto"),
     zazaCutPct:  $("#zazaCutPct"),
     applyCap:    $("#applyCap"),
-
-    strategy:    $("#strategy"),
     extraDebt:   $("#extraDebt"),
+    paydays:     $("#paydaysInput"),
   };
 
   const kpis = {
@@ -244,364 +303,448 @@
     left:  $("#kpiLeft"),
     alloc: $("#kpiAlloc"),
     months:$("#kpiMonths"),
-    interest:$("#kpiInterest"),
     firstDone:$("#kpiFirstDone"),
+    debtFreeDate:$("#kpiDebtFreeDate"),
   };
 
   const summary = $("#liveSummary");
+  const upcomingPays = $("#upcomingPays");
+  const pillBudget = $("#pillBudget");
+  const pillZaza = $("#pillZaza");
+  const pillDebt = $("#pillDebt");
+  const pillSpent = $("#pillSpent");
+  const zazaProg = $("#zazaProg");
+  const archivesList = $("#archivesList");
 
-  // ===== Budget Logic (Excel-like) =====
-  function computeOutflows(){
-    const essentials = (+inputs.loans.value||0)+(+inputs.mom.value||0)+(+inputs.aptSupport.value||0)
-      +(+inputs.phone.value||0)+(+inputs.transport.value||0)+(+inputs.groceries.value||0)+(+inputs.otherEss.value||0);
-    const discretionary = (+inputs.fun.value||0)+(+inputs.personal.value||0)+(+inputs.zazaCap.value||0);
-    return essentials + discretionary;
-  }
+  // ===== Kuu‑põhine püsivus =====
+  const KEY = "rahakask-v5";
+  const KEY_EXP = "rahakask-v5-expenses"; // ainult jooksva kuu kulud
+  function readState(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+  function writeState(obj){ localStorage.setItem(KEY, JSON.stringify(obj)); }
 
-  function recomputeBudget(){
-    const income = +inputs.income.value||0;
-    const out = computeOutflows();
-    const left = income - out;
+  
+  
+  function archiveIfMonthRolled(){
+    const state = readState();
+    const cur = monthKey(new Date());
+    const storedMonth = (state.meta && state.meta.month) || null;
 
-    // Surplus allocation logic
-    let toEF = 0, toDebt = 0;
-    const efNeed = Math.max(0,(+inputs.efTarget.value||0) - (+inputs.efNow.value||0));
-    if (left > 0){
-      toEF = Math.min(left, efNeed);
-      toDebt = Math.max(0, left - toEF);
-    } else {
-      toEF = 0; toDebt = 0;
+    const hadMeta = !!storedMonth;
+    const monthChanged = hadMeta && storedMonth !== cur;
+
+    state.archives = state.archives || [];
+    state.data = state.data || {};
+
+    if (monthChanged){
+      // Load all expenses (previous + current) from store
+      let allExpenses = [];
+      try { allExpenses = JSON.parse(localStorage.getItem(KEY_EXP) || "[]"); } catch (e) { allExpenses = []; }
+      const prevMonth = storedMonth; // e.g., "2025-09"
+      const prevMonthExpenses = allExpenses.filter(e => String(e.date||"").slice(0,7) === prevMonth);
+
+      // Compute initial carryOver (leftover cash) based on previous month
+      const b = (state.data && state.data.budget) || {};
+      const income = +b.income || 0;
+      const fixedBills = (+b.loans||0) + (+b.mom||0) + (+b.aptSupport||0) + (+b.phone||0);
+      const spent = prevMonthExpenses.reduce((s,x)=> s + (+x.amt||0), 0);
+      let carryOver = income - fixedBills - spent;
+      if (!isFinite(carryOver)) carryOver = 0;
+      if (carryOver < 0) carryOver = 0;
+
+      // Prepare debts for update
+      const debts = (state.data && state.data.debts ? JSON.parse(JSON.stringify(state.data.debts)) : []);
+      const minsPaid = [];
+      let minTotalApplied = 0;
+
+      // Auto-apply toggle & extra amount
+      const ds = (state.data && state.data.debtSettings) || {};
+      const autoApply = !!ds.autoApply;
+      const plannedExtra = +ds.extra || 0;
+
+      if (autoApply && debts.length){
+        // 1) Apply per-debt minimums (reduce balances)
+        debts.forEach(d => {
+          const before = +d.balance || 0;
+          let pay = Math.min(+d.min || 0, before);
+          if (pay > 0){
+            d.balance = Math.max(0, before - pay);
+            minTotalApplied += pay;
+            minsPaid.push({name:d.name, amount:pay});
+          }
+        });
+
+        // 2) Extra pool comes out of carryOver to avoid double counting with EF
+        let extraPool = Math.max(0, Math.min(carryOver, plannedExtra));
+
+        // Snowball: pay extra to smallest remaining balance
+        const extraPayments = [];
+        function sortDebts(){ debts.sort((a,b)=> (+a.balance||0) - (+b.balance||0)); }
+        sortDebts();
+        while (extraPool > 0){
+          const target = debts.find(d => (+d.balance||0) > 0);
+          if (!target) break;
+          const pay = Math.min(extraPool, +target.balance);
+          target.balance = Math.max(0, (+target.balance||0) - pay);
+          extraPool -= pay;
+          extraPayments.push({name: target.name, amount: pay});
+          sortDebts();
+        }
+
+        // Reduce carryOver by the extra we actually applied
+        const extraApplied = Math.max(0, (plannedExtra - extraPool));
+        carryOver = Math.max(0, carryOver - extraApplied);
+
+        // Write updated debts back
+        state.data.debts = debts;
+
+        // Archive snapshot incl. payments summary
+        const archiveEntry = {
+          month: prevMonth,
+          ts: Date.now(),
+          data: state.data || {},
+          expenses: prevMonthExpenses,
+          carryOver: carryOver,
+          payments: {
+            mins: minsPaid,
+            minsTotal: minTotalApplied,
+            extra: extraPayments,
+            extraTotal: extraApplied
+          }
+        };
+        state.archives.push(archiveEntry);
+      } else {
+        // No auto-apply: archive without altering debts
+        const archiveEntry = {
+          month: prevMonth,
+          ts: Date.now(),
+          data: state.data || {},
+          expenses: prevMonthExpenses,
+          carryOver: carryOver
+        };
+        state.archives.push(archiveEntry);
+      }
+
+      // Apply carryover to EF balance for the new month
+      if (!state.data.budget) state.data.budget = {};
+      state.data.budget.efNow = (+state.data.budget.efNow || 0) + carryOver;
+
+      // Clear only expenses (new month starts fresh)
+      localStorage.removeItem(KEY_EXP);
     }
 
-    // Reflect in KPIs
-    kpis.out.textContent = "€ " + fmt(out);
-    kpis.left.textContent = (left>=0? "€ " + fmt(left) : "€ -" + fmt(Math.abs(left)));
-    kpis.left.className = "val mono " + (left>0 ? "good" : (left===0?"":"bad"));
-    kpis.alloc.textContent = `EF € ${fmt(toEF)}  |  Extra Debt € ${fmt(toDebt)}`;
+    // Update current meta month
+    state.meta = { month: cur };
+    writeState(state);
+  }
+      const prevMonth = storedMonth; // e.g., "2025-09"
+      const prevMonthExpenses = allExpenses.filter(e => String(e.date||"").slice(0,7) === prevMonth);
 
-    // Feed extraDebt input for simulator
-    inputs.extraDebt.value = Math.max(0,toDebt);
+      // Compute carryover (ülejääk) into EF:
+      // fixed bills: loans + mom + aptSupport + phone (monthly fixeds)
+      const b = (state.data && state.data.budget) || {};
+      const income = +b.income || 0;
+      const fixedBills = (+b.loans||0) + (+b.mom||0) + (+b.aptSupport||0) + (+b.phone||0);
+      const spent = prevMonthExpenses.reduce((s,x)=> s + (+x.amt||0), 0);
+      let carryOver = income - fixedBills - spent;
+      if (!isFinite(carryOver)) carryOver = 0;
+      if (carryOver < 0) carryOver = 0;
 
-    // Live summary
-    summary.innerHTML = `
-      <div>Income: <strong>€ ${fmt(income)}</strong></div>
-      <div>Outflows planned: <strong>€ ${fmt(out)}</strong></div>
-      <div>Leftover: <strong class="${left>0?'good':(left===0?'':'bad')}">€ ${fmt(left)}</strong></div>
-      <div>Allocation this month → Emergency Fund: <strong>€ ${fmt(toEF)}</strong>; Extra debt: <strong>€ ${fmt(toDebt)}</strong></div>
-      <div class="divider"></div>
-      <div class="small muted">Make Leftover = 0 by adjusting categories; surplus goes to EF until target is hit, then to debts.</div>
-    `;
+      // Archive snapshot
+      const archiveEntry = {
+        month: prevMonth,
+        ts: Date.now(),
+        data: state.data || {},
+        expenses: prevMonthExpenses,
+        carryOver: carryOver
+      };
+      state.archives.push(archiveEntry);
+
+      // Apply carryover to new month's EF balance
+      if (!state.data.budget) state.data.budget = {};
+      state.data.budget.efNow = (+state.data.budget.efNow || 0) + carryOver;
+
+      // Clear only expenses (start fresh month logs)
+      localStorage.removeItem(KEY_EXP);
+    }
+
+    // Update current meta month
+    state.meta = { month: cur };
+    writeState(state);
+  }
+  function renderArchives(){
+    const state = readState();
+    const list = (state.archives||[]).slice().reverse();
+    if (!list.length){ archivesList.innerHTML = "<em>Arhiiv on tühi.</em>"; return; }
+    archivesList.innerHTML = list.map(a=>{
+      const tot = (a.expenses||[]).reduce((s,x)=>s+(+x.amt||0),0);
+      const minsT = a.payments && a.payments.minsTotal || 0;
+      const extraT = a.payments && a.payments.extraTotal || 0;
+      const zaza = (a.expenses||[]).filter(x=>x.cat==="Zaza").reduce((s,x)=>s+(+x.amt||0),0);
+      const when = new Date(a.ts).toLocaleString();
+      return `<div class="archiveItem">
+        <div><strong>${a.month}</strong> — arhiveeritud: ${when}</div>
+        <div>Kulud kokku: <strong>€ ${fmt2(tot)}</strong>; Zaza: <strong>€ ${fmt2(zaza)}</strong></div>
+        <div>Maksed võlgadele (auto): min <strong>€ ${fmt2(minsT)}</strong> + extra <strong>€ ${fmt2(extraT)}</strong></div>
+        <div>Ülejääk EF-i: <strong>€ ${fmt2(a.carryOver||0)}</strong></div>
+        <div class="small muted">Kirje sisaldab kogu kuu seisu (eelarve, võlad, sätted) ja kõiki kulusid.</div>
+      </div>`;
+    }).join("");
   }
 
-  // ===== Cannabis calculator =====
-  const capMsg = $("#capMsg");
+  // ===== Payday helperid =====
+  function parsePaydays(txt){
+    if (!txt) return [];
+    return String(txt).split(/[,\s]+/).map(s=>parseInt(s,10)).filter(n=>Number.isInteger(n)&&n>=1&&n<=31).sort((a,b)=>a-b);
+  }
+  function nextDatesFromDays(dayList, from=new Date(), count=3){
+    if (!dayList.length) return [];
+    const results=[]; let d=new Date(from); d.setHours(12,0,0,0);
+    while(results.length<count){
+      for(const dd of dayList){
+        const y=d.getFullYear(), m=d.getMonth();
+        const last=new Date(y,m+1,0).getDate();
+        let cand=new Date(y,m,Math.min(dd,last)); cand.setHours(12,0,0,0);
+        if(cand<d){ const nm=new Date(y,m+1,1); const last2=new Date(nm.getFullYear(),nm.getMonth()+1,0).getDate(); cand=new Date(nm.getFullYear(),nm.getMonth(),Math.min(dd,last2)); }
+        results.push(cand); if(results.length>=count) break;
+      }
+      d=new Date(results[results.length-1].getTime()+86400000);
+    }
+    results.sort((a,b)=>a-b);
+    const uniq=[]; for(const dt of results){ if(!uniq.length||(+dt!==+uniq[uniq.length-1])) uniq.push(dt); if(uniq.length===count) break; }
+    return uniq.slice(0,count);
+  }
+  function daysBetween(a,b){
+    const A=new Date(a.getFullYear(),a.getMonth(),a.getDate());
+    const B=new Date(b.getFullYear(),b.getMonth(),b.getDate());
+    return Math.ceil((B-A)/86400000);
+  }
+  function updatePayInfo(){
+    const el=inputs.paydays, info=$("#nextPayInfo");
+    if(!el||!info) return;
+    const days=parsePaydays(el.value);
+    if(!days.length){ info.innerHTML="<em>Lisa palgapäeva päev (nt 5 või 5,20).</em>"; return; }
+    const next3=nextDatesFromDays(days,new Date(),3);
+    const fmtOpts={day:'2-digit',month:'long',year:'numeric'};
+    const today=new Date();
+    info.innerHTML = next3.map(d=>`• ${d.toLocaleDateString(undefined,fmtOpts)} — <strong>${daysBetween(today,d)} päeva</strong>`).join("<br>");
+  }
+
+  // ===== Eelarve =====
+  function computeOutflows(){
+    const essentials=(+inputs.loans.value||0)+(+inputs.mom.value||0)+(+inputs.aptSupport.value||0)+(+inputs.phone.value||0)+(+inputs.transport.value||0)+(+inputs.groceries.value||0)+(+inputs.otherEss.value||0);
+    const discretionary=(+inputs.fun.value||0)+(+inputs.personal.value||0)+(+inputs.zazaCap.value||0);
+    return essentials+discretionary;
+  }
+  function recomputeBudget(){
+    const income=+inputs.income.value||0;
+    const out=computeOutflows();
+    const left=income-out;
+    let toEF=0, toDebt=0;
+    const efNeed=Math.max(0,(+inputs.efTarget.value||0)-(+inputs.efNow.value||0));
+    if(left>0){ toEF=Math.min(left,efNeed); toDebt=Math.max(0,left-toEF);} else {toEF=0; toDebt=0;}
+    kpis.out.textContent="€ "+fmt(out);
+    kpis.left.textContent=(left>=0?"€ "+fmt(left):"€ -"+fmt(Math.abs(left)));
+    kpis.left.className="val mono "+(left>0?"good":(left===0?"":"bad"));
+    kpis.alloc.textContent=`Hädaabifond € ${fmt(toEF)}  |  Lisamakse € ${fmt(toDebt)}`;
+    pillBudget.textContent=`Ülejääk: € ${fmt(left)}`;
+    pillDebt.textContent=`Lisamakse: € ${fmt(toDebt)}`;
+    inputs.extraDebt.value=Math.max(0,toDebt);
+    summary.innerHTML=`<div>Sissetulek: <strong>€ ${fmt(income)}</strong></div>
+      <div>Plaanitud väljavool: <strong>€ ${fmt(out)}</strong></div>
+      <div>Ülejääk: <strong class="${left>0?'good':(left===0?'':'bad')}">€ ${fmt(left)}</strong></div>
+      <div>Jaotus sel kuul → Hädaabifond: <strong>€ ${fmt(toEF)}</strong>; Lisamakse võlgadele: <strong>€ ${fmt(toDebt)}</strong></div>`;
+    refreshZazaLeft();
+  }
+
+  // ===== Kanepi kalkulaator =====
+  const capMsg=$("#capMsg");
   function recomputeZaza(){
-    const monthly = (+inputs.pricePerGram.value||0) * (+inputs.gramsPerWeek.value||0) * 4.3;
-    inputs.zazaAuto.value = (isFinite(monthly)? monthly.toFixed(0) : "—");
+    const monthly=(+inputs.pricePerGram.value||0)*(+inputs.gramsPerWeek.value||0)*4.3;
+    inputs.zazaAuto.value=(isFinite(monthly)? monthly.toFixed(0):"");
     return monthly;
   }
-  inputs.applyCap.addEventListener("click", ()=>{
-    const monthly = recomputeZaza();
-    const cutPct = clamp(+inputs.zazaCutPct.value||0,0,100);
-    const newCap = Math.round(monthly*(1-cutPct/100));
-    const savings = Math.max(0, Math.round(monthly - newCap));
-    inputs.zazaCap.value = newCap;
-    // push savings to EF (not balance, but planned allocation)
-    const efNeed = Math.max(0,(+inputs.efTarget.value||0)-(+inputs.efNow.value||0));
-    capMsg.textContent = `Cap set to €${fmt(newCap)}. Planned savings €${fmt(savings)} earmarked to EF (need €${fmt(efNeed)}).`;
-    recomputeBudget();
-    persist();
-  });
+  if(inputs.applyCap){
+    inputs.applyCap.addEventListener("click",()=>{
+      const monthly=recomputeZaza();
+      const cutPct=clamp(+inputs.zazaCutPct.value||0,0,100);
+      const newCap=Math.round(monthly*(1-cutPct/100));
+      const savings=Math.max(0,Math.round(monthly-newCap));
+      inputs.zazaCap.value=newCap;
+      const efNeed=Math.max(0,(+inputs.efTarget.value||0)-(+inputs.efNow.value||0));
+      if(capMsg) capMsg.textContent=`Ülempiir €${fmt(newCap)}. Sääst €${fmt(savings)} suunatud EF-i (vajadus €${fmt(efNeed)}).`;
+      recomputeBudget(); persist();
+    });
+  }
 
-  // ===== Debt table =====
-  const debtsTbl = $("#debtsTbl tbody");
-  const sumBal = $("#sumBal");
-  const sumMin = $("#sumMin");
-
-  function addDebtRow(d={
-    name:"Loan", balance:0, apr:0, min:0, due:"", notes:""
-  }){
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+  // ===== Võlaplaan =====
+  const debtsTbl=$("#debtsTbl tbody");
+  const sumBal=$("#sumBal");
+  const sumMin=$("#sumMin");
+  function addDebtRow(d={name:"Laen",balance:0,min:0,due:"",notes:""}){
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
       <td><input value="${d.name||''}" /></td>
       <td class="right"><input type="number" class="mono" value="${d.balance||0}" step="1" min="0" /></td>
-      <td class="right"><input type="number" class="mono" value="${d.apr||0}" step="0.1" min="0" /></td>
       <td class="right"><input type="number" class="mono" value="${d.min||0}" step="1" min="0" /></td>
-      <td><input value="${d.due||''}" placeholder="DD" /></td>
+      <td><input value="${d.due||''}" placeholder="PP" /></td>
       <td><input value="${d.notes||''}" /></td>
-      <td><button class="btn">✕</button></td>
-    `;
-    // delete
-    tr.querySelector("button").addEventListener("click", ()=>{ tr.remove(); updateDebtTotals(); persist(); });
-    // re-compute on change
-    tr.querySelectorAll("input").forEach(inp => inp.addEventListener("input", ()=>{ updateDebtTotals(); persist(); }));
-    debtsTbl.appendChild(tr);
-    updateDebtTotals();
+      <td><button class="btn">✕</button></td>`;
+    tr.querySelector("button").addEventListener("click",()=>{ tr.remove(); updateDebtTotals(); persist(); renderUpcomingPays(); });
+    tr.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",()=>{ updateDebtTotals(); persist(); renderUpcomingPays(); }));
+    debtsTbl.appendChild(tr); updateDebtTotals(); renderUpcomingPays();
   }
-
   function readDebts(){
-    const rows = [...debtsTbl.querySelectorAll("tr")];
-    return rows.map(r=>{
-      const [name,balance,apr,min,due,notes] = [...r.querySelectorAll("input")].map(x=>x.value);
-      return {name, balance:+balance||0, apr:+apr||0, min:+min||0, due, notes};
+    return [...debtsTbl.querySelectorAll("tr")].map(r=>{
+      const [name,balance,min,due,notes]=[...r.querySelectorAll("input")].map(x=>x.value);
+      return {name, balance:+balance||0, min:+min||0, due, notes};
     });
   }
-
   function updateDebtTotals(){
-    const debts = readDebts();
-    const tBal = debts.reduce((a,b)=>a+b.balance,0);
-    const tMin = debts.reduce((a,b)=>a+b.min,0);
-    sumBal.textContent = fmt(tBal);
-    sumMin.textContent = fmt(tMin);
+    const d=readDebts();
+    sumBal.textContent=fmt(d.reduce((a,b)=>a+b.balance,0));
+    sumMin.textContent=fmt(d.reduce((a,b)=>a+b.min,0));
   }
-
-  $("#addDebt").addEventListener("click", ()=> addDebtRow());
-
-  // Seed a couple of sample debts for clarity
-  addDebtRow({name:"Card A", balance:1200, apr:19.9, min:50});
-  addDebtRow({name:"Loan B", balance:2000, apr:9.5, min:70});
-
-  // ===== Payoff simulator =====
+  $("#addDebt").addEventListener("click",()=>addDebtRow());
   function simulatePayoff(){
-    const debts = readDebts().filter(d=>d.balance>0).map(d=>({...d}));
-    if (!debts.length){ kpis.months.textContent="—"; kpis.interest.textContent="—"; kpis.firstDone.textContent="—"; return; }
-
-    const extra = +inputs.extraDebt.value||0;
-    let month=0, totalInterest=0, firstDone=null;
-
-    // Sort helper
-    function sortDebts(){
-      if ($("#strategy").value==="avalanche"){
-        debts.sort((a,b)=> b.apr - a.apr || a.balance - b.balance);
-      } else {
-        debts.sort((a,b)=> a.balance - b.balance || b.apr - a.apr);
-      }
-    }
-
-    sortDebts();
-
-    while (debts.some(d=>d.balance>0) && month<600){ // hard stop at 50 years
+    const debts=readDebts().filter(d=>d.balance>0).map(d=>({...d}));
+    if(!debts.length){ kpis.months.textContent="—"; kpis.firstDone.textContent="—"; kpis.debtFreeDate.textContent="—"; return; }
+    const extraBase=+inputs.extraDebt.value||0; let month=0, firstDone=null;
+    const sort=()=>debts.sort((a,b)=>a.balance-b.balance); sort();
+    while(debts.some(d=>d.balance>0)&&month<600){
       month++;
-      // monthly interest & minimums
-      let extraPool = extra;
-      debts.forEach(d=>{
-        if (d.balance<=0) return;
-        const r = d.apr/100/12;
-        const interest = d.balance*r;
-        totalInterest += interest;
-        d.balance += interest;
-      });
-
-      // pay minimums first
-      debts.forEach(d=>{
-        if (d.balance<=0) return;
-        const pay = Math.min(d.min, d.balance);
-        d.balance -= pay;
-      });
-
-      // remove/mark paid & snowball minimums into pool
-      let freedMin = 0;
-      debts.forEach(d=>{
-        if (d.balance>0 && d.balance<0.01){ d.balance=0; }
-        if (d.balance===0 && !d._doneMarked){
-          d._doneMarked=true;
-          freedMin += d.min;
-          if (!firstDone) firstDone = {name:d.name, month};
-        }
-      });
-
-      // add freed minimums to extra for this and future months
-      extraPool += freedMin;
-
-      // pay extra to current target debt
-      sortDebts();
-      const target = debts.find(d=>d.balance>0);
-      if (target){
-        const pay = Math.min(extraPool, target.balance);
-        target.balance -= pay;
-      }
-
-      // If target was fully paid by extra, mark and carry snowball next loop iteration
-      debts.forEach(d=>{ if (d.balance>0 && d.balance<0.01){ d.balance=0; }});
-      // Add freed minimums to their own min going forward (handled by freedMin above as extraPool increment each month)
+      debts.forEach(d=>{ if(d.balance<=0) return; d.balance-=Math.min(d.min,d.balance); });
+      let freed=0;
+      debts.forEach(d=>{ if(d.balance>0&&d.balance<0.01) d.balance=0; if(d.balance===0&&!d._done){ d._done=true; freed+=d.min; if(!firstDone) firstDone={name:d.name,month}; } });
+      const target=sort()||debts.find(d=>d.balance>0);
+      if(target){ const pay=Math.min(extraBase+freed,target.balance); target.balance-=pay; if(target.balance>0&&target.balance<0.01) target.balance=0; if(target.balance===0&&!target._done){ target._done=true; if(!firstDone) firstDone={name:target.name,month}; } }
     }
+    const years=Math.floor(month/12), mRem=month%12;
+    kpis.months.textContent= month? (years? `${years} a ${mRem} k`:`${month} k`) :"—";
+    kpis.firstDone.textContent= firstDone? `${firstDone.name} → ${firstDone.month}. kuu` :"—";
+    const debtFree=new Date(); debtFree.setMonth(debtFree.getMonth()+month);
+    kpis.debtFreeDate.textContent=debtFree.toLocaleDateString(undefined,{day:'2-digit',month:'long',year:'numeric'});
+  }
+  $("#simulate").addEventListener("click",simulatePayoff);
 
-    const years = Math.floor(month/12), monthsRem = month%12;
-    kpis.months.textContent = month? (years? `${years}y ${monthsRem}m`:`${month} m`) : "—";
-    kpis.interest.textContent = "€ " + fmt(Math.round(totalInterest));
-    kpis.firstDone.textContent = firstDone ? `${firstDone.name} in ${firstDone.month} m` : "—";
+  $("#exportDebtCsv").addEventListener("click",()=>{
+    const debts=readDebts();
+    let csv="Võlg,Jääk,Miinimum,Tähtaeg (PP),Märkused\n";
+    debts.forEach(d=>{ csv+=`"${d.name}",${d.balance},${d.min},"${d.due}","${(d.notes||'').replace(/"/g,'""')}"\n`; });
+    const blob=new Blob([csv],{type:"text/csv"}); const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download="volgade_loetelu.csv"; a.click();
+  });
+
+  // ===== Tahtmise taimer =====
+  const startUrge=$("#startUrge"); const urgeClock=$("#urgeClock"); let urgeTimer=null;
+  if(startUrge){ startUrge.addEventListener("click",()=>{ if(urgeTimer){clearInterval(urgeTimer); urgeTimer=null;} let secs=180; if(urgeClock) urgeClock.textContent="03:00";
+    urgeTimer=setInterval(()=>{ secs--; if(secs<=0){clearInterval(urgeTimer); urgeTimer=null; if(urgeClock) urgeClock.textContent="Valmis ✓"; return;}
+      const m=String(Math.floor(secs/60)).padStart(2,"0"); const s=String(secs%60).padStart(2,"0"); if(urgeClock) urgeClock.textContent=`${m}:${s}`; },1000);
+  });}
+
+  // ===== Kulutuste jälgija =====
+  const expTblBody=$("#expTbl tbody"); const expSum=$("#expSum"); const expBreakdown=$("#expBreakdown");
+  const expCat=$("#expCat"); const expAmt=$("#expAmt"); const expDate=$("#expDate"); const expNote=$("#expNote"); const addExp=$("#addExp");
+  function todayISO(){ const d=new Date(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0'); return `${d.getFullYear()}-${m}-${day}`; }
+  if(expDate) expDate.value=todayISO();
+
+  function readExpenses(){ try{ return JSON.parse(localStorage.getItem(KEY_EXP)||"[]"); }catch(e){ return []; } }
+  function writeExpenses(list){ localStorage.setItem(KEY_EXP, JSON.stringify(list)); }
+  function addExpenseRow(e, idx){
+    const tr=document.createElement("tr"); const when=new Date(e.date);
+    tr.innerHTML=`<td>${isFinite(when)? when.toLocaleDateString():e.date}</td><td>${e.cat}</td><td>${e.note? e.note.replace(/</g,'&lt;'):''}</td><td class="right mono">${fmt2(e.amt)}</td><td><button class="btn" data-i="${idx}">✕</button></td>`;
+    tr.querySelector("button").addEventListener("click",(ev)=>{ const i=+ev.currentTarget.getAttribute("data-i"); const all=readExpenses(); all.splice(i,1); writeExpenses(all); renderExpenses(); persist(); });
+    expTblBody.appendChild(tr);
+  }
+  function renderExpenses(){
+    const all=readExpenses(); const mk=monthKey(new Date());
+    const monthList=all.filter(e=> (e.date||"").slice(0,7)===mk);
+    expTblBody.innerHTML=""; monthList.forEach((e,i)=> addExpenseRow(e, readExpenses().indexOf(e)));
+    const total=monthList.reduce((a,b)=>a+(+b.amt||0),0); expSum.textContent=fmt2(total);
+    const byCat={}; monthList.forEach(e=> byCat[e.cat]=(byCat[e.cat]||0)+(+e.amt||0));
+    expBreakdown.innerHTML = Object.entries(byCat).map(([c,v])=>`<div>• ${c}: <strong>€ ${fmt2(v)}</strong></div>`).join("") || "<em>Sel kuul kulusid pole.</em>";
+    pillSpent.textContent=`Sel kuul: € ${fmt2(total)}`; refreshZazaLeft();
+  }
+  if(addExp){ addExp.addEventListener("click",()=>{
+      const e={ cat: expCat.value, amt:+expAmt.value||0, date: expDate.value||todayISO(), note: expNote.value||"" };
+      if(!e.amt){ alert("Sisesta summa."); return; } const all=readExpenses(); all.push(e); writeExpenses(all);
+      expAmt.value=""; expNote.value=""; renderExpenses(); persist();
+  });}
+
+  function refreshZazaLeft(){
+    const cap=+inputs.zazaCap.value||0; const all=readExpenses(); const mk=monthKey(new Date());
+    const zazaSpent=all.filter(e=> (e.date||"").slice(0,7)===mk && e.cat==="Zaza").reduce((a,b)=>a+(+b.amt||0),0);
+    const left=Math.max(0, cap-zazaSpent); pillZaza.textContent=`Zaza alles: € ${fmt2(left)}`;
+    const usedPct=cap>0? Math.max(0,Math.min(100,(zazaSpent/cap)*100)):0;
+    if(zazaProg){ zazaProg.style.width=usedPct+"%"; zazaProg.style.background= usedPct>100?"var(--bad)":(usedPct>90?"var(--warn)":"var(--accent)"); }
   }
 
-  $("#simulate").addEventListener("click", simulatePayoff);
-
-  // ===== Export / Import =====
-  $("#exportDebtCsv").addEventListener("click", ()=>{
-    const debts = readDebts();
-    let csv = "Debt,Balance,APR,Min,Due,Notes\n";
-    debts.forEach(d=>{
-      csv += `"${d.name}",${d.balance},${d.apr},${d.min},"${d.due}","${(d.notes||'').replace(/"/g,'""')}"\n`;
-    });
-    const blob = new Blob([csv],{type:"text/csv"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "debts.csv";
-    a.click();
-  });
-
-  $("#exportJson").addEventListener("click", ()=>{
-    const data = collectAll();
-    const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "money-coach-data.json";
-    a.click();
-  });
-
-  $("#importJson").addEventListener("change", async (e)=>{
-    const file = e.target.files[0]; if(!file) return;
-    const text = await file.text();
-    try{
-      const data = JSON.parse(text);
-      applyAll(data);
-      persist();
-    }catch(err){ alert("Invalid JSON"); }
-  });
-
-  // ===== Urge-surfing timer =====
-  const startUrge = $("#startUrge");
-  const urgeClock = $("#urgeClock");
-  let urgeTimer = null;
-  startUrge.addEventListener("click", ()=>{
-    if (urgeTimer){ clearInterval(urgeTimer); urgeTimer=null; }
-    let secs = 180;
-    urgeClock.textContent = "03:00";
-    urgeTimer = setInterval(()=>{
-      secs--;
-      if (secs<=0){ clearInterval(urgeTimer); urgeTimer=null; urgeClock.textContent="Done ✓"; return; }
-      const m = String(Math.floor(secs/60)).padStart(2,"0");
-      const s = String(secs%60).padStart(2,"0");
-      urgeClock.textContent = `${m}:${s}`;
-    }, 1000);
-  });
-
-  // ===== Persistence =====
-  const KEY = "money-coach-v1";
-
-  function collectAll(){
+  // ===== Persist + rakenduse laadimine =====
+  function collectData(){
     return {
       budget:{
-        income:+inputs.income.value||0,
-        loans:+inputs.loans.value||0,
-        mom:+inputs.mom.value||0,
-        aptSupport:+inputs.aptSupport.value||0,
-        phone:+inputs.phone.value||0,
-        transport:+inputs.transport.value||0,
-        groceries:+inputs.groceries.value||0,
-        otherEss:+inputs.otherEss.value||0,
-        fun:+inputs.fun.value||0,
-        personal:+inputs.personal.value||0,
-        zazaCap:+inputs.zazaCap.value||0,
-        efTarget:+inputs.efTarget.value||0,
-        efNow:+inputs.efNow.value||0,
+        income:+inputs.income.value||0, loans:+inputs.loans.value||0, mom:+inputs.mom.value||0, aptSupport:+inputs.aptSupport.value||0,
+        phone:+inputs.phone.value||0, transport:+inputs.transport.value||0, groceries:+inputs.groceries.value||0, otherEss:+inputs.otherEss.value||0,
+        fun:+inputs.fun.value||0, personal:+inputs.personal.value||0, zazaCap:+inputs.zazaCap.value||0, efTarget:+inputs.efTarget.value||0, efNow:+inputs.efNow.value||0
       },
-      cannabis:{
-        price:+inputs.pricePerGram.value||0,
-        grams:+inputs.gramsPerWeek.value||0,
-        cutPct:+inputs.zazaCutPct.value||0
-      },
+      cannabis:{ price:+inputs.pricePerGram.value||0, grams:+inputs.gramsPerWeek.value||0, cutPct:+inputs.zazaCutPct.value||0 },
+      debtSettings:{ extra:+inputs.extraDebt.value||0 },
       debts: readDebts(),
-      debtSettings:{
-        strategy: $("#strategy").value,
-        extra:+inputs.extraDebt.value||0
-      },
-      psych:{
-        impl: $("#implIntents").value
-      },
-      family:{
-        purpose:$("#famPurpose").value,
-        parties:$("#famParties").value,
-        amount:+$("#famAmount").value||0,
-        start:$("#famStart").value,
-        review:$("#famReview").value,
-        end:$("#famEnd").value,
-        late:$("#famLate").value,
-        adj:$("#famAdj").value,
-        notes:$("#famNotes").value
-      }
+      user:{ paydays: (inputs.paydays||{}).value || "" },
+      psych:{ impl: ($("#implIntents")||{}).value || "" }
     };
   }
+  function applyData(d){
+    if(d.budget){ for(const k in d.budget){ if(inputs[k]&&typeof d.budget[k]!=="undefined") inputs[k].value=d.budget[k]; } }
+    if(d.cannabis){ inputs.pricePerGram.value=d.cannabis.price||0; inputs.gramsPerWeek.value=d.cannabis.grams||0; inputs.zazaCutPct.value=d.cannabis.cutPct||0; }
+    if(d.debtSettings){ inputs.extraDebt.value=d.debtSettings.extra||0; }
+    if(d.debts){ debtsTbl.innerHTML=""; d.debts.forEach(addDebtRow); }
+    if(d.user&&inputs.paydays){ inputs.paydays.value=d.user.paydays||""; }
+    if(d.psych&&$("#implIntents")){ $("#implIntents").value=d.psych.impl||""; }
+  }
+  function persist(){ const state=readState(); state.data=collectData(); writeState(state); }
 
-  function applyAll(d){
-    if (d.budget){
-      Object.assign(inputs.income, {value:d.budget.income??inputs.income.value});
-      inputs.loans.value = d.budget.loans??inputs.loans.value;
-      inputs.mom.value = d.budget.mom??inputs.mom.value;
-      inputs.aptSupport.value = d.budget.aptSupport??inputs.aptSupport.value;
-      inputs.phone.value = d.budget.phone??inputs.phone.value;
-      inputs.transport.value = d.budget.transport??inputs.transport.value;
-      inputs.groceries.value = d.budget.groceries??inputs.groceries.value;
-      inputs.otherEss.value = d.budget.otherEss??inputs.otherEss.value;
-      inputs.fun.value = d.budget.fun??inputs.fun.value;
-      inputs.personal.value = d.budget.personal??inputs.personal.value;
-      inputs.zazaCap.value = d.budget.zazaCap??inputs.zazaCap.value;
-      inputs.efTarget.value = d.budget.efTarget??inputs.efTarget.value;
-      inputs.efNow.value = d.budget.efNow??inputs.efNow.value;
+  function load(){
+    archiveIfMonthRolled();
+    const state=readState(); applyData(state.data||{});
+    // init
+    recomputeZaza(); recomputeBudget(); renderExpenses(); renderUpcomingPays(); updatePayInfo(); simulatePayoff(); renderArchives();
+    // default debts if none
+    if(!state.data || !state.data.debts || !state.data.debts.length){
+      addDebtRow({name:"Kaart A", balance:1200, min:50, due:"15"});
+      addDebtRow({name:"Laen B", balance:2000, min:70, due:"28"});
+      persist();
     }
-    if (d.cannabis){
-      inputs.pricePerGram.value = d.cannabis.price??inputs.pricePerGram.value;
-      inputs.gramsPerWeek.value = d.cannabis.grams??inputs.gramsPerWeek.value;
-      inputs.zazaCutPct.value = d.cannabis.cutPct??inputs.zazaCutPct.value;
-      recomputeZaza();
-    }
-    if (d.debts){
-      debtsTbl.innerHTML="";
-      d.debts.forEach(addDebtRow);
-    }
-    if (d.debtSettings){
-      $("#strategy").value = d.debtSettings.strategy||"avalanche";
-      inputs.extraDebt.value = d.debtSettings.extra||0;
-    }
-    if (d.psych){
-      $("#implIntents").value = d.psych.impl||"";
-    }
-    if (d.family){
-      $("#famPurpose").value = d.family.purpose||"";
-      $("#famParties").value = d.family.parties||"";
-      $("#famAmount").value = d.family.amount||0;
-      $("#famStart").value = d.family.start||"";
-      $("#famReview").value = d.family.review||"";
-      $("#famEnd").value = d.family.end||"";
-      $("#famLate").value = d.family.late||"";
-      $("#famAdj").value = d.family.adj||"";
-      $("#famNotes").value = d.family.notes||"";
-    }
-    recomputeBudget();
   }
 
-  function persist(){ localStorage.setItem(KEY, JSON.stringify(collectAll())); }
-  function load(){ const raw = localStorage.getItem(KEY); if(raw){ try{ applyAll(JSON.parse(raw)); }catch(e){} } recomputeZaza(); recomputeBudget(); }
-
-  $("#save").addEventListener("click", ()=>{ persist(); alert("Saved!"); });
-  $("#reset").addEventListener("click", ()=>{
-    if (!confirm("Reset to defaults?")) return;
-    localStorage.removeItem(KEY);
-    location.reload();
-  });
-
-  // Listen to all numeric changes
   document.querySelectorAll("input,select,textarea").forEach(el=>{
     el.addEventListener("input", ()=>{
-      if (el===inputs.pricePerGram || el===inputs.gramsPerWeek){ recomputeZaza(); }
-      if (["income","loans","mom","aptSupport","phone","transport","groceries","otherEss","fun","personal","zazaCap","efTarget","efNow"].includes(el.id)){
-        recomputeBudget();
-      }
+      if(el===inputs.pricePerGram || el===inputs.gramsPerWeek){ recomputeZaza(); }
+      if(["income","loans","mom","aptSupport","phone","transport","groceries","otherEss","fun","personal","zazaCap","efTarget","efNow"].includes(el.id)){ recomputeBudget(); }
+      if(el===inputs.paydays){ updatePayInfo(); }
       persist();
     });
   });
 
-  // Init
+  // ===== Võlgade maksepäevad (PP) =====
+  function nextDueDate(dayStr){
+    const dd=parseInt(dayStr,10); if(!dd||dd<1||dd>31) return null;
+    const t=new Date(); const y=t.getFullYear(); const m=t.getMonth(); let cand=new Date(y,m,dd);
+    const today=new Date(y,m,t.getDate());
+    if(cand<today){ const nmY=m===11?y+1:y; const nmM=(m+1)%12; const last=new Date(nmY,nmM+1,0).getDate(); cand=new Date(nmY,nmM,Math.min(dd,last)); }
+    else { const last=new Date(y,m+1,0).getDate(); cand=new Date(y,m,Math.min(dd,last)); }
+    return cand;
+  }
+  function renderUpcomingPays(){
+    const debts=readDebts();
+    const list=debts.map(d=>({name:d.name, date: nextDueDate(d.due)})).filter(x=>x.date);
+    list.sort((a,b)=>a.date-b.date);
+    if(!list.length){ upcomingPays.innerHTML="<em>Lisa võlgadele tähtaeg (PP), nt 15.</em>"; return; }
+    const fmtOpt={day:'2-digit',month:'long',year:'numeric'};
+    upcomingPays.innerHTML=list.map(x=>`<div>• ${x.name}: <strong>${x.date.toLocaleDateString(undefined,fmtOpt)}</strong></div>`).join("");
+  }
+
+  // Käivitus
   load();
-  simulatePayoff();
 </script>
 </body>
 </html>
