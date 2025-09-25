@@ -255,20 +255,6 @@
           <div class="debtSummary">
             <div class="item"><span class="label">Jäägid kokku</span><span class="value mono" id="sumBal">0</span></div>
             <div class="item"><span class="label">Miinimumid kokku</span><span class="value mono" id="sumMin">0</span></div>
-          <div class="row"><button class="btn" id="addDebt">+ Lisa võlg</button> <button class="btn" id="exportDebtCsv">Ekspordi CSV</button></div>
-          <div class="tableWrap">
-            <table id="debtsTbl">
-              <thead>
-                <tr>
-                  <th>Võlg</th><th class="right">Jääk (€)</th><th class="right">Miinimum (€)</th><th>Tähtaeg (PP)</th><th>Lõppkuupäev</th><th>Märkused</th><th>Makstud?</th><th></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-              <tfoot>
-              <tr><td><strong>Kokku</strong></td><td class="right mono" id="sumBal">0</td>
-                  <td class="right mono" id="sumMin">0</td><td></td><td></td><td></td><td></td><td></td></tr>
-              </tfoot>
-            </table>
           </div>
           <div class="debtsList" id="debtsList"></div>
           <div class="toggleRow"><label class="checkboxLabel"><input type="checkbox" id="autoApply" /> Rakenda kuu maksed automaatselt</label></div>
@@ -826,35 +812,6 @@
         contractEnd:getVal(".debtEnd"),
         notes:getVal(".debtNotes")
       };
-    const tr=document.createElement("tr");
-    const rowId=d.id||`d-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
-    tr.dataset.id=rowId;
-    tr.innerHTML=`
-      <td><input value="${d.name||''}" /></td>
-      <td class="right"><input type="number" class="mono" value="${d.balance||0}" step="1" min="0" /></td>
-      <td class="right"><input type="number" class="mono" value="${d.min||0}" step="1" min="0" /></td>
-      <td><input value="${d.due||''}" placeholder="PP" /></td>
-      <td><input type="date" class="mono" value="${toDateInputValue(d.contractEnd)}" /></td>
-      <td><input value="${d.notes||''}" /></td>
-      <td><button class="btn payToggle" data-pay-debt="${rowId}">Märgi makstuks</button></td>
-      <td><button class="btn" data-action="remove">✕</button></td>`;
-    const removeBtn=tr.querySelector('[data-action="remove"]');
-    if(removeBtn){
-      removeBtn.addEventListener("click",()=>{ tr.remove(); clearDebtPaid(rowId); updateDebtTotals(); persist(); simulatePayoff(); renderUpcomingPays(); });
-    }
-    tr.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",()=>{ updateDebtTotals(); persist(); simulatePayoff(); renderUpcomingPays(); }));
-    const payBtn=tr.querySelector(`[data-pay-debt="${rowId}"]`);
-    if(payBtn){
-      payBtn.addEventListener("click",()=>{ toggleDebtPaid(rowId); });
-    }
-    debtsTbl.appendChild(tr); updateDebtTotals(); simulatePayoff(); renderUpcomingPays();
-    reflectDebtPaid(rowId);
-  }
-  function readDebts(){
-    return [...debtsTbl.querySelectorAll("tr")].map(r=>{
-      const [name,balance,min,due,contractEnd,notes]=[...r.querySelectorAll("input")].map(x=>x.value);
-      const id=r.dataset.id||"";
-      return {id, name, balance:+balance||0, min:+min||0, due, contractEnd, notes}; main
     });
   }
   function updateDebtTotals(){
