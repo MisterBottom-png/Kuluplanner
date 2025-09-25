@@ -40,6 +40,8 @@
   label.checkboxLabel{min-width:0;font-size:14px;display:flex;align-items:center;gap:10px;color:var(--muted);cursor:pointer}
   input,select,textarea{width:100%;padding:14px 16px;border-radius:14px;border:1px solid rgba(124,155,255,.18);background:rgba(7,10,25,.72);color:var(--ink);outline:none;font-size:16px;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;min-height:46px}
   input[type="checkbox"]{width:auto;min-height:0;height:auto;padding:0}
+  input,select,textarea{width:100%;padding:14px 16px;border-radius:14px;border:1px solid rgba(124,155,255,.18);background:rgba(7,10,25,.72);color:var(--ink);outline:none;font-size:16px;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;min-height:46px}
+ main
   input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,155,255,.2);background:rgba(7,10,25,.92)}
   textarea{min-height:110px;resize:vertical}
   .mono{font-variant-numeric:tabular-nums}
@@ -80,7 +82,6 @@
   tr.paid td{opacity:.75}
   .upcomingItem{padding:10px 0;border-bottom:1px solid rgba(124,155,255,.12)}
   .upcomingItem:last-child{border-bottom:none;padding-bottom:0}
-
   .debtActions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
   .debtActions .btn{flex:0 0 auto}
   .debtSummary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:12px 0 6px}
@@ -100,7 +101,7 @@
   .debtCard__footer{display:flex;justify-content:flex-end}
   .debtCard__footer .btn{max-width:220px}
   .btn.icon{padding:10px 12px;min-height:42px;line-height:1}
-  .toggleRow{margin-top:4px}
+  .toggleRow{margin-top:4px} main
 
   @media (max-width: 900px){
     header{padding:16px 16px}
@@ -150,6 +151,18 @@
     .kpi .box{width:100%}
     .btn,.payWrap button,input,select,textarea{min-height:48px}
     .debtSummary{grid-template-columns:1fr}
+  }
+
+  @media (max-width: 520px){
+    body{font-size:16px}
+    header{padding:14px 12px 0}
+    header .sub{flex-direction:column;align-items:flex-start;font-size:12px}
+    main{padding:0 12px 72px}
+    summary{padding:16px}
+    .content{padding:16px}
+    .row{gap:12px}
+    .kpi .box{width:100%}
+    .btn,.payWrap button,input,select,textarea{min-height:48px}
   }
 </style>
 </head>
@@ -242,6 +255,20 @@
           <div class="debtSummary">
             <div class="item"><span class="label">Jäägid kokku</span><span class="value mono" id="sumBal">0</span></div>
             <div class="item"><span class="label">Miinimumid kokku</span><span class="value mono" id="sumMin">0</span></div>
+          <div class="row"><button class="btn" id="addDebt">+ Lisa võlg</button> <button class="btn" id="exportDebtCsv">Ekspordi CSV</button></div>
+          <div class="tableWrap">
+            <table id="debtsTbl">
+              <thead>
+                <tr>
+                  <th>Võlg</th><th class="right">Jääk (€)</th><th class="right">Miinimum (€)</th><th>Tähtaeg (PP)</th><th>Lõppkuupäev</th><th>Märkused</th><th>Makstud?</th><th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+              <tfoot>
+              <tr><td><strong>Kokku</strong></td><td class="right mono" id="sumBal">0</td>
+                  <td class="right mono" id="sumMin">0</td><td></td><td></td><td></td><td></td><td></td></tr>
+              </tfoot>
+            </table>
           </div>
           <div class="debtsList" id="debtsList"></div>
           <div class="toggleRow"><label class="checkboxLabel"><input type="checkbox" id="autoApply" /> Rakenda kuu maksed automaatselt</label></div>
@@ -795,6 +822,35 @@
         contractEnd:getVal(".debtEnd"),
         notes:getVal(".debtNotes")
       };
+    const tr=document.createElement("tr");
+    const rowId=d.id||`d-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
+    tr.dataset.id=rowId;
+    tr.innerHTML=`
+      <td><input value="${d.name||''}" /></td>
+      <td class="right"><input type="number" class="mono" value="${d.balance||0}" step="1" min="0" /></td>
+      <td class="right"><input type="number" class="mono" value="${d.min||0}" step="1" min="0" /></td>
+      <td><input value="${d.due||''}" placeholder="PP" /></td>
+      <td><input type="date" class="mono" value="${toDateInputValue(d.contractEnd)}" /></td>
+      <td><input value="${d.notes||''}" /></td>
+      <td><button class="btn payToggle" data-pay-debt="${rowId}">Märgi makstuks</button></td>
+      <td><button class="btn" data-action="remove">✕</button></td>`;
+    const removeBtn=tr.querySelector('[data-action="remove"]');
+    if(removeBtn){
+      removeBtn.addEventListener("click",()=>{ tr.remove(); clearDebtPaid(rowId); updateDebtTotals(); persist(); simulatePayoff(); renderUpcomingPays(); });
+    }
+    tr.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",()=>{ updateDebtTotals(); persist(); simulatePayoff(); renderUpcomingPays(); }));
+    const payBtn=tr.querySelector(`[data-pay-debt="${rowId}"]`);
+    if(payBtn){
+      payBtn.addEventListener("click",()=>{ toggleDebtPaid(rowId); });
+    }
+    debtsTbl.appendChild(tr); updateDebtTotals(); simulatePayoff(); renderUpcomingPays();
+    reflectDebtPaid(rowId);
+  }
+  function readDebts(){
+    return [...debtsTbl.querySelectorAll("tr")].map(r=>{
+      const [name,balance,min,due,contractEnd,notes]=[...r.querySelectorAll("input")].map(x=>x.value);
+      const id=r.dataset.id||"";
+      return {id, name, balance:+balance||0, min:+min||0, due, contractEnd, notes}; main
     });
   }
   function updateDebtTotals(){
