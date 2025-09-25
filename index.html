@@ -546,6 +546,8 @@
       const ds = (state.data && state.data.debtSettings) || {};
       const autoApply = !!ds.autoApply;
 
+      const snapshotData = JSON.parse(JSON.stringify(state.data || {}));
+
       if (autoApply && debts.length){
         // 1) Apply per-debt minimums (reduce balances)
         debts.forEach(d => {
@@ -558,14 +560,11 @@
           }
         });
 
-        // Write updated debts back
-        state.data.debts = debts;
-
         // Archive snapshot incl. payments summary
         const archiveEntry = {
           month: prevMonth,
           ts: Date.now(),
-          data: state.data || {},
+          data: snapshotData,
           expenses: prevMonthExpenses,
           carryOver: carryOver,
           payments: {
@@ -574,12 +573,15 @@
           }
         };
         state.archives.push(archiveEntry);
+
+        // Write updated debts back for the new month after archiving snapshot
+        state.data.debts = debts;
       } else {
         // No auto-apply: archive without altering debts
         const archiveEntry = {
           month: prevMonth,
           ts: Date.now(),
-          data: state.data || {},
+          data: snapshotData,
           expenses: prevMonthExpenses,
           carryOver: carryOver
         };
