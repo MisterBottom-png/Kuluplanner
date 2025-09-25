@@ -11,36 +11,39 @@
     --frost:rgba(124,155,255,.08);
   }
   *{box-sizing:border-box}
-  html,body{margin:0;background:radial-gradient(circle at top,var(--card) 0%,var(--bg) 52%,#070915 100%);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;line-height:1.6;font-size:15px}
+  html,body{margin:0;background:radial-gradient(circle at top,var(--card) 0%,var(--bg) 52%,#070915 100%);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;line-height:1.6;font-size:clamp(15px,0.5vw+0.9rem,17px)}
   h1,h2,h3{margin:0;font-weight:600}
   header{padding:18px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:linear-gradient(180deg,#10132a 0%,rgba(15,18,33,.9) 65%,rgba(15,18,33,.5) 100%);backdrop-filter: blur(8px);z-index:5}
   header h1{margin:0;font-size:18px;letter-spacing:.4px}
   header .sub{color:var(--muted);font-size:12px;margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
   header .date,.monthBadge{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#0b0e1d;font-variant-numeric:tabular-nums;box-shadow:0 8px 16px -12px rgba(0,0,0,.7)}
   .monthBadge{color:var(--accent)}
-  main{max-width:1150px;margin:28px auto;padding:0 16px 90px}
+  main{max-width:1200px;margin:28px auto;padding:0 18px 110px;display:grid;gap:22px}
 
-  .grid{display:grid;gap:18px}
+  .grid{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+  .grid-2{grid-template-columns:minmax(0,1fr)}
   @media (min-width: 980px){
-    .grid-2{grid-template-columns:1.2fr .8fr}
+    .grid-2{grid-template-columns:minmax(0,1.32fr) minmax(0,.88fr)}
   }
 
   .card{background:rgba(18,22,41,.9);border:1px solid rgba(124,155,255,.15);border-radius:18px;padding:0;overflow:hidden;box-shadow:0 26px 50px -34px rgba(7,12,32,.85);backdrop-filter:blur(6px)}
-  summary{list-style:none;padding:16px 18px;background:linear-gradient(90deg,rgba(124,155,255,.12),rgba(124,155,255,0));cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  summary{list-style:none;padding:18px 20px;background:linear-gradient(90deg,rgba(124,155,255,.12),rgba(124,155,255,0));cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
   summary::-webkit-details-marker{display:none}
-  summary h2{font-size:17px}
-  .sum-left{display:flex;align-items:center;gap:12px;min-width:0}
-  .sum-left h2{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+  summary h2{font-size:18px}
+  .sum-left{display:flex;align-items:center;gap:14px;min-width:0;flex:1 1 auto}
+  .sum-left h2{white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font-size:18px}
   .chev{transition:transform .2s ease;color:var(--accent)}
   details[open] .chev{transform:rotate(90deg)}
-  .content{padding:18px;border-top:1px solid rgba(124,155,255,.15);display:flex;flex-direction:column;gap:10px}
-  .row{display:flex;gap:12px;align-items:center}
-  label{font-size:13px;color:var(--muted);min-width:210px}
-  input,select,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(124,155,255,.18);background:rgba(7,10,25,.72);color:var(--ink);outline:none;font-size:15px;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}
+  .content{padding:20px;border-top:1px solid rgba(124,155,255,.15);display:flex;flex-direction:column;gap:14px}
+  .row{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+  label{font-size:13px;color:var(--muted);min-width:220px}
+  label.checkboxLabel{min-width:0;font-size:14px;display:flex;align-items:center;gap:10px;color:var(--muted);cursor:pointer}
+  input,select,textarea{width:100%;padding:14px 16px;border-radius:14px;border:1px solid rgba(124,155,255,.18);background:rgba(7,10,25,.72);color:var(--ink);outline:none;font-size:16px;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;min-height:46px}
+  input[type="checkbox"]{width:auto;min-height:0;height:auto;padding:0}
   input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,155,255,.2);background:rgba(7,10,25,.92)}
-  textarea{min-height:90px;resize:vertical}
+  textarea{min-height:110px;resize:vertical}
   .mono{font-variant-numeric:tabular-nums}
-  .btn{border:1px solid rgba(124,155,255,.2);background:rgba(7,10,25,.78);color:var(--ink);padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:500;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease;background-image:linear-gradient(135deg,rgba(124,155,255,.18),rgba(124,155,255,.05));backdrop-filter:blur(4px)}
+  .btn{border:1px solid rgba(124,155,255,.2);background:rgba(7,10,25,.78);color:var(--ink);padding:12px 18px;border-radius:14px;cursor:pointer;font-weight:500;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease;background-image:linear-gradient(135deg,rgba(124,155,255,.18),rgba(124,155,255,.05));backdrop-filter:blur(4px);min-height:46px}
   .btn:hover{border-color:var(--accent);box-shadow:0 12px 28px -18px rgba(124,155,255,.6);transform:translateY(-1px)}
   .btn:active{transform:translateY(0)}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#0b0e1d;font-weight:600;box-shadow:0 10px 22px -14px rgba(124,155,255,.9)}
@@ -49,13 +52,14 @@
   .btn.payToggle{white-space:nowrap}
   .btn.payToggle.paid{background:var(--good);border-color:var(--good);color:#0b0e1d;font-weight:600}
   .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid rgba(124,155,255,.25);font-size:12px;color:var(--accent);margin-left:10px;background:rgba(124,155,255,.12);box-shadow:0 12px 24px -20px rgba(124,155,255,.7)}
-  .kpi{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  .kpi .box{flex:1;background:rgba(7,10,25,.72);border:1px solid rgba(124,155,255,.15);border-radius:14px;padding:14px;min-width:180px;box-shadow:0 18px 36px -30px rgba(7,10,25,.9)}
+  summary .pill{margin-left:auto}
+  .kpi{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .kpi .box{flex:1;background:rgba(7,10,25,.72);border:1px solid rgba(124,155,255,.15);border-radius:16px;padding:16px;min-width:190px;box-shadow:0 18px 36px -30px rgba(7,10,25,.9)}
   .kpi .box .label{color:var(--muted);font-size:11px;margin-bottom:6px}
-  .kpi .box .val{font-size:20px;font-weight:700}
+  .kpi .box .val{font-size:22px;font-weight:700}
   .tableWrap{overflow-x:auto;border-radius:14px;border:1px solid rgba(124,155,255,.15);background:rgba(7,10,25,.65)}
   table{width:100%;border-collapse:separate;border-spacing:0}
-  th,td{border-bottom:1px solid rgba(124,155,255,.12);padding:12px 14px;text-align:left;font-size:14px}
+  th,td{border-bottom:1px solid rgba(124,155,255,.12);padding:14px 14px;text-align:left;font-size:14px}
   th:first-child,td:first-child{border-top-left-radius:12px;border-bottom-left-radius:12px}
   th:last-child,td:last-child{border-top-right-radius:12px;border-bottom-right-radius:12px}
   thead th{background:rgba(124,155,255,.12);color:var(--muted);font-weight:600;text-transform:uppercase;font-size:12px;letter-spacing:.6px}
@@ -74,35 +78,78 @@
   .note{font-size:12px;color:var(--muted);margin-top:6px}
   .archiveItem{padding:10px;border:1px dashed var(--line);border-radius:10px;margin:6px 0}
   tr.paid td{opacity:.75}
+  .upcomingItem{padding:10px 0;border-bottom:1px solid rgba(124,155,255,.12)}
+  .upcomingItem:last-child{border-bottom:none;padding-bottom:0}
+
+  .debtActions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .debtActions .btn{flex:0 0 auto}
+  .debtSummary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:12px 0 6px}
+  .debtSummary .item{background:rgba(7,10,25,.72);border:1px solid rgba(124,155,255,.18);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;box-shadow:0 16px 32px -28px rgba(7,10,25,.9)}
+  .debtSummary .label{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+  .debtSummary .value{font-size:20px;font-weight:600}
+  .debtsList{display:flex;flex-direction:column;gap:14px;margin-top:10px}
+  .debtCard{background:rgba(7,10,25,.65);border:1px solid rgba(124,155,255,.18);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:16px;box-shadow:0 18px 36px -28px rgba(7,10,25,.85);position:relative}
+  .debtCard.paid{opacity:.75}
+  .debtCard__head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+  .debtCard__head .debtField{flex:1}
+  .debtField{display:flex;flex-direction:column;gap:6px}
+  .debtField label{display:block;font-size:12px;color:var(--muted);margin-bottom:0;min-width:0}
+  .debtField input{width:100%}
+  .debtCard__grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .debtCard__grid .debtField:last-child{grid-column:1/-1}
+  .debtCard__footer{display:flex;justify-content:flex-end}
+  .debtCard__footer .btn{max-width:220px}
+  .btn.icon{padding:10px 12px;min-height:42px;line-height:1}
+  .toggleRow{margin-top:4px}
 
   @media (max-width: 900px){
     header{padding:16px 16px}
     header h1{font-size:17px}
-    main{padding:0 14px 80px}
-    label{min-width:180px}
+    main{padding:0 16px 96px}
+    label{min-width:190px}
   }
 
   @media (max-width: 720px){
-    header{position:static;border-bottom:none;background:transparent;padding:18px 14px 0}
-    header h1{font-size:16px}
-    header .sub{font-size:11px}
-    main{margin:18px auto 70px;padding:0 12px}
-    .grid-2{grid-template-columns:1fr}
-    .card{border-radius:16px}
-    summary{padding:14px 16px}
-    summary h2{font-size:16px}
-    .pill{margin-left:0}
-    .content{padding:16px}
-    .row{flex-direction:column;align-items:stretch;gap:6px}
-    label{min-width:0;font-size:12px}
-    input,select,textarea{font-size:16px}
-    .payWrap{flex-direction:column;align-items:stretch}
+    header{position:static;border-bottom:none;background:transparent;padding:16px 14px 0}
+    header h1{font-size:17px}
+    header .sub{font-size:11px;gap:6px;align-items:flex-start}
+    main{margin:12px auto 80px;padding:0 14px;gap:18px}
+    .card{border-radius:18px}
+    summary{padding:16px 18px;flex-direction:column;align-items:flex-start;gap:12px}
+    summary h2{font-size:17px}
+    .sum-left{width:100%;gap:10px}
+    summary .pill{margin-left:0;width:100%;justify-content:center}
+    .content{padding:18px}
+    .row{flex-direction:column;align-items:stretch;gap:10px}
+    label{min-width:0;font-size:13px}
+    .payWrap{flex-direction:column;align-items:stretch;gap:10px}
     .payWrap button{width:100%}
     .kpi{flex-direction:column}
     .kpi .box{min-width:unset}
-    .tableWrap{margin:0 -6px;padding:0 6px}
-    table{min-width:540px}
+    .tableWrap{margin:0 -10px;padding:0 10px}
+    table{min-width:560px}
     th,td{padding:12px 12px}
+    .debtActions{flex-direction:column}
+    .debtActions .btn{width:100%}
+    .debtSummary{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+    .debtCard{padding:16px}
+    .debtCard__head{flex-direction:column-reverse;align-items:stretch;gap:14px}
+    .debtCard__grid{grid-template-columns:1fr}
+    .debtCard__footer{justify-content:stretch}
+    .debtCard__footer .btn{max-width:none;width:100%}
+  }
+
+  @media (max-width: 520px){
+    body{font-size:16px}
+    header{padding:14px 12px 0}
+    header .sub{flex-direction:column;align-items:flex-start;font-size:12px}
+    main{padding:0 12px 72px}
+    summary{padding:16px}
+    .content{padding:16px}
+    .row{gap:12px}
+    .kpi .box{width:100%}
+    .btn,.payWrap button,input,select,textarea{min-height:48px}
+    .debtSummary{grid-template-columns:1fr}
   }
 </style>
 </head>
@@ -191,22 +238,13 @@
           <div class="pill" id="pillDebt">—</div>
         </summary>
         <div class="content">
-          <div class="row"><button class="btn" id="addDebt">+ Lisa võlg</button> <button class="btn" id="exportDebtCsv">Ekspordi CSV</button></div>
-          <div class="tableWrap">
-            <table id="debtsTbl">
-              <thead>
-                <tr>
-                  <th>Võlg</th><th class="right">Jääk (€)</th><th class="right">Miinimum (€)</th><th>Tähtaeg (PP)</th><th>Märkused</th><th>Makstud?</th><th></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-              <tfoot>
-              <tr><td><strong>Kokku</strong></td><td class="right mono" id="sumBal">0</td>
-                  <td class="right mono" id="sumMin">0</td><td></td><td></td><td></td><td></td></tr>
-              </tfoot>
-            </table>
+          <div class="debtActions"><button class="btn primary" id="addDebt">+ Lisa võlg</button><button class="btn" id="exportDebtCsv">Ekspordi CSV</button></div>
+          <div class="debtSummary">
+            <div class="item"><span class="label">Jäägid kokku</span><span class="value mono" id="sumBal">0</span></div>
+            <div class="item"><span class="label">Miinimumid kokku</span><span class="value mono" id="sumMin">0</span></div>
           </div>
-          <div class="row"><label><input type="checkbox" id="autoApply" /> Rakenda kuu maksed automaatselt</label></div>
+          <div class="debtsList" id="debtsList"></div>
+          <div class="toggleRow"><label class="checkboxLabel"><input type="checkbox" id="autoApply" /> Rakenda kuu maksed automaatselt</label></div>
           <div class="kpi" style="margin-top:10px">
             <div class="box"><div class="label">Aeg võlavabaks</div><div class="val mono" id="kpiMonths">—</div></div>
             <div class="box"><div class="label">Esimesena tasutav</div><div class="val mono" id="kpiFirstDone">—</div></div>
@@ -307,7 +345,7 @@
         <div class="content">
           <div id="liveSummary" class="small"></div>
           <div class="divider"></div>
-          <h3>Lähenevad maksepäevad (võlad PP)</h3>
+          <h3>Võlaplaani tähtajad (lõpukuupäevad)</h3>
           <div id="upcomingPays" class="small"></div>
         </div>
       </details>
@@ -322,6 +360,42 @@
   const fmt2 = n => isFinite(n) ? (Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})) : '—';
   const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
   const monthKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  const isValidDate = val => val instanceof Date && !isNaN(val.getTime());
+
+  function parseDateInput(val){
+    if(!val) return null;
+    if(isValidDate(val)){
+      return new Date(val.getFullYear(), val.getMonth(), val.getDate(), 12, 0, 0, 0);
+    }
+    if(typeof val === 'string'){
+      const trimmed = val.trim();
+      if(!trimmed) return null;
+      if(/^\d{4}-\d{2}-\d{2}$/.test(trimmed)){
+        const [y,m,d] = trimmed.split('-').map(Number);
+        const dt = new Date(y, m-1, d);
+        if(isValidDate(dt)){ dt.setHours(12,0,0,0); return dt; }
+        return null;
+      }
+      const match = trimmed.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})$/);
+      if(match){
+        let year = Number(match[3]);
+        if(match[3].length === 2){ year = year + (year < 50 ? 2000 : 1900); }
+        const month = Number(match[2]);
+        const day = Number(match[1]);
+        const dt = new Date(year, month-1, day);
+        if(isValidDate(dt)){ dt.setHours(12,0,0,0); return dt; }
+      }
+      const dt = new Date(trimmed);
+      if(isValidDate(dt)){ dt.setHours(12,0,0,0); return dt; }
+    }
+    return null;
+  }
+
+  function toDateInputValue(val){
+    const dt = parseDateInput(val);
+    if(!dt) return '';
+    return dt.toISOString().slice(0,10);
+  }
 
   // Päis
   const todayDate = $("#todayDate");
@@ -371,6 +445,7 @@
   const pillSpent = $("#pillSpent");
   const zazaProg = $("#zazaProg");
   const archivesList = $("#archivesList");
+  let debtPayoffDates = {};
 
   // ===== Kuu‑põhine püsivus =====
   const KEY = "rahakask-v5";
@@ -560,10 +635,11 @@
   function reflectDebtPaid(id){
     const marks = getPayMarks();
     const paid = !!(marks.debts && marks.debts[id]);
-    const row = debtsTbl.querySelector(`tr[data-id="${id}"]`);
-    if(row){
-      row.classList.toggle("paid", paid);
-      const btn = row.querySelector("[data-pay-debt]");
+    if(!debtsList) return;
+    const card = debtsList.querySelector(`.debtCard[data-id="${id}"]`);
+    if(card){
+      card.classList.toggle("paid", paid);
+      const btn = card.querySelector(`[data-pay-debt="${id}"]`);
       if(btn){
         btn.textContent = paid ? "Makstud ✓" : "Märgi makstuks";
         btn.classList.toggle("paid", paid);
@@ -671,48 +747,66 @@
   }
 
   // ===== Võlaplaan =====
-  const debtsTbl=$("#debtsTbl tbody");
+  const debtsList=$("#debtsList");
   const sumBal=$("#sumBal");
   const sumMin=$("#sumMin");
-  function addDebtRow(d={name:"Laen",balance:0,min:0,due:"",notes:"",id:null}){
-    const tr=document.createElement("tr");
+  function addDebtRow(d={name:"Laen",balance:0,min:0,due:"",contractEnd:"",notes:"",id:null}){
+    if(!debtsList) return;
+    const card=document.createElement("article");
+    card.className="debtCard";
     const rowId=d.id||`d-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
-    tr.dataset.id=rowId;
-    tr.innerHTML=`
-      <td><input value="${d.name||''}" /></td>
-      <td class="right"><input type="number" class="mono" value="${d.balance||0}" step="1" min="0" /></td>
-      <td class="right"><input type="number" class="mono" value="${d.min||0}" step="1" min="0" /></td>
-      <td><input value="${d.due||''}" placeholder="PP" /></td>
-      <td><input value="${d.notes||''}" /></td>
-      <td><button class="btn payToggle" data-pay-debt="${rowId}">Märgi makstuks</button></td>
-      <td><button class="btn" data-action="remove">✕</button></td>`;
-    const removeBtn=tr.querySelector('[data-action="remove"]');
+    card.dataset.id=rowId;
+    card.innerHTML=`
+      <div class="debtCard__head">
+        <div class="debtField"><label>Võlg</label><input class="debtName" value="${d.name||''}" /></div>
+        <button class="btn icon" data-action="remove" aria-label="Eemalda võlg">✕</button>
+      </div>
+      <div class="debtCard__grid">
+        <div class="debtField"><label>Jääk (€)</label><input type="number" class="mono debtBalance" value="${d.balance||0}" step="1" min="0" /></div>
+        <div class="debtField"><label>Miinimum (€)</label><input type="number" class="mono debtMin" value="${d.min||0}" step="1" min="0" /></div>
+        <div class="debtField"><label>Tähtaeg (PP)</label><input class="debtDue" value="${d.due||''}" placeholder="PP" /></div>
+        <div class="debtField"><label>Lõppkuupäev</label><input type="date" class="mono debtEnd" value="${toDateInputValue(d.contractEnd)}" /></div>
+        <div class="debtField"><label>Märkused</label><input class="debtNotes" value="${d.notes||''}" /></div>
+      </div>
+      <div class="debtCard__footer"><button class="btn payToggle" data-pay-debt="${rowId}">Märgi makstuks</button></div>`;
+    const removeBtn=card.querySelector('[data-action="remove"]');
     if(removeBtn){
-      removeBtn.addEventListener("click",()=>{ tr.remove(); clearDebtPaid(rowId); updateDebtTotals(); persist(); renderUpcomingPays(); simulatePayoff(); });
+      removeBtn.addEventListener("click",()=>{ card.remove(); clearDebtPaid(rowId); updateDebtTotals(); persist(); simulatePayoff(); renderUpcomingPays(); });
     }
-    tr.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",()=>{ updateDebtTotals(); persist(); renderUpcomingPays(); simulatePayoff(); }));
-    const payBtn=tr.querySelector(`[data-pay-debt="${rowId}"]`);
+    card.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",()=>{ updateDebtTotals(); persist(); simulatePayoff(); renderUpcomingPays(); }));
+    const payBtn=card.querySelector(`[data-pay-debt="${rowId}"]`);
     if(payBtn){
       payBtn.addEventListener("click",()=>{ toggleDebtPaid(rowId); });
     }
-    debtsTbl.appendChild(tr); updateDebtTotals(); renderUpcomingPays(); simulatePayoff();
+    debtsList.appendChild(card); updateDebtTotals(); simulatePayoff(); renderUpcomingPays();
     reflectDebtPaid(rowId);
   }
   function readDebts(){
-    return [...debtsTbl.querySelectorAll("tr")].map(r=>{
-      const [name,balance,min,due,notes]=[...r.querySelectorAll("input")].map(x=>x.value);
-      const id=r.dataset.id||"";
-      return {id, name, balance:+balance||0, min:+min||0, due, notes};
+    if(!debtsList) return [];
+    return [...debtsList.querySelectorAll(".debtCard")].map(card=>{
+      const getVal=sel=>{ const el=card.querySelector(sel); return el?el.value:""; };
+      const id=card.dataset.id||"";
+      return {
+        id,
+        name:getVal(".debtName"),
+        balance:+getVal(".debtBalance")||0,
+        min:+getVal(".debtMin")||0,
+        due:getVal(".debtDue"),
+        contractEnd:getVal(".debtEnd"),
+        notes:getVal(".debtNotes")
+      };
     });
   }
   function updateDebtTotals(){
     const d=readDebts();
-    sumBal.textContent=fmt(d.reduce((a,b)=>a+b.balance,0));
-    sumMin.textContent=fmt(d.reduce((a,b)=>a+b.min,0));
+    if(sumBal) sumBal.textContent=fmt(d.reduce((a,b)=>a+b.balance,0));
+    if(sumMin) sumMin.textContent=fmt(d.reduce((a,b)=>a+b.min,0));
   }
   $("#addDebt").addEventListener("click",()=>addDebtRow());
   function simulatePayoff(){
-    const debts=readDebts().filter(d=>d.balance>0).map(d=>({...d}));
+    const allDebts=readDebts();
+    const debts=allDebts.filter(d=>d.balance>0).map(d=>({...d}));
+    debtPayoffDates = {};
     if(!debts.length){
       kpis.months.textContent="—";
       kpis.firstDone.textContent="—";
@@ -721,6 +815,25 @@
       return;
     }
     const nextTarget = debts.slice().sort((a,b)=>a.balance-b.balance).find(d=>d.balance>0);
+    debts.forEach(d=>{
+      d._done=false;
+      d._doneMonth=0;
+      d._doneDate=null;
+      let nd=nextDueDate(d.due);
+      if(nd){ nd.setHours(12,0,0,0); }
+      else {
+        nd=new Date();
+        nd.setHours(12,0,0,0);
+        nd.setMonth(nd.getMonth()+1);
+      }
+      d._nextDue=nd;
+    });
+    const fallbackPayoffDate = (monthsAhead)=>{
+      const base=new Date();
+      base.setHours(12,0,0,0);
+      base.setMonth(base.getMonth()+monthsAhead);
+      return base;
+    };
     let month=0, firstDone=null;
     const sort=()=>debts.sort((a,b)=>a.balance-b.balance); sort();
     let snowballExtra = 0;
@@ -732,6 +845,8 @@
         if(d.balance>0&&d.balance<0.01) d.balance=0;
         if(d.balance===0&&!d._done){
           d._done=true;
+          d._doneMonth=month;
+          d._doneDate=d._nextDue? new Date(d._nextDue):fallbackPayoffDate(month);
           snowballExtra += d.min;
           monthExtra += d.min;
           if(!firstDone) firstDone={name:d.name,month};
@@ -747,12 +862,20 @@
         if(target.balance>0&&target.balance<0.01) target.balance=0;
         if(target.balance===0&&!target._done){
           target._done=true;
+          target._doneMonth=month;
+          target._doneDate=target._nextDue? new Date(target._nextDue):fallbackPayoffDate(month);
           snowballExtra += target.min;
           monthExtra += target.min;
           if(!firstDone) firstDone={name:target.name,month};
         }
         sort();
       }
+      debts.forEach(d=>{
+        if(d.balance>0){
+          if(d._nextDue){ d._nextDue=advanceDueDate(d._nextDue,d.due); }
+          else { d._nextDue=fallbackPayoffDate(month); }
+        }
+      });
     }
     const years=Math.floor(month/12), mRem=month%12;
     kpis.months.textContent= month? (years? `${years} a ${mRem} k`:`${month} k`) :"—";
@@ -760,11 +883,25 @@
     const debtFree=new Date(); debtFree.setMonth(debtFree.getMonth()+month);
     kpis.debtFreeDate.textContent=debtFree.toLocaleDateString(undefined,{day:'2-digit',month:'long',year:'numeric'});
     pillDebt.textContent = `Esimesena tasutav: ${nextTarget ? nextTarget.name : '—'}`;
+
+    const lookup={};
+    debts.forEach(d=>{ lookup[d.id||d.name]=d; });
+    const payoffMap={};
+    allDebts.forEach(src=>{
+      const key=src.id||src.name;
+      const sim=lookup[key];
+      payoffMap[key]= sim && sim._doneDate ? new Date(sim._doneDate) : null;
+    });
+    debtPayoffDates = payoffMap;
   }
   $("#exportDebtCsv").addEventListener("click",()=>{
     const debts=readDebts();
-    let csv="Võlg,Jääk,Miinimum,Tähtaeg (PP),Märkused\n";
-    debts.forEach(d=>{ csv+=`"${d.name}",${d.balance},${d.min},"${d.due}","${(d.notes||'').replace(/"/g,'""')}"\n`; });
+    let csv="Võlg,Jääk,Miinimum,Tähtaeg (PP),Lõppkuupäev (ametlik),Märkused\n";
+    debts.forEach(d=>{
+      const safeNotes=(d.notes||'').replace(/"/g,'""');
+      const safeEnd=(d.contractEnd||'').replace(/"/g,'""');
+      csv+=`"${d.name}",${d.balance},${d.min},"${d.due}","${safeEnd}","${safeNotes}"\n`;
+    });
     const blob=new Blob([csv],{type:"text/csv"}); const a=document.createElement("a");
     a.href=URL.createObjectURL(blob); a.download="volgade_loetelu.csv"; a.click();
   });
@@ -836,7 +973,7 @@
     if(d.debtSettings){
       if(inputs.autoApply) inputs.autoApply.checked=!!d.debtSettings.autoApply;
     }
-    if(d.debts){ debtsTbl.innerHTML=""; d.debts.forEach(addDebtRow); }
+    if(d.debts && debtsList){ debtsList.innerHTML=""; d.debts.forEach(addDebtRow); }
     if(d.user&&inputs.paydays){ inputs.paydays.value=d.user.paydays||""; }
     if(d.psych&&$("#implIntents")){ $("#implIntents").value=d.psych.impl||""; }
   }
@@ -847,7 +984,7 @@
     initSupportButtons();
     const state=readState(); applyData(state.data||{});
     // init
-    recomputeZaza(); recomputeBudget(); renderExpenses(); renderUpcomingPays(); updatePayInfo(); simulatePayoff(); renderArchives();
+    recomputeZaza(); recomputeBudget(); renderExpenses(); simulatePayoff(); renderUpcomingPays(); updatePayInfo(); renderArchives();
     // default debts if none
     if(!state.data || !state.data.debts || !state.data.debts.length){
       addDebtRow({name:"Kaart A", balance:1200, min:50, due:"15"});
@@ -874,13 +1011,57 @@
     else { const last=new Date(y,m+1,0).getDate(); cand=new Date(y,m,Math.min(dd,last)); }
     return cand;
   }
+  function advanceDueDate(prev, dayStr){
+    const dd=parseInt(dayStr,10);
+    const nextBase=new Date(prev.getFullYear(), prev.getMonth(), 1);
+    nextBase.setMonth(nextBase.getMonth()+1);
+    const last=new Date(nextBase.getFullYear(), nextBase.getMonth()+1,0).getDate();
+    const day=isFinite(dd)&&dd>=1&&dd<=31 ? Math.min(dd,last) : last;
+    const next=new Date(nextBase.getFullYear(), nextBase.getMonth(), day);
+    next.setHours(12,0,0,0);
+    return next;
+  }
   function renderUpcomingPays(){
     const debts=readDebts();
-    const list=debts.map(d=>({name:d.name, date: nextDueDate(d.due)})).filter(x=>x.date);
-    list.sort((a,b)=>a.date-b.date);
-    if(!list.length){ upcomingPays.innerHTML="<em>Lisa võlgadele tähtaeg (PP), nt 15.</em>"; return; }
+    if(!debts.length){ upcomingPays.innerHTML="<em>Lisa võlad, et arvutada lõppkuupäevad.</em>"; return; }
+    const active=debts.filter(d=>d.balance>0);
+    if(!active.length){ upcomingPays.innerHTML="<em>Kõik aktiivsed võlad on tasutud! 🎉</em>"; return; }
     const fmtOpt={day:'2-digit',month:'long',year:'numeric'};
-    upcomingPays.innerHTML=list.map(x=>`<div>• ${x.name}: <strong>${x.date.toLocaleDateString(undefined,fmtOpt)}</strong></div>`).join("");
+    const orderVal=dt=>dt?dt.getTime():Infinity;
+    const describeDelta=(est,official)=>{
+      const diffDays=Math.round((official.getTime()-est.getTime())/86400000);
+      const absDays=Math.abs(diffDays);
+      if(absDays<=1) return '<span class="muted">(≈ sama)</span>';
+      const months=Math.floor(absDays/30);
+      const days=absDays%30;
+      const parts=[];
+      if(months) parts.push(`${months} k`);
+      if(days) parts.push(`${days} p`);
+      const cls=diffDays>0?'good':'warn';
+      const dir=diffDays>0?'varem':'hiljem';
+      return `<span class="${cls}">(≈ ${parts.join(' ')} ${dir})</span>`;
+    };
+    const items=active.map(d=>{
+      const key=d.id||d.name;
+      const payoff=debtPayoffDates ? debtPayoffDates[key] : null;
+      return {
+        name:d.name,
+        official:parseDateInput(d.contractEnd),
+        estimated:parseDateInput(payoff)
+      };
+    });
+    items.sort((a,b)=>orderVal(a.estimated||a.official)-orderVal(b.estimated||b.official));
+    let html=items.map(item=>{
+      const officialTxt=item.official ? `<strong>${item.official.toLocaleDateString(undefined,fmtOpt)}</strong>` : `<span class="muted">—</span>`;
+      const estTxt=item.estimated ? `<strong>${item.estimated.toLocaleDateString(undefined,fmtOpt)}</strong>` : `<span class="muted">—</span>`;
+      const delta=(item.official && item.estimated)? describeDelta(item.estimated,item.official) : '';
+      return `<div class="upcomingItem"><div>• ${item.name}</div><div class="small muted">Ametlik lõpp: ${officialTxt}</div><div class="small">Hinnang: ${estTxt}${delta}</div></div>`;
+    }).join("");
+    const missingOfficial=items.filter(x=>!x.official).length;
+    const missingEstimate=items.filter(x=>!x.estimated).length;
+    if(missingOfficial){ html+=`<div class="small muted">${missingOfficial} võlal puudub ametlik lõppkuupäev – lisa see tabelis.</div>`; }
+    if(missingEstimate){ html+=`<div class="small muted">${missingEstimate} võla hinnangut ei saanud arvutada (kontrolli jääke, miinimumi ja PP päeva).</div>`; }
+    upcomingPays.innerHTML=html;
   }
 
   // Käivitus
