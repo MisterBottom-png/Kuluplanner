@@ -238,6 +238,13 @@
             <button class="btn" id="startUrge">Käivita 3:00</button>
             <div id="urgeClock" class="pill mono">03:00</div>
           </div>
+          <h3>Nädalane kontroll (10 min)</h3>
+          <ul class="small">
+            <li>Logi tegelikud kulud eelarvesse.</li>
+            <li>Kontrolli kanepi “ümbriku”/alamkontot.</li>
+            <li>Kui läheb üle, kärbi sel nädalal (mitte järgmisel kuul).</li>
+            <li>Tähista üks võit (nt “€40 → Hädaabifond”).</li>
+          </ul>
         </div>
       </details>
     </div>
@@ -295,6 +302,7 @@
     zazaCutPct:  $("#zazaCutPct"),
     applyCap:    $("#applyCap"),
     extraDebt:   $("#extraDebt"),
+    autoApply:   $("#autoApply"),
     paydays:     $("#paydaysInput"),
   };
 
@@ -429,41 +437,6 @@
       state.data.budget.efNow = (+state.data.budget.efNow || 0) + carryOver;
 
       // Clear only expenses (new month starts fresh)
-      localStorage.removeItem(KEY_EXP);
-    }
-
-    // Update current meta month
-    state.meta = { month: cur };
-    writeState(state);
-  }
-      const prevMonth = storedMonth; // e.g., "2025-09"
-      const prevMonthExpenses = allExpenses.filter(e => String(e.date||"").slice(0,7) === prevMonth);
-
-      // Compute carryover (ülejääk) into EF:
-      // fixed bills: loans + mom + aptSupport + phone (monthly fixeds)
-      const b = (state.data && state.data.budget) || {};
-      const income = +b.income || 0;
-      const fixedBills = (+b.loans||0) + (+b.mom||0) + (+b.aptSupport||0) + (+b.phone||0);
-      const spent = prevMonthExpenses.reduce((s,x)=> s + (+x.amt||0), 0);
-      let carryOver = income - fixedBills - spent;
-      if (!isFinite(carryOver)) carryOver = 0;
-      if (carryOver < 0) carryOver = 0;
-
-      // Archive snapshot
-      const archiveEntry = {
-        month: prevMonth,
-        ts: Date.now(),
-        data: state.data || {},
-        expenses: prevMonthExpenses,
-        carryOver: carryOver
-      };
-      state.archives.push(archiveEntry);
-
-      // Apply carryover to new month's EF balance
-      if (!state.data.budget) state.data.budget = {};
-      state.data.budget.efNow = (+state.data.budget.efNow || 0) + carryOver;
-
-      // Clear only expenses (start fresh month logs)
       localStorage.removeItem(KEY_EXP);
     }
 
@@ -687,7 +660,10 @@
         fun:+inputs.fun.value||0, personal:+inputs.personal.value||0, zazaCap:+inputs.zazaCap.value||0, efTarget:+inputs.efTarget.value||0, efNow:+inputs.efNow.value||0
       },
       cannabis:{ price:+inputs.pricePerGram.value||0, grams:+inputs.gramsPerWeek.value||0, cutPct:+inputs.zazaCutPct.value||0 },
-      debtSettings:{ extra:+inputs.extraDebt.value||0 },
+      debtSettings:{
+        extra:+inputs.extraDebt.value||0,
+        autoApply: !!(inputs.autoApply && inputs.autoApply.checked)
+      },
       debts: readDebts(),
       user:{ paydays: (inputs.paydays||{}).value || "" },
       psych:{ impl: ($("#implIntents")||{}).value || "" }
@@ -696,7 +672,10 @@
   function applyData(d){
     if(d.budget){ for(const k in d.budget){ if(inputs[k]&&typeof d.budget[k]!=="undefined") inputs[k].value=d.budget[k]; } }
     if(d.cannabis){ inputs.pricePerGram.value=d.cannabis.price||0; inputs.gramsPerWeek.value=d.cannabis.grams||0; inputs.zazaCutPct.value=d.cannabis.cutPct||0; }
-    if(d.debtSettings){ inputs.extraDebt.value=d.debtSettings.extra||0; }
+    if(d.debtSettings){
+      inputs.extraDebt.value=d.debtSettings.extra||0;
+      if(inputs.autoApply) inputs.autoApply.checked=!!d.debtSettings.autoApply;
+    }
     if(d.debts){ debtsTbl.innerHTML=""; d.debts.forEach(addDebtRow); }
     if(d.user&&inputs.paydays){ inputs.paydays.value=d.user.paydays||""; }
     if(d.psych&&$("#implIntents")){ $("#implIntents").value=d.psych.impl||""; }
