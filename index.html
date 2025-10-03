@@ -9,6 +9,7 @@
 <title>Rahakäsk – Kuu‑põhine eelarve + võlad</title>
 <style>
   :root{
+    --header-height: 120px;
     --bg:#0f1221; --card:#171a2e; --ink:oklch(96% 0.02 260); --muted:#aab1d9; --accent:oklch(62% 0.15 260);
     --good:#38d39f; --warn:#ffb648; --bad:#ff6b6b; --line:#242845;
     --frost:rgba(124,155,255,.08);
@@ -19,7 +20,7 @@
   html,body{margin:0;background:radial-gradient(circle at top,var(--card) 0%,var(--bg) 52%,#070915 100%);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;line-height:1.6;font-size:15px}
   body{min-height:var(--app-min-h,100dvh)}
   h1,h2,h3{margin:0;font-weight:600}
-  header{padding:18px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:linear-gradient(180deg,#10132a 0%,rgba(15,18,33,.9) 65%,rgba(15,18,33,.5) 100%);backdrop-filter: blur(8px);z-index:5;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;animation-timeline:scroll();animation-range:0 120px;animation-name:elevate;animation-fill-mode:both}
+  header{padding:18px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:linear-gradient(180deg,#10132a 0%,rgba(15,18,33,.9) 65%,rgba(15,18,33,.5) 100%);backdrop-filter: blur(8px);z-index:5;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;animation-timeline:scroll();animation-range:0 120px;animation-name:elevate;animation-fill-mode:both;height:var(--header-height)}
   header .wrap{display:flex;flex-direction:column;gap:6px}
   header .actions{display:flex;gap:8px;flex-wrap:wrap}
   header h1{margin:0;font-size:18px;letter-spacing:.4px}
@@ -29,8 +30,14 @@
   main{max-width:1150px;margin:28px auto;padding:0 16px 90px}
 
   .grid{display:grid;gap:18px}
+  details{display:flex;flex-direction:column}
+  details > summary{position:sticky;top:0;z-index:1}
   @media (min-width: 980px){
+    body{min-height:100vh;overflow:hidden}
+    main{height:calc(100vh - var(--header-height));margin:0 auto;padding:28px 16px 90px}
     .grid-2{grid-template-columns:1.2fr .8fr}
+    .grid-2 > section{display:flex;flex-direction:column;gap:18px;overflow-y:auto;padding-right:0.5rem;min-height:0;min-width:0;height:100%;scrollbar-gutter:stable both-edges}
+    .grid-2 > section > .card{flex:0 0 auto}
   }
 
   .card{background:rgba(18,22,41,.9);border:1px solid rgba(124,155,255,.15);border-radius:18px;padding:0;overflow:hidden;box-shadow:0 26px 50px -34px rgba(7,12,32,.85);backdrop-filter:blur(6px)}
@@ -98,6 +105,10 @@
 
   @media (prefers-reduced-motion: reduce){
     *{animation:none!important;transition:none!important}
+  }
+
+  @media (max-width: 979px){
+    header{height:auto}
   }
 
   #expSection{container-type:inline-size}
