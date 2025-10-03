@@ -230,6 +230,7 @@
             <label>Kategooria</label>
             <select id="expCat">
               <option>Zaza</option>
+              <option>Telefon/Internet</option>
               <option>Toit</option>
               <option>Transport</option>
               <option>Meelelahutus</option>
@@ -376,6 +377,18 @@
   const archivesList = $("#archivesList");
   const useDebtPlan = $("#useDebtPlan");
   const debtCard = $("#debtCard");
+  const CATEGORY_LABELS = {
+    'Zaza': 'Kanepi kulu ülempiir',
+    'Telefon/Internet': 'Telefon/Internet',
+    'Toit': 'Toit',
+    'Transport': 'Transport',
+    'Meelelahutus': 'Meelelahutus',
+    'Riided/Isiklik': 'Riided/Isiklik',
+    'Muu': 'Muud esmavajadused'
+  };
+  const CATEGORY_ORDER = ['Zaza','Telefon/Internet','Toit','Transport','Meelelahutus','Riided/Isiklik','Muu'];
+  const SUPPORT_KEYS = ['loans','mom','aptSupport'];
+  let currentMonthExpenses = [];
 
   // ===== Kuu‑põhine püsivus =====
   const KEY = "rahakask-v5";
@@ -552,6 +565,7 @@
     marks.supports[key] = !marks.supports[key];
     savePayMarks();
     reflectSupportPaid(key);
+    recomputeBudget();
   }
   let supportButtonsInit=false;
   function refreshSupportButtons(){
@@ -656,23 +670,49 @@
     const amt = +inputValue(amountInput) || 0;
     return isActive(endInput, asOf) ? amt : 0;
   }
-  /** Kuupõhised kohustused (laenud + toetused + telefon) */
+  /** Kuupõhised kohustused (laenud + toetused) */
   function monthlyObligations(source=inputs, asOf=new Date()){
     const src = source || {};
-    const phone = +inputValue(src.phone) || 0;
     const loans = +inputValue(src.loans) || 0;
     return (
       loans +
       activeAmt(src.mom, src.momEnd, asOf) +
-      activeAmt(src.aptSupport, src.aptSupportEnd, asOf) +
-      phone
+      activeAmt(src.aptSupport, src.aptSupportEnd, asOf)
     );
+  }
+  function supportAmount(key, source=inputs, asOf=new Date()){
+    const src = source || {};
+    if(key === 'loans') return +inputValue(src.loans) || 0;
+    if(key === 'mom') return activeAmt(src.mom, src.momEnd, asOf);
+    if(key === 'aptSupport') return activeAmt(src.aptSupport, src.aptSupportEnd, asOf);
+    return 0;
+  }
+  function paidSupportsTotal(asOf=new Date()){
+    const marks = getPayMarks();
+    if(!marks || !marks.supports) return 0;
+    return SUPPORT_KEYS.reduce((sum,key)=>{
+      return sum + (marks.supports[key] ? supportAmount(key, inputs, asOf) : 0);
+    },0);
+  }
+  function categoryLimits(source=inputs){
+    const src = source || {};
+    return {
+      'Telefon/Internet': +inputValue(src.phone) || 0,
+      'Transport': +inputValue(src.transport) || 0,
+      'Toit': +inputValue(src.groceries) || 0,
+      'Muu': +inputValue(src.otherEss) || 0,
+      'Meelelahutus': +inputValue(src.fun) || 0,
+      'Riided/Isiklik': +inputValue(src.personal) || 0,
+      'Zaza': +inputValue(src.zazaCap) || 0,
+    };
+  }
+  function sumCategoryLimits(limits){
+    return Object.values(limits || {}).reduce((sum,val)=>sum+(+val||0),0);
   }
   function computeOutflows(){
     const obligations = monthlyObligations();
-    const essentialsRest=(+inputs.transport.value||0)+(+inputs.groceries.value||0)+(+inputs.otherEss.value||0);
-    const discretionary=(+inputs.fun.value||0)+(+inputs.personal.value||0)+(+inputs.zazaCap.value||0);
-    return obligations+essentialsRest+discretionary;
+    const limitsTotal = sumCategoryLimits(categoryLimits());
+    return obligations + limitsTotal;
   }
   /** Summeeri kulud kuuvõtme alusel */
   function spentForMonth(mk, list){
@@ -683,30 +723,41 @@
   }
   /** Kulud jooksval kuul */
   function spentThisMonth(){
+    if(Array.isArray(currentMonthExpenses)){
+      return currentMonthExpenses.reduce((sum,e)=>sum+(+e.amt||0),0);
+    }
     return spentForMonth(monthKey(new Date()));
   }
   function recomputeBudget(){
     const income=+inputs.income.value||0;
     const obligations = monthlyObligations();
-    const plannedLeft = income - obligations;
+    const limits = categoryLimits();
+    const limitTotal = sumCategoryLimits(limits);
+    const plannedTotal = obligations + limitTotal;
+    const plannedLeft = income - plannedTotal;
     const spent = spentThisMonth();
-    const realLeft = plannedLeft - spent;
+    const paidSupports = paidSupportsTotal();
+    const realLeft = income - paidSupports - spent;
     const totalOut=computeOutflows();
     const realClass = realLeft>0?"good":(realLeft===0?"":"bad");
+    const obligationsLeft = Math.max(0, obligations - paidSupports);
     kpis.out.textContent="€ "+fmt(totalOut);
     kpis.left.textContent=(realLeft>=0?"€ "+fmt(realLeft):"€ -"+fmt(Math.abs(realLeft)));
     kpis.left.className="val mono "+realClass;
-    kpis.alloc.textContent=`Kohustused € ${fmt(obligations)}  |  Plaanijääk € ${fmt(plannedLeft)}`;
+    kpis.alloc.textContent=`Kohustused € ${fmt(obligations)}  |  Limiidid € ${fmt(limitTotal)}  |  Plaanijääk € ${fmt(plannedLeft)}`;
     if(pillBudget) pillBudget.textContent=`Reaaljääk: € ${fmt(realLeft)}`;
     // pillDebt uuendatakse simulatsiooni põhjal
     if(summary){
       summary.innerHTML=`
       <div>Sissetulek: <strong>€ ${fmt(income)}</strong></div>
-      <div>Kohustuslikud maksed (k.u): <strong>€ ${fmt(obligations)}</strong></div>
+      <div>Kohustuslikud maksed (planeeritud): <strong>€ ${fmt(obligations)}</strong></div>
+      <div>Kohustuslikud maksed (makstud): <strong>€ ${fmt(paidSupports)}</strong> <span class="small muted">alles € ${fmt(Math.max(0, obligationsLeft))}</span></div>
+      <div>Kulude limiidid: <strong>€ ${fmt(limitTotal)}</strong></div>
       <div>Sel kuul kulud: <strong>€ ${fmt(spent)}</strong></div>
-      <div>Plaanijääk (enne oste): <strong>€ ${fmt(plannedLeft)}</strong></div>
+      <div>Plaanijääk (kui järgid limiite): <strong>€ ${fmt(plannedLeft)}</strong></div>
       <div>Reaaljääk (pärast oste): <strong class="${realClass}">€ ${fmt(realLeft)}</strong></div>`;
     }
+    renderExpenseBreakdown();
     refreshZazaLeft();
   }
 
@@ -857,13 +908,67 @@
     tr.querySelector("button").addEventListener("click",(ev)=>{ const i=+ev.currentTarget.getAttribute("data-i"); const all=readExpenses(); all.splice(i,1); writeExpenses(all); renderExpenses(); persist(); });
     expTblBody.appendChild(tr);
   }
+  function renderExpenseBreakdown(list){
+    if(!expBreakdown) return;
+    const limits = categoryLimits();
+    const data = Array.isArray(list) ? list : currentMonthExpenses;
+    const byCat={};
+    (data||[]).forEach(e=>{
+      const cat=(e&&e.cat)||'Muu';
+      byCat[cat]=(byCat[cat]||0)+(+e.amt||0);
+    });
+    const cats=new Set([
+      ...Object.keys(byCat),
+      ...Object.entries(limits).filter(([,limit])=>limit>0).map(([cat])=>cat)
+    ]);
+    if(!cats.size){
+      expBreakdown.innerHTML="<em>Sel kuul kulusid pole.</em>";
+      return;
+    }
+    const ordered=[];
+    CATEGORY_ORDER.forEach(cat=>{ if(cats.has(cat)){ ordered.push(cat); cats.delete(cat);} });
+    Array.from(cats).sort().forEach(cat=>ordered.push(cat));
+    const rows=ordered.map(cat=>{
+      const spent=+byCat[cat]||0;
+      const limit=+limits[cat]||0;
+      const label=CATEGORY_LABELS[cat]||cat;
+      if(limit>0){
+        const left=limit-spent;
+        let statusClass='muted';
+        let statusText=`alles € ${fmt2(Math.max(0,left))}`;
+        if(left<0){
+          statusClass='bad';
+          statusText=`ületatud € ${fmt2(Math.abs(left))}`;
+        } else if(spent>0){
+          const ratio=limit?spent/limit:0;
+          if(ratio>=1){
+            statusClass='bad';
+            statusText=`ületatud € ${fmt2(Math.abs(left))}`;
+          } else if(ratio>=0.95){
+            statusClass='warn';
+          } else {
+            statusClass='good';
+          }
+        } else {
+          statusClass='good';
+          statusText=`alles € ${fmt2(limit)}`;
+        }
+        return `<div>• ${label}: <strong>€ ${fmt2(spent)}</strong> / € ${fmt2(limit)} <span class="${statusClass}">(${statusText})</span></div>`;
+      }
+      if(spent>0){
+        return `<div>• ${label}: <strong>€ ${fmt2(spent)}</strong></div>`;
+      }
+      return '';
+    }).filter(Boolean);
+    expBreakdown.innerHTML=rows.length?rows.join(""):"<em>Sel kuul kulusid pole.</em>";
+  }
   function renderExpenses(){
     const all=readExpenses(); const mk=monthKey(new Date());
     const monthList=all.filter(e=> (e.date||"").slice(0,7)===mk);
+    currentMonthExpenses = monthList.slice();
     expTblBody.innerHTML=""; monthList.forEach((e,i)=> addExpenseRow(e, readExpenses().indexOf(e)));
     const total=monthList.reduce((a,b)=>a+(+b.amt||0),0); expSum.textContent=fmt2(total);
-    const byCat={}; monthList.forEach(e=> byCat[e.cat]=(byCat[e.cat]||0)+(+e.amt||0));
-    expBreakdown.innerHTML = Object.entries(byCat).map(([c,v])=>`<div>• ${c}: <strong>€ ${fmt2(v)}</strong></div>`).join("") || "<em>Sel kuul kulusid pole.</em>";
+    renderExpenseBreakdown(monthList);
     pillSpent.textContent=`Sel kuul: € ${fmt2(total)}`; refreshZazaLeft();
     recomputeBudget();
   }
