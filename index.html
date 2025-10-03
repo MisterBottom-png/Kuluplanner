@@ -3,17 +3,25 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0f1221" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <title>Rahakäsk – Kuu‑põhine eelarve + võlad</title>
 <style>
   :root{
-    --bg:#0f1221; --card:#171a2e; --ink:#e9ecff; --muted:#aab1d9; --accent:#7c9bff;
+    --bg:#0f1221; --card:#171a2e; --ink:oklch(96% 0.02 260); --muted:#aab1d9; --accent:oklch(62% 0.15 260);
     --good:#38d39f; --warn:#ffb648; --bad:#ff6b6b; --line:#242845;
     --frost:rgba(124,155,255,.08);
+    --surface:oklch(20% 0.03 260); --surface-2:color-mix(in oklch, var(--surface) 85%, white);
   }
   *{box-sizing:border-box}
+  html{color-scheme:dark light;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:radial-gradient(circle at top,var(--card) 0%,var(--bg) 52%,#070915 100%);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;line-height:1.6;font-size:15px}
+  body{min-height:var(--app-min-h,100dvh)}
   h1,h2,h3{margin:0;font-weight:600}
-  header{padding:18px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:linear-gradient(180deg,#10132a 0%,rgba(15,18,33,.9) 65%,rgba(15,18,33,.5) 100%);backdrop-filter: blur(8px);z-index:5}
+  header{padding:18px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:linear-gradient(180deg,#10132a 0%,rgba(15,18,33,.9) 65%,rgba(15,18,33,.5) 100%);backdrop-filter: blur(8px);z-index:5;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;animation-timeline:scroll();animation-range:0 120px;animation-name:elevate;animation-fill-mode:both}
+  header .wrap{display:flex;flex-direction:column;gap:6px}
+  header .actions{display:flex;gap:8px;flex-wrap:wrap}
   header h1{margin:0;font-size:18px;letter-spacing:.4px}
   header .sub{color:var(--muted);font-size:12px;margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
   header .date,.monthBadge{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#0b0e1d;font-variant-numeric:tabular-nums;box-shadow:0 8px 16px -12px rgba(0,0,0,.7)}
@@ -36,7 +44,7 @@
   .content{padding:18px;border-top:1px solid rgba(124,155,255,.15);display:flex;flex-direction:column;gap:10px}
   .row{display:flex;gap:12px;align-items:center}
   label{font-size:13px;color:var(--muted);min-width:210px}
-  input,select,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(124,155,255,.18);background:rgba(7,10,25,.72);color:var(--ink);outline:none;font-size:15px;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}
+  input,select,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(124,155,255,.18);background:rgba(7,10,25,.72);color:var(--ink);outline:none;font-size:15px;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;accent-color:var(--accent)}
   input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,155,255,.2);background:rgba(7,10,25,.92)}
   textarea{min-height:90px;resize:vertical}
   .mono{font-variant-numeric:tabular-nums}
@@ -75,6 +83,28 @@
   .archiveItem{padding:10px;border:1px dashed var(--line);border-radius:10px;margin:6px 0}
   tr.paid td{opacity:.75}
 
+  dialog{border:1px solid color-mix(in oklch, var(--accent) 30%, transparent);background:oklch(18% 0.02 260 / .98);color:var(--ink);border-radius:16px;width:min(680px,92vw);padding:0}
+  dialog::backdrop{background:rgba(4,6,14,.6);backdrop-filter:blur(2px)}
+  .dialog-head{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center}
+  .dialog-body{padding:16px;display:flex;flex-direction:column;gap:10px}
+  .dialog-actions{padding:14px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:flex-end;gap:8px}
+  dialog .btn{backdrop-filter:none}
+
+  #expSection .content .exp-form, #expSection .content .breakdown{display:none}
+
+  main{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+
+  @keyframes elevate{from{box-shadow:none}to{box-shadow:0 8px 24px -18px rgba(0,0,0,.6)}}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
+  }
+
+  #expSection{container-type:inline-size}
+  @container (max-width: 480px){
+    .exp-table th:nth-child(3), .exp-table td:nth-child(3){display:none}
+  }
+
   @media (max-width: 900px){
     header{padding:16px 16px}
     header h1{font-size:17px}
@@ -83,9 +113,10 @@
   }
 
   @media (max-width: 720px){
-    header{position:static;border-bottom:none;background:transparent;padding:18px 14px 0}
+    header{position:static;border-bottom:none;background:transparent;padding:18px 14px 0;flex-direction:column;align-items:stretch}
     header h1{font-size:16px}
     header .sub{font-size:11px}
+    header .actions{width:100%;justify-content:flex-start}
     main{margin:18px auto 70px;padding:0 12px}
     .grid-2{grid-template-columns:1fr}
     .card{border-radius:16px}
@@ -108,10 +139,12 @@
 </head>
 <body>
 <header>
-  <h1>Rahakäsk • Kuu‑põhine eelarve + võlad</h1>
-  <div class="sub">
-    <span class="monthBadge" id="monthBadge">—</span>
-    <span class="date" id="todayDate">—</span>
+  <div class="wrap">
+    <h1>Rahakäsk • Kuu‑põhine eelarve + võlad</h1>
+    <div class="sub"><span class="monthBadge" id="monthBadge">—</span> <span class="date" id="todayDate">—</span></div>
+  </div>
+  <div class="actions">
+    <button class="btn primary" id="expQuick">Kulutuste jälgija</button>
   </div>
 </header>
 
@@ -184,42 +217,29 @@
     </div>
 
     <!-- Kulutuste jälgija -->
-    <div class="card">
+    <div class="card" id="expSection">
       <details open>
         <summary>
-          <div class="sum-left"><span class="chev">▶</span><h2>Kulutuste jälgija (selle kuu)</h2></div>
+          <div class="sum-left"><span class="chev">▶</span><h2>Selle kuu kulud</h2></div>
           <div class="pill" id="pillSpent">Sel kuul: —</div>
         </summary>
         <div class="content">
-          <div class="row">
-            <label>Kategooria</label>
-            <select id="expCat">
-              <option>Zaza</option>
-              <option>Telefon/Internet</option>
-              <option>Toit</option>
-              <option>Transport</option>
-              <option>Meelelahutus</option>
-              <option>Riided/Isiklik</option>
-              <option>Muu</option>
-            </select>
-          </div>
-          <div class="row"><label>Summa (€)</label><input id="expAmt" type="number" class="mono" min="0" step="0.01" /></div>
-          <div class="row"><label>Kuupäev</label><input id="expDate" type="date" /></div>
-          <div class="row"><label>Märkus</label><input id="expNote" type="text" placeholder="mis, kus, kelle jaoks"></div>
-          <div class="row"><button class="btn primary" id="addExp">+ Lisa kulu</button></div>
-
-          <div class="divider"></div>
           <div class="tableWrap">
-            <table id="expTbl">
-              <thead><tr><th>Kuupäev</th><th>Kategooria</th><th>Märkus</th><th class="right">€</th><th></th></tr></thead>
+            <table id="expTbl" class="exp-table">
+              <thead>
+                <tr><th>Kuupäev</th><th>Kategooria</th><th>Märkus</th><th class="right">€</th><th></th></tr>
+              </thead>
               <tbody></tbody>
-              <tfoot><tr><td colspan="3"><strong>Kokku (kuu):</strong></td><td class="right mono" id="expSum">0.00</td><td></td></tr></tfoot>
+              <tfoot>
+                <tr><td colspan="3"><strong>Kokku (kuu):</strong></td><td class="right mono" id="expSum">0.00</td><td></td></tr>
+              </tfoot>
             </table>
           </div>
-
-          <div class="divider"></div>
-          <h3>Sel kuul kategooriate kaupa</h3>
-          <div id="expBreakdown" class="small"></div>
+          <!-- Hidden placeholders so existing JS that queries these IDs won't throw -->
+          <div class="exp-form" hidden>
+            <select id="expCat"></select><input id="expAmt"><input id="expDate"><input id="expNote"><button id="addExp"></button>
+          </div>
+          <div class="breakdown" id="expBreakdown" hidden></div>
         </div>
       </details>
     </div>
@@ -278,6 +298,38 @@
     </div>
   </section>
 </main>
+
+<dialog id="expDialog" aria-label="Lisa kulu">
+  <div class="dialog-head">
+    <h3 style="margin:0">Lisa kulu</h3>
+    <button class="btn" id="closeExpDlg" type="button" aria-label="Sulge">✕</button>
+  </div>
+  <div class="dialog-body">
+    <label for="expCat">Kategooria</label>
+    <select id="expCat">
+      <option>Zaza</option>
+      <option>Telefon/Internet</option>
+      <option>Toit</option>
+      <option>Transport</option>
+      <option>Meelelahutus</option>
+      <option>Riided/Isiklik</option>
+      <option>Muu</option>
+    </select>
+
+    <label for="expAmt">Summa (€)</label>
+    <input id="expAmt" type="number" class="mono" min="0" step="0.01">
+
+    <label for="expDate">Kuupäev</label>
+    <input id="expDate" type="date">
+
+    <label for="expNote">Märkus</label>
+    <input id="expNote" type="text" placeholder="mis, kus, kelle jaoks">
+  </div>
+  <div class="dialog-actions">
+    <button class="btn" id="cancelExp" type="button">Loobu</button>
+    <button class="btn primary" id="addExp" type="button">+ Lisa kulu</button>
+  </div>
+</dialog>
 
 <script>
   // ===== Abi =====
@@ -673,16 +725,44 @@
 
   // ===== Kulutuste jälgija =====
   const expTblBody=$("#expTbl tbody"); const expSum=$("#expSum"); const expBreakdown=$("#expBreakdown");
-  const expCat=$("#expCat"); const expAmt=$("#expAmt"); const expDate=$("#expDate"); const expNote=$("#expNote"); const addExp=$("#addExp");
   function todayISO(){ const d=new Date(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0'); return `${d.getFullYear()}-${m}-${day}`; }
-  if(expDate) expDate.value=todayISO();
+
+  const expDialog=document.querySelector('#expDialog');
+  const btnExpQuick=document.querySelector('#expQuick');
+  const btnCloseExpDlg=document.querySelector('#closeExpDlg');
+  const btnCancelExp=document.querySelector('#cancelExp');
+  const expCat=expDialog?expDialog.querySelector('#expCat'):document.querySelector('#expCat');
+  const expAmt=expDialog?expDialog.querySelector('#expAmt'):document.querySelector('#expAmt');
+  const expDate=expDialog?expDialog.querySelector('#expDate'):document.querySelector('#expDate');
+  const expNote=expDialog?expDialog.querySelector('#expNote'):document.querySelector('#expNote');
+  const addExp=expDialog?expDialog.querySelector('#addExp'):document.querySelector('#addExp');
+
+  if(btnExpQuick && expDialog){
+    btnExpQuick.addEventListener('click', ()=>{
+      if(expDate) expDate.value=todayISO();
+      if(expAmt) expAmt.value='';
+      if(expNote) expNote.value='';
+      expDialog.showModal();
+      requestAnimationFrame(()=>{ expCat && expCat.focus(); });
+    });
+  }
+  [btnCloseExpDlg, btnCancelExp].forEach(b=> b && b.addEventListener('click', ()=> expDialog && expDialog.close()));
+  if(expDialog){
+    expDialog.addEventListener('close', ()=>{ if(btnExpQuick) btnExpQuick.focus(); });
+  }
+
+  function withTransition(fn){ return (...args)=>{
+    if(document.startViewTransition){ document.startViewTransition(()=>fn(...args)); }
+    else{ fn(...args); }
+  }; }
+
 
   function readExpenses(){ try{ return JSON.parse(localStorage.getItem(KEY_EXP)||"[]"); }catch(e){ return []; } }
   function writeExpenses(list){ localStorage.setItem(KEY_EXP, JSON.stringify(list)); }
   function addExpenseRow(e, idx){
     const tr=document.createElement("tr"); const when=new Date(e.date);
     tr.innerHTML=`<td>${isFinite(when)? when.toLocaleDateString():e.date}</td><td>${e.cat}</td><td>${e.note? e.note.replace(/</g,'&lt;'):''}</td><td class="right mono">${fmt2(e.amt)}</td><td><button class="btn" data-i="${idx}">✕</button></td>`;
-    tr.querySelector("button").addEventListener("click",(ev)=>{ const i=+ev.currentTarget.getAttribute("data-i"); const all=readExpenses(); all.splice(i,1); writeExpenses(all); renderExpenses(); persist(); });
+    tr.querySelector("button").addEventListener("click",(ev)=>{ const i=+ev.currentTarget.getAttribute("data-i"); const all=readExpenses(); all.splice(i,1); writeExpenses(all); withTransition(renderExpenses)(); persist(); });
     expTblBody.appendChild(tr);
   }
   function renderExpenseBreakdown(list){
@@ -750,10 +830,23 @@
     recomputeBudget();
   }
   if(addExp){ addExp.addEventListener("click",()=>{
-      const e={ cat: expCat.value, amt:+expAmt.value||0, date: expDate.value||todayISO(), note: expNote.value||"" };
-      if(!e.amt){ alert("Sisesta summa."); return; } const all=readExpenses(); all.push(e); writeExpenses(all);
-      expAmt.value=""; expNote.value=""; renderExpenses(); persist();
-  });}
+      const e={
+        cat: expCat?.value || '',
+        amt: +expAmt?.value || 0,
+        date: expDate?.value || todayISO(),
+        note: expNote?.value?.trim() || ''
+      };
+      if(!e.amt){ alert("Sisesta summa."); if(expAmt) expAmt.focus(); return; }
+      const all=(typeof readExpenses==='function'?readExpenses():[]);
+      all.push(e);
+      if(typeof writeExpenses==='function') writeExpenses(all);
+      if(expAmt) expAmt.value='';
+      if(expNote) expNote.value='';
+      if(typeof renderExpenses==='function'){ withTransition(renderExpenses)(); }
+      if(typeof persist==='function') persist();
+      if(expDialog?.open) expDialog.close();
+      if(btnExpQuick) btnExpQuick.focus();
+  }); }
 
   function refreshZazaLeft(){
     const cap=+inputs.zazaCap.value||0; const all=readExpenses(); const mk=monthKey(new Date());
@@ -806,6 +899,7 @@
   });
 
   // Käivitus
+  document.documentElement.style.setProperty('--app-min-h','100dvh');
   load();
 </script>
 </body>
