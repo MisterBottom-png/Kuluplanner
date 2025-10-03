@@ -27,7 +27,7 @@
   }
   *{box-sizing:border-box}
   html{color-scheme:dark light;-webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
-  body{margin:0;min-height:var(--app-min-h,100dvh);background:radial-gradient(circle at top,var(--surface) 0%,#0b0f1f 55%,#060816 100%);color:var(--surface-ink);font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.45;letter-spacing:.01em}
+  body{margin:0;min-height:var(--app-min-h,100dvh);background:radial-gradient(circle at top,var(--surface) 0%,#0b0f1f 55%,#060816 100%);color:var(--surface-ink);font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.45;letter-spacing:.01em;overflow-x:hidden}
   h1,h2,h3{margin:0;font-weight:600}
   p{margin:0}
   a{color:inherit}
@@ -46,7 +46,7 @@
   .btn.ghost{background:rgba(12,15,30,.6);border-color:rgba(124,155,255,.2);padding:7px 12px;line-height:1}
   .btn.icon{width:32px;aspect-ratio:1;border-radius:10px}
   main.layout{max-width:1200px;margin:0 auto;padding:20px 18px 90px;display:grid;gap:1rem}
-  .grid{display:grid;gap:1rem}
+  .grid{display:grid;gap:1rem;align-content:start}
   .col{min-width:0}
   .card{background:var(--elev-1);border:1px solid color-mix(in oklch,var(--accent) 12%,transparent);border-radius:18px;box-shadow:var(--shadow-lg);padding:0;position:relative;overflow:hidden}
   .card:not([data-sticky]){scroll-margin-top:calc(var(--header-h) + 14px)}
@@ -114,7 +114,7 @@
   @media (min-width:980px){
     body{overflow:hidden}
     main.layout{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);height:calc(100vh - var(--header-h));padding:20px 22px 40px}
-    .col--primary,.col--secondary{min-height:0;overflow:auto;padding-right:.6rem;scrollbar-gutter:stable both-edges}
+    .col--primary,.col--secondary{min-height:0;overflow:auto;padding-right:.6rem;padding-bottom:1.5rem;scrollbar-gutter:stable both-edges}
     .card{flex:0 0 auto}
   }
   @media (max-width:979px){
@@ -122,6 +122,7 @@
     header.appBar .monthNav{order:3}
     header.appBar .btn.primary{width:100%;order:2}
     main.layout{grid-template-columns:1fr;padding:16px 14px 80px}
+    .col--primary,.col--secondary{overflow:visible;padding-right:0}
     .fieldRow{grid-template-columns:1fr}
     .card{border-radius:16px}
     details[data-accordion] > summary{padding:14px 16px;font-size:.92rem}
@@ -470,8 +471,9 @@
 <script>
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
-  const fmt = n => Number.isFinite(+n) ? Number(n).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0}) : '—';
-  const fmt2 = n => Number.isFinite(+n) ? Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+  const LOCALE = 'et-EE';
+  const fmt = n => Number.isFinite(+n) ? Number(n).toLocaleString(LOCALE,{minimumFractionDigits:0,maximumFractionDigits:0}) : '—';
+  const fmt2 = n => Number.isFinite(+n) ? Number(n).toLocaleString(LOCALE,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
   const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
   const monthKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 
@@ -488,7 +490,7 @@
   function formatCurrencyDisplay(value){
     const num = Number(value);
     if(!Number.isFinite(num)) return '';
-    return num.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});
+    return num.toLocaleString(LOCALE,{minimumFractionDigits:0,maximumFractionDigits:2});
   }
   function getCurrencyNumber(input){
     if(!input) return 0;
@@ -583,7 +585,7 @@
   const todayDate = $('#todayDate');
   const monthBadge = $('#monthBadge');
   const now = new Date();
-  if(todayDate) todayDate.textContent = now.toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  if(todayDate) todayDate.textContent = now.toLocaleDateString(LOCALE,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
   const inputs = {
     income: $('#income'),
@@ -743,7 +745,7 @@
     const next3=nextDatesFromDays(days,new Date(),3);
     const fmtOpts={day:'2-digit',month:'long',year:'numeric'};
     const today=new Date();
-    info.innerHTML = next3.map(d=>`• ${d.toLocaleDateString(undefined,fmtOpts)} — <strong>${daysBetween(today,d)} päeva</strong>`).join('<br>');
+    info.innerHTML = next3.map(d=>`• ${d.toLocaleDateString(LOCALE,fmtOpts)} — <strong>${daysBetween(today,d)} päeva</strong>`).join('<br>');
   }
 
   const inputValue = ref => {
@@ -952,7 +954,7 @@
     const [year,month] = mk.split('-').map(Number);
     if(!year||!month) return mk;
     const dt = new Date(year, month-1, 1);
-    return dt.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+    return dt.toLocaleDateString(LOCALE,{month:'long',year:'numeric'});
   }
   function updateMonthBadge(){
     if(monthBadge) monthBadge.textContent = formatMonthLabel(viewMonth);
@@ -1024,7 +1026,7 @@
       const originalIndex = all.indexOf(exp);
       const tr=document.createElement('tr');
       const when=new Date(exp.date);
-      const formattedDate = Number.isFinite(when.getTime()) ? when.toLocaleDateString() : (exp.date||'');
+      const formattedDate = Number.isFinite(when.getTime()) ? when.toLocaleDateString(LOCALE) : (exp.date||'');
       tr.innerHTML=`<td>${formattedDate}</td><td>${exp.cat||''}</td><td>${exp.note?exp.note.replace(/</g,'&lt;'):''}</td><td class="right">${fmt2(exp.amt)}</td><td>${isCurrent?'<button class="btn ghost icon" data-delete="true" aria-label="Kustuta">✕</button>':''}</td>`;
       if(isCurrent){
         const btn = tr.querySelector('[data-delete]');
@@ -1071,7 +1073,7 @@
     archivesList.innerHTML = list.map(a=>{
       const tot = (a.expenses||[]).reduce((s,x)=>s+(+x.amt||0),0);
       const zaza = (a.expenses||[]).filter(x=>x.cat==='Zaza').reduce((s,x)=>s+(+x.amt||0),0);
-      const when = new Date(a.ts).toLocaleString();
+      const when = new Date(a.ts).toLocaleString(LOCALE,{dateStyle:'short',timeStyle:'short'});
       return `<div class="archiveItem">
         <div><strong>${a.month}</strong> — arhiveeritud: ${when}</div>
         <div>Kulud kokku: <strong>€ ${fmt2(tot)}</strong>; Zaza: <strong>€ ${fmt2(zaza)}</strong></div>
