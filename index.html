@@ -128,7 +128,7 @@
         <div class="content">
           <div class="row"><label>Kuu netosissetulek (€)</label><input id="income" type="number" class="mono" value="1400" min="0" step="1"></div>
           <h3 class="small muted" style="margin:6px 0 0">Püsikohustused</h3>
-          <div class="row"><label>Laenud (€ kuus)</label><div class="payWrap"><input id="loans" type="number" class="mono" value="800" min="0" step="1"><input id="loansEnd" type="date" title="Lõppeb (k.a)"></div></div>
+          <div class="row"><label>Laenud (€ kuus)</label><div class="payWrap"><input id="loans" type="number" class="mono" value="800" min="0" step="1"><button class="btn payToggle" data-pay-support="loans">Märgi makstuks</button></div></div>
           <div class="row"><label>Toetus emale (€)</label><div class="payWrap"><input id="mom" type="number" class="mono" value="85" min="0" step="1"><input id="momEnd" type="date" title="Lõppeb (k.a)"><button class="btn payToggle" data-pay-support="mom">Märgi makstuks</button></div></div>
           <div class="row"><label>Korteri tugi õele (€)</label><div class="payWrap"><input id="aptSupport" type="number" class="mono" value="140" min="0" step="1"><input id="aptSupportEnd" type="date" title="Lõppeb (k.a)"><button class="btn payToggle" data-pay-support="aptSupport">Märgi makstuks</button></div></div>
           <div class="row"><label>Telefon/Internet (€)</label><input id="phone" type="number" class="mono" value="30" min="0" step="1"></div>
@@ -335,7 +335,6 @@
   const inputs = {
     income:      $("#income"),
     loans:       $("#loans"),
-    loansEnd:    $("#loansEnd"),
     mom:         $("#mom"),
     momEnd:      $("#momEnd"),
     aptSupport:  $("#aptSupport"),
@@ -383,7 +382,7 @@
   const KEY_EXP = "rahakask-v5-expenses"; // ainult jooksva kuu kulud
   const CUR_MONTH = monthKey(new Date());
   let payMarksCache = null;
-  const defaultPayMarks = () => ({supports:{mom:false,aptSupport:false}, debts:{}});
+  const defaultPayMarks = () => ({supports:{loans:false,mom:false,aptSupport:false}, debts:{}});
   function readState(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
   function writeState(obj){ localStorage.setItem(KEY, JSON.stringify(obj)); }
   function getPayMarks(){
@@ -393,7 +392,7 @@
     const existing = state.payMarks[CUR_MONTH];
     if(existing){
       payMarksCache = {
-        supports: Object.assign({mom:false,aptSupport:false}, existing.supports||{}),
+        supports: Object.assign({loans:false,mom:false,aptSupport:false}, existing.supports||{}),
         debts: Object.assign({}, existing.debts||{})
       };
     } else {
@@ -438,7 +437,6 @@
       const prevAsOf = new Date(prevMonth+"-01T00:00:00");
       const obligations = monthlyObligations({
         loans: b.loans,
-        loansEnd: b.loansEnd,
         mom: b.mom,
         momEnd: b.momEnd,
         aptSupport: b.aptSupport,
@@ -550,7 +548,7 @@
   }
   function toggleSupportPaid(key){
     const marks = getPayMarks();
-    marks.supports = marks.supports || {mom:false,aptSupport:false};
+    marks.supports = marks.supports || {loans:false,mom:false,aptSupport:false};
     marks.supports[key] = !marks.supports[key];
     savePayMarks();
     reflectSupportPaid(key);
@@ -662,8 +660,9 @@
   function monthlyObligations(source=inputs, asOf=new Date()){
     const src = source || {};
     const phone = +inputValue(src.phone) || 0;
+    const loans = +inputValue(src.loans) || 0;
     return (
-      activeAmt(src.loans, src.loansEnd, asOf) +
+      loans +
       activeAmt(src.mom, src.momEnd, asOf) +
       activeAmt(src.aptSupport, src.aptSupportEnd, asOf) +
       phone
@@ -886,7 +885,7 @@
   function collectData(){
     return {
       budget:{
-        income:+inputs.income.value||0, loans:+inputs.loans.value||0, loansEnd: inputValue(inputs.loansEnd), mom:+inputs.mom.value||0, momEnd:inputValue(inputs.momEnd), aptSupport:+inputs.aptSupport.value||0, aptSupportEnd:inputValue(inputs.aptSupportEnd),
+        income:+inputs.income.value||0, loans:+inputs.loans.value||0, mom:+inputs.mom.value||0, momEnd:inputValue(inputs.momEnd), aptSupport:+inputs.aptSupport.value||0, aptSupportEnd:inputValue(inputs.aptSupportEnd),
         phone:+inputs.phone.value||0, transport:+inputs.transport.value||0, groceries:+inputs.groceries.value||0, otherEss:+inputs.otherEss.value||0,
         fun:+inputs.fun.value||0, personal:+inputs.personal.value||0, zazaCap:+inputs.zazaCap.value||0, efTarget:+inputs.efTarget.value||0, efNow:+inputs.efNow.value||0
       },
@@ -937,7 +936,7 @@
   document.querySelectorAll("input,select,textarea").forEach(el=>{
     el.addEventListener("input", ()=>{
       if(el===inputs.pricePerGram || el===inputs.gramsPerWeek){ recomputeZaza(); }
-      if(["income","loans","loansEnd","mom","momEnd","aptSupport","aptSupportEnd","phone","transport","groceries","otherEss","fun","personal","zazaCap","efTarget","efNow"].includes(el.id)){ recomputeBudget(); }
+      if(["income","loans","mom","momEnd","aptSupport","aptSupportEnd","phone","transport","groceries","otherEss","fun","personal","zazaCap","efTarget","efNow"].includes(el.id)){ recomputeBudget(); }
       if(el===inputs.paydays){ updatePayInfo(); }
       persist();
     });
