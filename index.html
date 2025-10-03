@@ -128,9 +128,9 @@
         <div class="content">
           <div class="row"><label>Kuu netosissetulek (€)</label><input id="income" type="number" class="mono" value="1400" min="0" step="1"></div>
           <h3 class="small muted" style="margin:6px 0 0">Püsikohustused</h3>
-          <div class="row"><label>Laenud (min kokku) (€)</label><input id="loans" type="number" class="mono" value="800" min="0" step="1"></div>
-          <div class="row"><label>Toetus emale (€)</label><div class="payWrap"><input id="mom" type="number" class="mono" value="85" min="0" step="1"><button class="btn payToggle" data-pay-support="mom">Märgi makstuks</button></div></div>
-          <div class="row"><label>Korteri tugi õele (€)</label><div class="payWrap"><input id="aptSupport" type="number" class="mono" value="140" min="0" step="1"><button class="btn payToggle" data-pay-support="aptSupport">Märgi makstuks</button></div></div>
+          <div class="row"><label>Laenud (€ kuus)</label><div class="payWrap"><input id="loans" type="number" class="mono" value="800" min="0" step="1"><input id="loansEnd" type="date" title="Lõppeb (k.a)"></div></div>
+          <div class="row"><label>Toetus emale (€)</label><div class="payWrap"><input id="mom" type="number" class="mono" value="85" min="0" step="1"><input id="momEnd" type="date" title="Lõppeb (k.a)"><button class="btn payToggle" data-pay-support="mom">Märgi makstuks</button></div></div>
+          <div class="row"><label>Korteri tugi õele (€)</label><div class="payWrap"><input id="aptSupport" type="number" class="mono" value="140" min="0" step="1"><input id="aptSupportEnd" type="date" title="Lõppeb (k.a)"><button class="btn payToggle" data-pay-support="aptSupport">Märgi makstuks</button></div></div>
           <div class="row"><label>Telefon/Internet (€)</label><input id="phone" type="number" class="mono" value="30" min="0" step="1"></div>
           <div class="row"><label>Transport (€)</label><input id="transport" type="number" class="mono" value="60" min="0" step="1"></div>
           <div class="row"><label>Toit (€)</label><input id="groceries" type="number" class="mono" value="200" min="0" step="1"></div>
@@ -183,8 +183,9 @@
       </details>
     </div>
 
+    <div class="row" style="margin:0 0 -6px 0"><label><input type="checkbox" id="useDebtPlan"> Kasutan detailset võlaplaani</label></div>
     <!-- 3) Võlaplaan -->
-    <div class="card">
+    <div class="card" id="debtCard">
       <details>
         <summary>
           <div class="sum-left"><span class="chev">▶</span><h2>3) Võlaplaan (snowball, ilma intressita)</h2></div>
@@ -334,8 +335,11 @@
   const inputs = {
     income:      $("#income"),
     loans:       $("#loans"),
+    loansEnd:    $("#loansEnd"),
     mom:         $("#mom"),
+    momEnd:      $("#momEnd"),
     aptSupport:  $("#aptSupport"),
+    aptSupportEnd:$("#aptSupportEnd"),
     phone:       $("#phone"),
     transport:   $("#transport"),
     groceries:   $("#groceries"),
@@ -371,6 +375,8 @@
   const pillSpent = $("#pillSpent");
   const zazaProg = $("#zazaProg");
   const archivesList = $("#archivesList");
+  const useDebtPlan = $("#useDebtPlan");
+  const debtCard = $("#debtCard");
 
   // ===== Kuu‑põhine püsivus =====
   const KEY = "rahakask-v5";
@@ -429,9 +435,18 @@
       // Compute initial carryOver (leftover cash) based on previous month
       const b = (state.data && state.data.budget) || {};
       const income = +b.income || 0;
-      const fixedBills = (+b.loans||0) + (+b.mom||0) + (+b.aptSupport||0) + (+b.phone||0);
-      const spent = prevMonthExpenses.reduce((s,x)=> s + (+x.amt||0), 0);
-      let carryOver = income - fixedBills - spent;
+      const prevAsOf = new Date(prevMonth+"-01T00:00:00");
+      const obligations = monthlyObligations({
+        loans: b.loans,
+        loansEnd: b.loansEnd,
+        mom: b.mom,
+        momEnd: b.momEnd,
+        aptSupport: b.aptSupport,
+        aptSupportEnd: b.aptSupportEnd,
+        phone: b.phone
+      }, prevAsOf);
+      const spent = spentForMonth(prevMonth, prevMonthExpenses);
+      let carryOver = income - obligations - spent;
       if (!isFinite(carryOver)) carryOver = 0;
       if (carryOver < 0) carryOver = 0;
 
@@ -442,7 +457,7 @@
 
       // Auto-apply toggle
       const ds = (state.data && state.data.debtSettings) || {};
-      const autoApply = !!ds.autoApply;
+      const autoApply = !!ds.autoApply && !!ds.usePlan;
 
       if (autoApply && debts.length){
         // 1) Apply per-debt minimums (reduce balances)
@@ -624,29 +639,75 @@
   }
 
   // ===== Eelarve =====
+  const inputValue = ref => {
+    if(!ref) return "";
+    if(typeof ref === "object" && "value" in ref) return ref.value;
+    return ref;
+  };
+  /** Kontrollib, kas kohustus on endiselt aktiivne (lõppkuupäev k.a) */
+  function isActive(endInput, asOf=new Date()){
+    const raw = inputValue(endInput);
+    if(!raw) return true;
+    const end = new Date(String(raw)+"T23:59:59");
+    const ref = new Date(asOf);
+    ref.setHours(23,59,59,999);
+    return end >= ref;
+  }
+  /** Tagastab maksesumma, kui kohustus on aktiivne */
+  function activeAmt(amountInput,endInput,asOf=new Date()){
+    const amt = +inputValue(amountInput) || 0;
+    return isActive(endInput, asOf) ? amt : 0;
+  }
+  /** Kuupõhised kohustused (laenud + toetused + telefon) */
+  function monthlyObligations(source=inputs, asOf=new Date()){
+    const src = source || {};
+    const phone = +inputValue(src.phone) || 0;
+    return (
+      activeAmt(src.loans, src.loansEnd, asOf) +
+      activeAmt(src.mom, src.momEnd, asOf) +
+      activeAmt(src.aptSupport, src.aptSupportEnd, asOf) +
+      phone
+    );
+  }
   function computeOutflows(){
-    const essentials=(+inputs.loans.value||0)+(+inputs.mom.value||0)+(+inputs.aptSupport.value||0)+(+inputs.phone.value||0)+(+inputs.transport.value||0)+(+inputs.groceries.value||0)+(+inputs.otherEss.value||0);
+    const obligations = monthlyObligations();
+    const essentialsRest=(+inputs.transport.value||0)+(+inputs.groceries.value||0)+(+inputs.otherEss.value||0);
     const discretionary=(+inputs.fun.value||0)+(+inputs.personal.value||0)+(+inputs.zazaCap.value||0);
-    return essentials+discretionary;
+    return obligations+essentialsRest+discretionary;
+  }
+  /** Summeeri kulud kuuvõtme alusel */
+  function spentForMonth(mk, list){
+    const expenses = Array.isArray(list) ? list : readExpenses();
+    return expenses
+      .filter(e => String(e.date||"").slice(0,7) === mk)
+      .reduce((sum, x) => sum + (+x.amt||0), 0);
+  }
+  /** Kulud jooksval kuul */
+  function spentThisMonth(){
+    return spentForMonth(monthKey(new Date()));
   }
   function recomputeBudget(){
     const income=+inputs.income.value||0;
-    const out=computeOutflows();
-    const left=income-out;
-    let toEF=0;
-    const efNeed=Math.max(0,(+inputs.efTarget.value||0)-(+inputs.efNow.value||0));
-    if(left>0){ toEF=Math.min(left,efNeed); }
-    const freeCash = left>0 ? Math.max(0,left-toEF) : 0;
-    kpis.out.textContent="€ "+fmt(out);
-    kpis.left.textContent=(left>=0?"€ "+fmt(left):"€ -"+fmt(Math.abs(left)));
-    kpis.left.className="val mono "+(left>0?"good":(left===0?"":"bad"));
-    kpis.alloc.textContent=`Hädaabifond € ${fmt(toEF)}  |  Ülejääk € ${fmt(freeCash)}`;
-    pillBudget.textContent=`Ülejääk: € ${fmt(left)}`;
+    const obligations = monthlyObligations();
+    const plannedLeft = income - obligations;
+    const spent = spentThisMonth();
+    const realLeft = plannedLeft - spent;
+    const totalOut=computeOutflows();
+    const realClass = realLeft>0?"good":(realLeft===0?"":"bad");
+    kpis.out.textContent="€ "+fmt(totalOut);
+    kpis.left.textContent=(realLeft>=0?"€ "+fmt(realLeft):"€ -"+fmt(Math.abs(realLeft)));
+    kpis.left.className="val mono "+realClass;
+    kpis.alloc.textContent=`Kohustused € ${fmt(obligations)}  |  Plaanijääk € ${fmt(plannedLeft)}`;
+    if(pillBudget) pillBudget.textContent=`Reaaljääk: € ${fmt(realLeft)}`;
     // pillDebt uuendatakse simulatsiooni põhjal
-    summary.innerHTML=`<div>Sissetulek: <strong>€ ${fmt(income)}</strong></div>
-      <div>Plaanitud väljavool: <strong>€ ${fmt(out)}</strong></div>
-      <div>Ülejääk: <strong class="${left>0?'good':(left===0?'':'bad')}">€ ${fmt(left)}</strong></div>
-      <div>Jaotus sel kuul → Hädaabifond: <strong>€ ${fmt(toEF)}</strong>; Alles jääb: <strong>€ ${fmt(freeCash)}</strong></div>`;
+    if(summary){
+      summary.innerHTML=`
+      <div>Sissetulek: <strong>€ ${fmt(income)}</strong></div>
+      <div>Kohustuslikud maksed (k.u): <strong>€ ${fmt(obligations)}</strong></div>
+      <div>Sel kuul kulud: <strong>€ ${fmt(spent)}</strong></div>
+      <div>Plaanijääk (enne oste): <strong>€ ${fmt(plannedLeft)}</strong></div>
+      <div>Reaaljääk (pärast oste): <strong class="${realClass}">€ ${fmt(realLeft)}</strong></div>`;
+    }
     refreshZazaLeft();
   }
 
@@ -712,6 +773,13 @@
   }
   $("#addDebt").addEventListener("click",()=>addDebtRow());
   function simulatePayoff(){
+    if(useDebtPlan && !useDebtPlan.checked){
+      kpis.months.textContent="—";
+      kpis.firstDone.textContent="—";
+      kpis.debtFreeDate.textContent="—";
+      pillDebt.textContent="Esimesena tasutav: —";
+      return;
+    }
     const debts=readDebts().filter(d=>d.balance>0).map(d=>({...d}));
     if(!debts.length){
       kpis.months.textContent="—";
@@ -798,6 +866,7 @@
     const byCat={}; monthList.forEach(e=> byCat[e.cat]=(byCat[e.cat]||0)+(+e.amt||0));
     expBreakdown.innerHTML = Object.entries(byCat).map(([c,v])=>`<div>• ${c}: <strong>€ ${fmt2(v)}</strong></div>`).join("") || "<em>Sel kuul kulusid pole.</em>";
     pillSpent.textContent=`Sel kuul: € ${fmt2(total)}`; refreshZazaLeft();
+    recomputeBudget();
   }
   if(addExp){ addExp.addEventListener("click",()=>{
       const e={ cat: expCat.value, amt:+expAmt.value||0, date: expDate.value||todayISO(), note: expNote.value||"" };
@@ -817,13 +886,14 @@
   function collectData(){
     return {
       budget:{
-        income:+inputs.income.value||0, loans:+inputs.loans.value||0, mom:+inputs.mom.value||0, aptSupport:+inputs.aptSupport.value||0,
+        income:+inputs.income.value||0, loans:+inputs.loans.value||0, loansEnd: inputValue(inputs.loansEnd), mom:+inputs.mom.value||0, momEnd:inputValue(inputs.momEnd), aptSupport:+inputs.aptSupport.value||0, aptSupportEnd:inputValue(inputs.aptSupportEnd),
         phone:+inputs.phone.value||0, transport:+inputs.transport.value||0, groceries:+inputs.groceries.value||0, otherEss:+inputs.otherEss.value||0,
         fun:+inputs.fun.value||0, personal:+inputs.personal.value||0, zazaCap:+inputs.zazaCap.value||0, efTarget:+inputs.efTarget.value||0, efNow:+inputs.efNow.value||0
       },
       cannabis:{ price:+inputs.pricePerGram.value||0, grams:+inputs.gramsPerWeek.value||0, cutPct:+inputs.zazaCutPct.value||0 },
       debtSettings:{
-        autoApply: !!(inputs.autoApply && inputs.autoApply.checked)
+        autoApply: !!(inputs.autoApply && inputs.autoApply.checked),
+        usePlan: !!(useDebtPlan && useDebtPlan.checked)
       },
       debts: readDebts(),
       user:{ paydays: (inputs.paydays||{}).value || "" },
@@ -835,6 +905,7 @@
     if(d.cannabis){ inputs.pricePerGram.value=d.cannabis.price||0; inputs.gramsPerWeek.value=d.cannabis.grams||0; inputs.zazaCutPct.value=d.cannabis.cutPct||0; }
     if(d.debtSettings){
       if(inputs.autoApply) inputs.autoApply.checked=!!d.debtSettings.autoApply;
+      if(useDebtPlan) useDebtPlan.checked=!!d.debtSettings.usePlan;
     }
     if(d.debts){ debtsTbl.innerHTML=""; d.debts.forEach(addDebtRow); }
     if(d.user&&inputs.paydays){ inputs.paydays.value=d.user.paydays||""; }
@@ -842,10 +913,17 @@
   }
   function persist(){ const state=readState(); state.data=collectData(); writeState(state); }
 
+  function applyDebtPlanVisibility(){
+    if(!debtCard) return;
+    const active = !!(useDebtPlan && useDebtPlan.checked);
+    debtCard.style.display = active ? "" : "none";
+  }
+
   function load(){
     archiveIfMonthRolled();
     initSupportButtons();
     const state=readState(); applyData(state.data||{});
+    applyDebtPlanVisibility();
     // init
     recomputeZaza(); recomputeBudget(); renderExpenses(); renderUpcomingPays(); updatePayInfo(); simulatePayoff(); renderArchives();
     // default debts if none
@@ -859,11 +937,20 @@
   document.querySelectorAll("input,select,textarea").forEach(el=>{
     el.addEventListener("input", ()=>{
       if(el===inputs.pricePerGram || el===inputs.gramsPerWeek){ recomputeZaza(); }
-      if(["income","loans","mom","aptSupport","phone","transport","groceries","otherEss","fun","personal","zazaCap","efTarget","efNow"].includes(el.id)){ recomputeBudget(); }
+      if(["income","loans","loansEnd","mom","momEnd","aptSupport","aptSupportEnd","phone","transport","groceries","otherEss","fun","personal","zazaCap","efTarget","efNow"].includes(el.id)){ recomputeBudget(); }
       if(el===inputs.paydays){ updatePayInfo(); }
       persist();
     });
   });
+
+  if(useDebtPlan){
+    useDebtPlan.addEventListener("change",()=>{
+      applyDebtPlanVisibility();
+      renderUpcomingPays();
+      simulatePayoff();
+      persist();
+    });
+  }
 
   // ===== Võlgade maksepäevad (PP) =====
   function nextDueDate(dayStr){
@@ -875,6 +962,10 @@
     return cand;
   }
   function renderUpcomingPays(){
+    if(useDebtPlan && !useDebtPlan.checked){
+      if(upcomingPays) upcomingPays.innerHTML="<em>Võlaplaan on välja lülitatud.</em>";
+      return;
+    }
     const debts=readDebts();
     const list=debts.map(d=>({name:d.name, date: nextDueDate(d.due)})).filter(x=>x.date);
     list.sort((a,b)=>a.date-b.date);
