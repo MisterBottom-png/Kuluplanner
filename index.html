@@ -9,284 +9,425 @@
 <title>Rahakäsk – Kuu‑põhine eelarve + võlad</title>
 <style>
   :root{
-    --header-height: 120px;
-    --bg:#0f1221; --card:#171a2e; --ink:oklch(96% 0.02 260); --muted:#aab1d9; --accent:oklch(62% 0.15 260);
-    --good:#38d39f; --warn:#ffb648; --bad:#ff6b6b; --line:#242845;
-    --frost:rgba(124,155,255,.08);
-    --surface:oklch(20% 0.03 260); --surface-2:color-mix(in oklch, var(--surface) 85%, white);
+    --header-h:72px;
+    --surface:#0f1221;
+    --surface-ink:oklch(95% 0.02 255);
+    --muted:oklch(70% 0.02 250);
+    --accent:oklch(65% 0.17 262);
+    --good:#38d39f;
+    --warn:#ffb648;
+    --bad:#ff6b6b;
+    --line:color-mix(in oklch,var(--surface) 65%,white 8%);
+    --elev-1:color-mix(in oklch,var(--surface),white 6%);
+    --elev-2:color-mix(in oklch,var(--surface),white 12%);
+    --shadow-lg:0 34px 68px -40px rgba(5,8,20,.8);
+    --shadow-sm:0 16px 32px -30px rgba(5,8,20,.9);
+    font-size:14.5px;
+    scroll-padding-top:var(--header-h);
   }
   *{box-sizing:border-box}
-  html{color-scheme:dark light;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;background:radial-gradient(circle at top,var(--card) 0%,var(--bg) 52%,#070915 100%);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;line-height:1.6;font-size:15px}
-  body{min-height:var(--app-min-h,100dvh)}
+  html{color-scheme:dark light;-webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
+  body{margin:0;min-height:var(--app-min-h,100dvh);background:radial-gradient(circle at top,var(--surface) 0%,#0b0f1f 55%,#060816 100%);color:var(--surface-ink);font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.45;letter-spacing:.01em}
   h1,h2,h3{margin:0;font-weight:600}
-  header{padding:18px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:linear-gradient(180deg,#10132a 0%,rgba(15,18,33,.9) 65%,rgba(15,18,33,.5) 100%);backdrop-filter: blur(8px);z-index:5;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;animation-timeline:scroll();animation-range:0 120px;animation-name:elevate;animation-fill-mode:both;height:var(--header-height)}
-  header .wrap{display:flex;flex-direction:column;gap:6px}
-  header .actions{display:flex;gap:8px;flex-wrap:wrap}
-  header h1{margin:0;font-size:18px;letter-spacing:.4px}
-  header .sub{color:var(--muted);font-size:12px;margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-  header .date,.monthBadge{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#0b0e1d;font-variant-numeric:tabular-nums;box-shadow:0 8px 16px -12px rgba(0,0,0,.7)}
-  .monthBadge{color:var(--accent)}
-  main{max-width:1150px;margin:28px auto;padding:0 16px 90px}
-
-  .grid{display:grid;gap:18px}
-  details{display:flex;flex-direction:column}
-  details > summary{position:sticky;top:0;z-index:1}
-  @media (min-width: 980px){
-    body{min-height:100vh;overflow:hidden}
-    main{height:calc(100vh - var(--header-height));margin:0 auto;padding:28px 16px 90px}
-    .grid-2{grid-template-columns:1.2fr .8fr}
-    .grid-2 > section{display:flex;flex-direction:column;gap:18px;overflow-y:auto;padding-right:0.5rem;min-height:0;min-width:0;height:100%;scrollbar-gutter:stable both-edges}
-    .grid-2 > section > .card{flex:0 0 auto}
-  }
-
-  .card{background:rgba(18,22,41,.9);border:1px solid rgba(124,155,255,.15);border-radius:18px;padding:0;overflow:hidden;box-shadow:0 26px 50px -34px rgba(7,12,32,.85);backdrop-filter:blur(6px)}
-  summary{list-style:none;padding:16px 18px;background:linear-gradient(90deg,rgba(124,155,255,.12),rgba(124,155,255,0));cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px}
-  summary::-webkit-details-marker{display:none}
-  summary h2{font-size:17px}
-  .sum-left{display:flex;align-items:center;gap:12px;min-width:0}
-  .sum-left h2{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
-  .chev{transition:transform .2s ease;color:var(--accent)}
-  details[open] .chev{transform:rotate(90deg)}
-  .content{padding:18px;border-top:1px solid rgba(124,155,255,.15);display:flex;flex-direction:column;gap:10px}
-  .row{display:flex;gap:12px;align-items:center}
-  label{font-size:13px;color:var(--muted);min-width:210px}
-  input,select,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(124,155,255,.18);background:rgba(7,10,25,.72);color:var(--ink);outline:none;font-size:15px;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;accent-color:var(--accent)}
-  input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,155,255,.2);background:rgba(7,10,25,.92)}
-  textarea{min-height:90px;resize:vertical}
-  .mono{font-variant-numeric:tabular-nums}
-  .btn{border:1px solid rgba(124,155,255,.2);background:rgba(7,10,25,.78);color:var(--ink);padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:500;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease;background-image:linear-gradient(135deg,rgba(124,155,255,.18),rgba(124,155,255,.05));backdrop-filter:blur(4px)}
-  .btn:hover{border-color:var(--accent);box-shadow:0 12px 28px -18px rgba(124,155,255,.6);transform:translateY(-1px)}
+  p{margin:0}
+  a{color:inherit}
+  [data-sticky]{position:sticky;top:0}
+  header.appBar{top:0;z-index:20;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:1rem;padding:16px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(12,15,30,.97),rgba(12,15,30,.92));backdrop-filter:blur(8px);box-shadow:0 16px 40px -36px rgba(0,0,0,.7)}
+  .appBar__brand{display:flex;flex-direction:column;gap:.3rem;min-width:0}
+  .appBar__brand h1{font-size:1.1rem;letter-spacing:.04em}
+  .appBar__meta{display:flex;flex-wrap:wrap;gap:.6rem;font-size:.78rem;color:var(--muted)}
+  .monthNav{display:inline-flex;align-items:center;gap:.4rem}
+  .monthBadge{display:inline-flex;align-items:center;justify-content:center;padding:6px 14px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);font-variant-numeric:tabular-nums;font-weight:600;min-width:9.5ch;text-transform:capitalize;background:rgba(101,123,255,.12)}
+  .btn{border:1px solid color-mix(in oklch,var(--accent) 24%,transparent);background:linear-gradient(135deg,rgba(124,155,255,.18),rgba(124,155,255,.05));color:var(--surface-ink);padding:9px 14px;border-radius:12px;cursor:pointer;font-weight:500;font-size:.95rem;transition:transform .15s ease,box-shadow .2s ease,border-color .2s ease;background-origin:border-box;backdrop-filter:blur(4px)}
+  .btn:hover{border-color:var(--accent);box-shadow:0 14px 28px -20px rgba(124,155,255,.7);transform:translateY(-1px)}
   .btn:active{transform:translateY(0)}
-  .btn.primary{background:var(--accent);border-color:var(--accent);color:#0b0e1d;font-weight:600;box-shadow:0 10px 22px -14px rgba(124,155,255,.9)}
-  .payWrap{display:flex;gap:10px;width:100%;align-items:center}
-  .payWrap input{flex:1}
-  .btn.payToggle{white-space:nowrap}
-  .btn.payToggle.paid{background:var(--good);border-color:var(--good);color:#0b0e1d;font-weight:600}
-  .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid rgba(124,155,255,.25);font-size:12px;color:var(--accent);margin-left:10px;background:rgba(124,155,255,.12);box-shadow:0 12px 24px -20px rgba(124,155,255,.7)}
-  .kpi{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  .kpi .box{flex:1;background:rgba(7,10,25,.72);border:1px solid rgba(124,155,255,.15);border-radius:14px;padding:14px;min-width:180px;box-shadow:0 18px 36px -30px rgba(7,10,25,.9)}
-  .kpi .box .label{color:var(--muted);font-size:11px;margin-bottom:6px}
-  .kpi .box .val{font-size:20px;font-weight:700}
-  .tableWrap{overflow-x:auto;border-radius:14px;border:1px solid rgba(124,155,255,.15);background:rgba(7,10,25,.65)}
-  table{width:100%;border-collapse:separate;border-spacing:0}
-  th,td{border-bottom:1px solid rgba(124,155,255,.12);padding:12px 14px;text-align:left;font-size:14px}
-  th:first-child,td:first-child{border-top-left-radius:12px;border-bottom-left-radius:12px}
-  th:last-child,td:last-child{border-top-right-radius:12px;border-bottom-right-radius:12px}
-  thead th{background:rgba(124,155,255,.12);color:var(--muted);font-weight:600;text-transform:uppercase;font-size:12px;letter-spacing:.6px}
-  tbody tr{background:rgba(124,155,255,.04);transition:background .2s ease,transform .2s ease}
-  tbody tr:nth-child(even){background:rgba(124,155,255,.08)}
-  tbody tr:hover{background:rgba(124,155,255,.15);transform:translateY(-1px)}
-  tfoot td{font-weight:700;background:rgba(124,155,255,.1)}
+  .btn:disabled,.btn[aria-disabled="true"]{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn.primary{background:var(--accent);color:#050714;border-color:var(--accent);box-shadow:0 16px 32px -22px rgba(124,155,255,.9)}
+  .btn.ghost{background:rgba(12,15,30,.6);border-color:rgba(124,155,255,.2);padding:7px 12px;line-height:1}
+  .btn.icon{width:32px;aspect-ratio:1;border-radius:10px}
+  main.layout{max-width:1200px;margin:0 auto;padding:20px 18px 90px;display:grid;gap:1rem}
+  .grid{display:grid;gap:1rem}
+  .col{min-width:0}
+  .card{background:var(--elev-1);border:1px solid color-mix(in oklch,var(--accent) 12%,transparent);border-radius:18px;box-shadow:var(--shadow-lg);padding:0;position:relative;overflow:hidden}
+  .card:not([data-sticky]){scroll-margin-top:calc(var(--header-h) + 14px)}
+  details[data-accordion]{display:block}
+  details[data-accordion] > summary{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:14px 18px;cursor:pointer;list-style:none;background:linear-gradient(90deg,rgba(124,155,255,.14),rgba(124,155,255,0));font-size:.95rem}
+  details[data-accordion] > summary::-webkit-details-marker{display:none}
+  details[data-accordion] > summary .chev{transition:transform .18s ease;color:var(--accent)}
+  details[data-accordion][open] > summary .chev{transform:rotate(90deg)}
+  .card-body{padding:18px;display:flex;flex-direction:column;gap:.65rem;border-top:1px solid color-mix(in oklch,var(--accent) 10%,transparent)}
+  .fieldRow{display:grid;grid-template-columns:minmax(0,210px) minmax(0,1fr);gap:.75rem;align-items:start}
+  .fieldRow label{font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:.3rem}
+  .field{display:flex;flex-direction:column;gap:.35rem;position:relative}
+  .field.currency::after{content:"€";position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.85rem;pointer-events:none}
+  input,select,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(124,155,255,.18);background:rgba(7,10,25,.72);color:var(--surface-ink);outline:none;font-size:.95rem;font-family:inherit;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;accent-color:var(--accent)}
+  input.currency{padding-right:2.6rem;text-align:right;font-variant-numeric:tabular-nums}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,155,255,.22);background:rgba(7,10,25,.94)}
+  textarea{min-height:90px;resize:vertical}
+  .helper{font-size:.75rem;color:var(--muted)}
+  .err{font-size:.75rem;color:var(--bad);min-height:1em}
+  .err[hidden]{display:none}
+  .payWrap{display:flex;align-items:center;gap:.5rem}
+  .payToggle{white-space:nowrap}
+  .payToggle.is-locked[disabled]{opacity:.6;cursor:not-allowed}
+  .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem}
+  .kpi .box{background:var(--elev-2);border:1px solid color-mix(in oklch,var(--accent) 18%,transparent);border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:.35rem}
+  .kpi .box .label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .kpi .box .val{font-size:1.25rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .summaryList{display:flex;flex-direction:column;gap:.4rem;font-size:.88rem}
+  .summaryList strong{font-variant-numeric:tabular-nums}
+  .summaryNote{font-size:.75rem;color:var(--muted)}
+  .tableToolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-bottom:.2rem}
+  .tableToolbar label{font-size:.78rem;color:var(--muted)}
+  .tableToolbar input{max-width:220px}
+  .tableWrap{max-height:400px;overflow:auto;border-radius:14px;border:1px solid color-mix(in oklch,var(--accent) 14%,transparent);background:rgba(10,13,28,.72)}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:.9rem}
+  thead th{position:sticky;top:0;background:rgba(124,155,255,.12);color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;text-align:left;padding:10px 12px;border-bottom:1px solid rgba(124,155,255,.16)}
+  th button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:.25rem;color:inherit;font-weight:600}
+  th button .sortIcon{font-size:.75rem;opacity:.6}
+  td{padding:10px 12px;border-bottom:1px solid rgba(124,155,255,.08)}
+  tbody tr{background:rgba(124,155,255,.05);transition:background .2s ease,transform .2s ease}
+  tbody tr:nth-child(even){background:rgba(124,155,255,.09)}
+  tbody tr:hover{background:rgba(124,155,255,.16);transform:translateY(-1px)}
+  tbody tr.paid td{opacity:.75}
+  tfoot td{background:rgba(124,155,255,.12);font-weight:600}
   .right{text-align:right}
-  .good{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
   .muted{color:var(--muted)}
-  .small{font-size:12px;color:var(--muted)}
-  .row.is-paid label{color:var(--good)}
-  .divider{height:1px;background:var(--line);margin:12px 0}
-  .progress{height:10px;background:rgba(7,10,25,.7);border:1px solid rgba(124,155,255,.18);border-radius:999px;overflow:hidden}
-  .progress > div{height:100%;background:linear-gradient(90deg,var(--accent),#9ce7ff);width:0%}
-  .note{font-size:12px;color:var(--muted);margin-top:6px}
-  .archiveItem{padding:10px;border:1px dashed var(--line);border-radius:10px;margin:6px 0}
-  tr.paid td{opacity:.75}
-
-  dialog{border:1px solid color-mix(in oklch, var(--accent) 30%, transparent);background:oklch(18% 0.02 260 / .98);color:var(--ink);border-radius:16px;width:min(680px,92vw);padding:0}
-  dialog::backdrop{background:rgba(4,6,14,.6);backdrop-filter:blur(2px)}
-  .dialog-head{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center}
-  .dialog-body{padding:16px;display:flex;flex-direction:column;gap:10px}
-  .dialog-actions{padding:14px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:flex-end;gap:8px}
-  dialog .btn{backdrop-filter:none}
-
-  #expSection .content .exp-form, #expSection .content .breakdown{display:none}
-
-  main{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
-
-  @keyframes elevate{from{box-shadow:none}to{box-shadow:0 8px 24px -18px rgba(0,0,0,.6)}}
-
-  @media (prefers-reduced-motion: reduce){
-    *{animation:none!important;transition:none!important}
+  .good{color:var(--good)}
+  .warn{color:var(--warn)}
+  .bad{color:var(--bad)}
+  .breakdown{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-top:.6rem}
+  .breakdown .item{background:var(--elev-1);border:1px solid color-mix(in oklch,var(--accent) 10%,transparent);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:.5rem;box-shadow:0 16px 34px -34px rgba(0,0,0,.8)}
+  .breakdown .item h4{margin:0;font-size:.88rem;display:flex;justify-content:space-between;gap:.5rem;font-weight:600}
+  .breakdown .item .left{font-size:.8rem;color:var(--muted)}
+  .progress{height:8px;border-radius:999px;background:rgba(6,9,22,.8);border:1px solid rgba(124,155,255,.2);overflow:hidden}
+  .progress > div{height:100%;background:linear-gradient(90deg,var(--accent),#9ce7ff);width:0%;transition:width .35s ease}
+  .archiveItem{padding:12px;border:1px dashed rgba(124,155,255,.3);border-radius:12px;font-size:.82rem}
+  dialog{border:1px solid color-mix(in oklch,var(--accent) 32%,transparent);background:oklch(18% 0.03 260 / .98);color:var(--surface-ink);border-radius:18px;width:min(640px,95vw);padding:0;box-shadow:0 26px 56px -30px rgba(0,0,0,.75)}
+  dialog::backdrop{background:rgba(5,7,16,.7);backdrop-filter:blur(3px)}
+  .dialog-head{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center}
+  .dialog-body{padding:18px;display:flex;flex-direction:column;gap:.6rem}
+  .dialog-actions{padding:16px 18px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:flex-end;gap:.6rem}
+  .pill{display:inline-flex;align-items:center;gap:.5rem;padding:6px 12px;border-radius:999px;border:1px solid rgba(124,155,255,.22);font-size:.75rem;background:rgba(124,155,255,.14);color:var(--accent);font-weight:600}
+  :focus-visible{outline:2px solid color-mix(in oklch,var(--accent) 85%,white 10%);outline-offset:2px}
+  .card[data-sticky]{top:calc(var(--header-h) + 16px);align-self:start}
+  @media (min-width:980px){
+    body{overflow:hidden}
+    main.layout{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);height:calc(100vh - var(--header-h));padding:20px 22px 40px}
+    .col--primary,.col--secondary{min-height:0;overflow:auto;padding-right:.6rem;scrollbar-gutter:stable both-edges}
+    .card{flex:0 0 auto}
   }
-
-  @media (max-width: 979px){
-    header{height:auto}
-  }
-
-  #expSection{container-type:inline-size}
-  @container (max-width: 480px){
-    .exp-table th:nth-child(3), .exp-table td:nth-child(3){display:none}
-  }
-
-  @media (max-width: 900px){
-    header{padding:16px 16px}
-    header h1{font-size:17px}
-    main{padding:0 14px 80px}
-    label{min-width:180px}
-  }
-
-  @media (max-width: 720px){
-    header{position:static;border-bottom:none;background:transparent;padding:18px 14px 0;flex-direction:column;align-items:stretch}
-    header h1{font-size:16px}
-    header .sub{font-size:11px}
-    header .actions{width:100%;justify-content:flex-start}
-    main{margin:18px auto 70px;padding:0 12px}
-    .grid-2{grid-template-columns:1fr}
+  @media (max-width:979px){
+    header.appBar{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;gap:.75rem;padding:16px 16px 14px}
+    header.appBar .monthNav{order:3}
+    header.appBar .btn.primary{width:100%;order:2}
+    main.layout{grid-template-columns:1fr;padding:16px 14px 80px}
+    .fieldRow{grid-template-columns:1fr}
     .card{border-radius:16px}
-    summary{padding:14px 16px}
-    summary h2{font-size:16px}
-    .pill{margin-left:0}
-    .content{padding:16px}
-    .row{flex-direction:column;align-items:stretch;gap:6px}
-    label{min-width:0;font-size:12px}
-    input,select,textarea{font-size:16px}
-    .payWrap{flex-direction:column;align-items:stretch}
-    .payWrap button{width:100%}
-    .kpi{flex-direction:column}
-    .kpi .box{min-width:unset}
-    .tableWrap{margin:0 -6px;padding:0 6px}
+    details[data-accordion] > summary{padding:14px 16px;font-size:.92rem}
+    .card-body{padding:16px}
+    .breakdown{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+  }
+  @media (max-width:640px){
+    .tableToolbar input{width:100%;max-width:100%}
+    th,td{padding:9px 10px}
     table{min-width:540px}
-    th,td{padding:12px 12px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:0.001ms!important;animation-iteration-count:1!important;transition-duration:0.001ms!important;scroll-behavior:auto!important}
+    .progress > div{transition:none}
+  }
+  #expSection{container-type:inline-size}
+  @container (max-width:520px){
+    .exp-table th:nth-child(3),.exp-table td:nth-child(3){display:none}
   }
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
+<header class="appBar" data-sticky>
+  <div class="appBar__brand">
     <h1>Rahakäsk • Kuu‑põhine eelarve + võlad</h1>
-    <div class="sub"><span class="monthBadge" id="monthBadge">—</span> <span class="date" id="todayDate">—</span></div>
+    <div class="appBar__meta">
+      <span id="todayDate">—</span>
+      <span class="summaryNote">Kuu alguses arhiveeritakse eelmise kuu seis automaatselt.</span>
+    </div>
   </div>
-  <div class="actions">
-    <button class="btn primary" id="expQuick">Kulutuste jälgija</button>
+  <div class="monthNav" role="group" aria-label="Kuu navigeerimine">
+    <button class="btn ghost icon" id="prevMonth" type="button" aria-label="Eelmine kuu">‹</button>
+    <span class="monthBadge" id="monthBadge" aria-live="polite">—</span>
+    <button class="btn ghost icon" id="nextMonth" type="button" aria-label="Järgmine kuu">›</button>
   </div>
+  <button class="btn primary" id="expQuick" type="button">Lisa kulu</button>
 </header>
 
-<main class="grid grid-2">
-  <!-- VASAK VEERG -->
-  <section class="grid">
-    <!-- Eelarve -->
-    <div class="card">
-      <details open>
+<main class="layout grid-2">
+  <section class="col col--primary grid">
+    <article class="card">
+      <details open data-accordion>
         <summary>
-          <div class="sum-left"><span class="chev">▶</span><h2>Sissetulek ja püsikulud (kuu‑põhine)</h2></div>
-          <div class="pill" id="pillBudget">—</div>
+          <span class="chev" aria-hidden="true">▶</span>
+          <h2>Sissetulek ja püsikulud (kuu)</h2>
+          <span class="pill" id="pillBudget">—</span>
         </summary>
-        <div class="content">
-          <div class="row"><label>Kuu netosissetulek (€)</label><input id="income" type="number" class="mono" value="1400" min="0" step="1"></div>
-          <h3 class="small muted" style="margin:6px 0 0">Püsikohustused</h3>
-          <div class="row"><label>Laenud (€ kuus)</label><div class="payWrap"><input id="loans" type="number" class="mono" value="800" min="0" step="1"><button class="btn payToggle" data-pay-support="loans">Märgi makstuks</button></div></div>
-          <div class="row"><label>Toetus emale (€)</label><div class="payWrap"><input id="mom" type="number" class="mono" value="85" min="0" step="1"><input id="momEnd" type="date" title="Lõppeb (k.a)"><button class="btn payToggle" data-pay-support="mom">Märgi makstuks</button></div></div>
-          <div class="row"><label>Korteri tugi õele (€)</label><div class="payWrap"><input id="aptSupport" type="number" class="mono" value="140" min="0" step="1"><input id="aptSupportEnd" type="date" title="Lõppeb (k.a)"><button class="btn payToggle" data-pay-support="aptSupport">Märgi makstuks</button></div></div>
-          <div class="row"><label>Telefon/Internet (€)</label><input id="phone" type="number" class="mono" value="30" min="0" step="1"></div>
-          <div class="row"><label>Transport (€)</label><input id="transport" type="number" class="mono" value="60" min="0" step="1"></div>
-          <div class="row"><label>Toit (€)</label><input id="groceries" type="number" class="mono" value="200" min="0" step="1"></div>
-          <div class="row"><label>Muud esmavajadused (€)</label><input id="otherEss" type="number" class="mono" value="0" min="0" step="1"></div>
-          <div class="divider"></div>
-          <h3 class="small muted" style="margin:6px 0 0">Vaba valik</h3>
-          <div class="row"><label>Meelelahutus (€)</label><input id="fun" type="number" class="mono" value="20" min="0" step="1"></div>
-          <div class="row"><label>Riided/Isiklik (€)</label><input id="personal" type="number" class="mono" value="10" min="0" step="1"></div>
-          <div class="row"><label>Kanepi kulu ülempiir (€)</label><input id="zazaCap" type="number" class="mono" value="120" min="0" step="1"></div>
-          <div class="divider"></div>
-          <h3 class="small muted" style="margin:6px 0 0">Ohutus ja eesmärgid</h3>
-          <div class="row"><label>Hädaabifondi siht (€)</label><input id="efTarget" type="number" class="mono" value="300" min="0" step="1"></div>
-          <div class="row"><label>Hädaabifondi jääk (€)</label><input id="efNow" type="number" class="mono" value="0" min="0" step="1"></div>
-
-          <div class="divider"></div>
-          <div class="row">
-            <label>Palgapäev (PP või mitu: 5,20)</label>
-            <input id="paydaysInput" placeholder="nt 5 või 5,20" />
+        <div class="card-body">
+          <div class="fieldRow">
+            <label for="income">Kuu netosissetulek</label>
+            <div class="field currency">
+              <input id="income" class="currency" type="text" inputmode="decimal" autocomplete="off" aria-errormessage="incomeErr">
+              <p class="err" id="incomeErr" hidden role="alert"></p>
+            </div>
           </div>
-          <div class="small" id="nextPayInfo"></div>
-
-          <div class="divider"></div>
+          <h3 class="helper">Püsikohustused</h3>
+          <div class="fieldRow">
+            <label for="loans">Laenud</label>
+            <div class="field">
+              <div class="payWrap">
+                <div class="field currency" style="flex:1">
+                  <input id="loans" class="currency" type="text" inputmode="decimal" aria-errormessage="loansErr">
+                  <p class="err" id="loansErr" hidden role="alert"></p>
+                </div>
+                <button class="btn payToggle" type="button" data-key="loans" aria-pressed="false">Maksmata</button>
+              </div>
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="mom">Toetus emale</label>
+            <div class="field">
+              <div class="payWrap">
+                <div class="field currency" style="flex:1">
+                  <input id="mom" class="currency" type="text" inputmode="decimal" aria-errormessage="momErr">
+                  <p class="err" id="momErr" hidden role="alert"></p>
+                </div>
+                <div class="field" style="min-width:160px">
+                  <input id="momEnd" type="date" aria-describedby="momEndHelp">
+                  <p class="helper" id="momEndHelp">Lõppkuupäev (k.a), kui kohustus lõpeb.</p>
+                </div>
+                <button class="btn payToggle" type="button" data-key="mom" aria-pressed="false">Maksmata</button>
+              </div>
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="aptSupport">Korteri tugi õele</label>
+            <div class="field">
+              <div class="payWrap">
+                <div class="field currency" style="flex:1">
+                  <input id="aptSupport" class="currency" type="text" inputmode="decimal" aria-errormessage="aptSupportErr">
+                  <p class="err" id="aptSupportErr" hidden role="alert"></p>
+                </div>
+                <div class="field" style="min-width:160px">
+                  <input id="aptSupportEnd" type="date" aria-describedby="aptEndHelp">
+                  <p class="helper" id="aptEndHelp">Lõppkuupäev (k.a), kui tugi lõpeb.</p>
+                </div>
+                <button class="btn payToggle" type="button" data-key="aptSupport" aria-pressed="false">Maksmata</button>
+              </div>
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="phone">Telefon/Internet</label>
+            <div class="field currency">
+              <input id="phone" class="currency" type="text" inputmode="decimal" aria-errormessage="phoneErr">
+              <p class="err" id="phoneErr" hidden role="alert"></p>
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="transport">Transport</label>
+            <div class="field currency">
+              <input id="transport" class="currency" type="text" inputmode="decimal" aria-errormessage="transportErr">
+              <p class="err" id="transportErr" hidden role="alert"></p>
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="groceries">Toit</label>
+            <div class="field currency">
+              <input id="groceries" class="currency" type="text" inputmode="decimal" aria-errormessage="groceriesErr">
+              <p class="err" id="groceriesErr" hidden role="alert"></p>
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="otherEss">Muud esmavajadused</label>
+            <div class="field currency">
+              <input id="otherEss" class="currency" type="text" inputmode="decimal" aria-errormessage="otherEssErr">
+              <p class="err" id="otherEssErr" hidden role="alert"></p>
+            </div>
+          </div>
+          <h3 class="helper">Vaba valik</h3>
+          <div class="fieldRow">
+            <label for="fun">Meelelahutus</label>
+            <div class="field currency">
+              <input id="fun" class="currency" type="text" inputmode="decimal" aria-errormessage="funErr">
+              <p class="err" id="funErr" hidden role="alert"></p>
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="personal">Riided/Isiklik</label>
+            <div class="field currency">
+              <input id="personal" class="currency" type="text" inputmode="decimal" aria-errormessage="personalErr">
+              <p class="err" id="personalErr" hidden role="alert"></p>
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="zazaCap">Kanepi kulu ülempiir</label>
+            <div class="field currency">
+              <input id="zazaCap" class="currency" type="text" inputmode="decimal" aria-errormessage="zazaCapErr">
+              <p class="err" id="zazaCapErr" hidden role="alert"></p>
+            </div>
+          </div>
+          <h3 class="helper">Ohutus ja eesmärgid</h3>
+          <div class="fieldRow">
+            <label for="efTarget">Hädaabifondi siht</label>
+            <div class="field currency">
+              <input id="efTarget" class="currency" type="text" inputmode="decimal" aria-errormessage="efTargetErr">
+              <p class="err" id="efTargetErr" hidden role="alert"></p>
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="efNow">Hädaabifondi jääk</label>
+            <div class="field currency">
+              <input id="efNow" class="currency" type="text" inputmode="decimal" aria-errormessage="efNowErr">
+              <p class="err" id="efNowErr" hidden role="alert"></p>
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="paydaysInput">Palgapäev (nt 5 või 5,20)</label>
+            <div class="field">
+              <input id="paydaysInput" placeholder="Lisa päevad komaga eraldatult" aria-describedby="paydaysHelp">
+              <p class="helper" id="paydaysHelp">Arvuta järgnevate maksepäevade vahe automaatselt.</p>
+              <div class="helper" id="nextPayInfo"></div>
+            </div>
+          </div>
           <div class="kpi">
-            <div class="box"><div class="label">Väljavool kokku</div><div class="val mono" id="kpiOut">—</div></div>
-            <div class="box"><div class="label">Ülejääk / Puudujääk</div><div class="val mono" id="kpiLeft">—</div></div>
-            <div class="box"><div class="label">Jaotus</div><div class="val mono" id="kpiAlloc">—</div></div>
+            <div class="box"><div class="label">Väljavool kokku</div><div class="val" id="kpiOut">—</div></div>
+            <div class="box"><div class="label">Ülejääk / Puudujääk</div><div class="val" id="kpiLeft">—</div></div>
+            <div class="box"><div class="label">Jaotus</div><div class="val" id="kpiAlloc">—</div></div>
           </div>
-          <div class="note">Iga kuu alguses (või palgapäeval) arhiveeritakse eelmine kuu automaatselt ning alustad värske kuuga.</div>
         </div>
       </details>
-    </div>
-
-    <!-- Kanepi kalkulaator -->
-    <div class="card">
-      <details>
+    </article>
+    <article class="card">
+      <details data-accordion>
         <summary>
-          <div class="sum-left"><span class="chev">▶</span><h2>Kanepi tegelikkuse kontroll</h2></div>
-          <div class="pill" id="pillZaza">Zaza alles: —</div>
+          <span class="chev" aria-hidden="true">▶</span>
+          <h2>Kanepi tegelikkuse kontroll</h2>
+          <span class="pill" id="pillZaza">Zaza alles: —</span>
         </summary>
-        <div class="content">
-          <div class="row"><label>Hind €/g</label><input id="pricePerGram" type="number" class="mono" value="10" min="0" step="0.1"></div>
-          <div class="row"><label>Gramme nädalas</label><input id="gramsPerWeek" type="number" class="mono" value="3" min="0" step="0.1"></div>
-          <div class="row"><label>Kuu kulu (auto) (€)</label><input id="zazaAuto" type="number" class="mono" value="" disabled></div>
-          <div class="row"><label>Vähenda (%)</label><input id="zazaCutPct" type="number" class="mono" value="25" min="0" max="100"></div>
-          <div class='row'><button class="btn" id="applyCap">Sea ülempiir ja liiguta sääst EF-i</button><span class="small" id="capMsg" style="margin-left:8px;"></span></div>
-          <div class="divider"></div>
-          <div class="small">Kulude jälgija all arvestatakse Zaza kulud eraldi.</div>
-          <div class="progress"><div id="zazaProg"></div></div>
+        <div class="card-body">
+          <div class="fieldRow">
+            <label for="pricePerGram">Hind €/g</label>
+            <div class="field currency">
+              <input id="pricePerGram" class="currency" type="text" inputmode="decimal" aria-errormessage="priceErr">
+              <p class="err" id="priceErr" hidden role="alert"></p>
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="gramsPerWeek">Gramme nädalas</label>
+            <div class="field">
+              <input id="gramsPerWeek" type="number" min="0" step="0.1">
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="zazaAuto">Kuu kulu (auto)</label>
+            <div class="field currency">
+              <input id="zazaAuto" class="currency" type="text" inputmode="decimal" disabled>
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label for="zazaCutPct">Vähenda (%)</label>
+            <div class="field">
+              <input id="zazaCutPct" type="number" min="0" max="100" step="1">
+            </div>
+          </div>
+          <div class="fieldRow">
+            <label aria-hidden="true"></label>
+            <div class="field">
+              <button class="btn" id="applyCap" type="button">Sea ülempiir ja liiguta sääst EF-i</button>
+              <p class="helper" id="capMsg"></p>
+              <div class="progress" aria-hidden="true"><div id="zazaProg"></div></div>
+            </div>
+          </div>
         </div>
       </details>
-    </div>
+    </article>
 
-    <!-- Kulutuste jälgija -->
-    <div class="card" id="expSection">
-      <details open>
+    <article class="card" id="expSection">
+      <details open data-accordion>
         <summary>
-          <div class="sum-left"><span class="chev">▶</span><h2>Selle kuu kulud</h2></div>
-          <div class="pill" id="pillSpent">Sel kuul: —</div>
+          <span class="chev" aria-hidden="true">▶</span>
+          <h2>Selle kuu kulud</h2>
+          <span class="pill" id="pillSpent">Sel kuul: —</span>
         </summary>
-        <div class="content">
+        <div class="card-body">
+          <div class="tableToolbar">
+            <label for="expFilter">Filtreeri</label>
+            <input id="expFilter" type="search" placeholder="Otsi kategooria või märkuse järgi">
+          </div>
           <div class="tableWrap">
-            <table id="expTbl" class="exp-table">
+            <table id="expTbl" class="exp-table" aria-live="polite">
               <thead>
-                <tr><th>Kuupäev</th><th>Kategooria</th><th>Märkus</th><th class="right">€</th><th></th></tr>
+                <tr>
+                  <th><button type="button" data-sort="date">Kuupäev <span class="sortIcon" aria-hidden="true">⇅</span></button></th>
+                  <th>Kategooria</th>
+                  <th>Märkus</th>
+                  <th class="right"><button type="button" data-sort="amount">€ <span class="sortIcon" aria-hidden="true">⇅</span></button></th>
+                  <th aria-label="Tegevused"></th>
+                </tr>
               </thead>
               <tbody></tbody>
               <tfoot>
-                <tr><td colspan="3"><strong>Kokku (kuu):</strong></td><td class="right mono" id="expSum">0.00</td><td></td></tr>
+                <tr><td colspan="3"><strong>Kokku (kuu):</strong></td><td class="right" id="expSum">0.00</td><td></td></tr>
               </tfoot>
             </table>
           </div>
-          <!-- Hidden placeholders so existing JS that queries these IDs won't throw -->
-          <div class="exp-form" hidden>
-            <select id="expCat"></select><input id="expAmt"><input id="expDate"><input id="expNote"><button id="addExp"></button>
-          </div>
-          <div class="breakdown" id="expBreakdown" hidden></div>
         </div>
       </details>
-    </div>
+    </article>
   </section>
 
-  <!-- PAREM VEERG -->
-  <section class="grid">
-    <!-- Arhiiv (loe‑ainult) -->
-    <div class="card">
-      <details>
+  <aside class="col col--secondary grid">
+    <article class="card" data-sticky>
+      <details open data-accordion>
         <summary>
-          <div class="sum-left"><span class="chev">▶</span><h2>Arhiiv (varasemad kuud)</h2></div>
+          <span class="chev" aria-hidden="true">▶</span>
+          <h2>Jooksev kokkuvõte</h2>
         </summary>
-        <div class="content">
-          <div id="archivesList" class="small"></div>
-          <div class="note">Arhiivi kirjed tekivad automaatselt, kui kuu vahetub. Sisaldab kogu eelmise kuu seisu.</div>
+        <div class="card-body">
+          <div class="summaryList" id="liveSummary" aria-live="polite"></div>
+          <p class="summaryNote">Tabel peegeldab valitud kuu seisu.</p>
+          <section>
+            <h3 style="font-size:.85rem;margin-top:.6rem">Kategooriate jälgimine</h3>
+            <div class="breakdown" id="expBreakdown"></div>
+          </section>
         </div>
       </details>
-    </div>
+    </article>
 
-    <!-- Psühholoogia -->
-    <div class="card">
-      <details>
+    <article class="card">
+      <details data-accordion>
         <summary>
-          <div class="sum-left"><span class="chev">▶</span><h2>Psühholoogianipid</h2></div>
+          <span class="chev" aria-hidden="true">▶</span>
+          <h2>Arhiiv (varasemad kuud)</h2>
         </summary>
-        <div class="content">
-          <h3>Tegevuskavad</h3>
+        <div class="card-body">
+          <div id="archivesList" class="summaryList"></div>
+        </div>
+      </details>
+    </article>
+
+    <article class="card">
+      <details data-accordion>
+        <summary>
+          <span class="chev" aria-hidden="true">▶</span>
+          <h2>Psühholoogianipid</h2>
+        </summary>
+        <div class="card-body">
+          <h3 style="font-size:.9rem">Tegevuskavad</h3>
           <textarea id="implIntents">Kui kell on pärast 22:30 ja tekib isu, teen teed ja teen 8-min venituse; kui ikka tahan, jään oma piirangu juurde.</textarea>
-          <h3>Tahtmise laine (3 minutit)</h3>
-          <div class="row">
-            <button class="btn" id="startUrge">Käivita 3:00</button>
-            <div id="urgeClock" class="pill mono">03:00</div>
+          <h3 style="font-size:.9rem">Tahtmise laine (3 minutit)</h3>
+          <div class="payWrap">
+            <button class="btn" id="startUrge" type="button">Käivita 3:00</button>
+            <div id="urgeClock" class="pill">03:00</div>
           </div>
-          <h3>Nädalane kontroll (10 min)</h3>
-          <ul class="small">
+          <h3 style="font-size:.9rem">Nädalane kontroll (10 min)</h3>
+          <ul class="summaryList" style="gap:.3rem">
             <li>Logi tegelikud kulud eelarvesse.</li>
             <li>Kontrolli kanepi “ümbriku”/alamkontot.</li>
             <li>Kui läheb üle, kärbi sel nädalal (mitte järgmisel kuul).</li>
@@ -294,26 +435,13 @@
           </ul>
         </div>
       </details>
-    </div>
-
-    <!-- Jooksev kokkuvõte -->
-    <div class="card">
-      <details open>
-        <summary>
-          <div class="sum-left"><span class="chev">▶</span><h2>Jooksev kokkuvõte</h2></div>
-        </summary>
-        <div class="content">
-          <div id="liveSummary" class="small"></div>
-        </div>
-      </details>
-    </div>
-  </section>
+    </article>
+  </aside>
 </main>
-
 <dialog id="expDialog" aria-label="Lisa kulu">
   <div class="dialog-head">
     <h3 style="margin:0">Lisa kulu</h3>
-    <button class="btn" id="closeExpDlg" type="button" aria-label="Sulge">✕</button>
+    <button class="btn ghost icon" id="closeExpDlg" type="button" aria-label="Sulge">✕</button>
   </div>
   <div class="dialog-body">
     <label for="expCat">Kategooria</label>
@@ -326,13 +454,11 @@
       <option>Riided/Isiklik</option>
       <option>Muu</option>
     </select>
-
     <label for="expAmt">Summa (€)</label>
-    <input id="expAmt" type="number" class="mono" min="0" step="0.01">
-
+    <input id="expAmt" class="currency" type="text" inputmode="decimal" aria-errormessage="expAmtErr">
+    <p class="err" id="expAmtErr" hidden role="alert"></p>
     <label for="expDate">Kuupäev</label>
     <input id="expDate" type="date">
-
     <label for="expNote">Märkus</label>
     <input id="expNote" type="text" placeholder="mis, kus, kelle jaoks">
   </div>
@@ -341,59 +467,161 @@
     <button class="btn primary" id="addExp" type="button">+ Lisa kulu</button>
   </div>
 </dialog>
-
 <script>
-  // ===== Abi =====
   const $ = sel => document.querySelector(sel);
-  const fmt = n => isFinite(n) ? (Number(n).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})) : '—';
-  const fmt2 = n => isFinite(n) ? (Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})) : '—';
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const fmt = n => Number.isFinite(+n) ? Number(n).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0}) : '—';
+  const fmt2 = n => Number.isFinite(+n) ? Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
   const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
   const monthKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 
-  // Päis
-  const todayDate = $("#todayDate");
-  const monthBadge = $("#monthBadge");
-  const now = new Date();
-  todayDate.textContent = now.toLocaleDateString(undefined,{weekday:'long', year:'numeric', month:'long', day:'numeric'});
-  monthBadge.textContent = now.toLocaleDateString(undefined,{month:'long', year:'numeric'});
+  const sanitizeCurrencyString = value => String(value||'').replace(/[\s\u00a0€]/g,'').replace(/[^0-9,.-]/g,'');
+  function normalizeCurrencyString(value){
+    const cleaned = sanitizeCurrencyString(value);
+    if(!cleaned) return '';
+    const normalized = cleaned.includes(',') && cleaned.includes('.')
+      ? cleaned.replace(/(,)(?=.*\.)/g,'').replace(',','.')
+      : cleaned.replace(',','.');
+    const asNumber = Number(normalized);
+    return Number.isFinite(asNumber) ? String(asNumber) : '';
+  }
+  function formatCurrencyDisplay(value){
+    const num = Number(value);
+    if(!Number.isFinite(num)) return '';
+    return num.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});
+  }
+  function getCurrencyNumber(input){
+    if(!input) return 0;
+    if(input.dataset && input.dataset.raw){
+      const raw = Number(input.dataset.raw);
+      return Number.isFinite(raw) ? raw : 0;
+    }
+    const normalized = normalizeCurrencyString(input.value);
+    return Number(normalized||0) || 0;
+  }
+  function setCurrencyValue(input, value){
+    if(!input) return;
+    const normalized = normalizeCurrencyString(value);
+    if(normalized===''){
+      input.value='';
+      delete input.dataset.raw;
+      return;
+    }
+    input.dataset.raw = normalized;
+    input.value = formatCurrencyDisplay(normalized);
+  }
+  function parseOnFocus(event){
+    const input = event.target;
+    if(!input.classList.contains('currency')) return;
+    const raw = input.dataset.raw;
+    if(raw){
+      input.value = raw;
+    } else {
+      input.value = normalizeCurrencyString(input.value);
+    }
+  }
+  function formatCurrencyOnBlur(event){
+    const input = event.target;
+    if(!input.classList.contains('currency')) return;
+    const normalized = normalizeCurrencyString(input.value);
+    if(normalized){
+      input.dataset.raw = normalized;
+      input.value = formatCurrencyDisplay(normalized);
+    } else {
+      input.value='';
+      delete input.dataset.raw;
+    }
+    validateCurrencyInput(input);
+  }
+  function handleCurrencyInput(event){
+    const input = event.target;
+    if(!input.classList.contains('currency')) return;
+    const normalized = normalizeCurrencyString(input.value);
+    if(normalized){
+      input.dataset.raw = normalized;
+    } else {
+      delete input.dataset.raw;
+    }
+  }
+  function bindCurrencyInputs(){
+    $$('input.currency').forEach(input => {
+      input.addEventListener('focus', parseOnFocus);
+      input.addEventListener('blur', formatCurrencyOnBlur);
+      input.addEventListener('input', handleCurrencyInput);
+      formatCurrencyOnBlur({target:input});
+    });
+  }
+  function setFieldError(input, message){
+    if(!input) return;
+    const errId = input.getAttribute('aria-errormessage');
+    if(!errId) return;
+    const errEl = document.getElementById(errId);
+    if(!errEl) return;
+    if(message){
+      input.setAttribute('aria-invalid','true');
+      errEl.textContent = message;
+      errEl.hidden = false;
+    } else {
+      input.removeAttribute('aria-invalid');
+      errEl.textContent = '';
+      errEl.hidden = true;
+    }
+  }
+  function validateCurrencyInput(input){
+    if(!input || !input.classList.contains('currency')) return;
+    const value = getCurrencyNumber(input);
+    setFieldError(input, value < 0 ? 'Peab olema ≥ 0.' : '');
+  }
+  const debounce = (fn, wait=200) => {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(()=>fn(...args), wait);
+    };
+  };
 
-  // Elemendid
+  const todayDate = $('#todayDate');
+  const monthBadge = $('#monthBadge');
+  const now = new Date();
+  if(todayDate) todayDate.textContent = now.toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
   const inputs = {
-    income:      $("#income"),
-    loans:       $("#loans"),
-    mom:         $("#mom"),
-    momEnd:      $("#momEnd"),
-    aptSupport:  $("#aptSupport"),
-    aptSupportEnd:$("#aptSupportEnd"),
-    phone:       $("#phone"),
-    transport:   $("#transport"),
-    groceries:   $("#groceries"),
-    otherEss:    $("#otherEss"),
-    fun:         $("#fun"),
-    personal:    $("#personal"),
-    zazaCap:     $("#zazaCap"),
-    efTarget:    $("#efTarget"),
-    efNow:       $("#efNow"),
-    pricePerGram:$("#pricePerGram"),
-    gramsPerWeek:$("#gramsPerWeek"),
-    zazaAuto:    $("#zazaAuto"),
-    zazaCutPct:  $("#zazaCutPct"),
-    applyCap:    $("#applyCap"),
-    paydays:     $("#paydaysInput"),
+    income: $('#income'),
+    loans: $('#loans'),
+    mom: $('#mom'),
+    momEnd: $('#momEnd'),
+    aptSupport: $('#aptSupport'),
+    aptSupportEnd: $('#aptSupportEnd'),
+    phone: $('#phone'),
+    transport: $('#transport'),
+    groceries: $('#groceries'),
+    otherEss: $('#otherEss'),
+    fun: $('#fun'),
+    personal: $('#personal'),
+    zazaCap: $('#zazaCap'),
+    efTarget: $('#efTarget'),
+    efNow: $('#efNow'),
+    paydays: $('#paydaysInput'),
+    pricePerGram: $('#pricePerGram'),
+    gramsPerWeek: $('#gramsPerWeek'),
+    zazaAuto: $('#zazaAuto'),
+    zazaCutPct: $('#zazaCutPct'),
+    applyCap: $('#applyCap')
   };
 
   const kpis = {
-    out:   $("#kpiOut"),
-    left:  $("#kpiLeft"),
-    alloc: $("#kpiAlloc"),
+    out: $('#kpiOut'),
+    left: $('#kpiLeft'),
+    alloc: $('#kpiAlloc')
   };
 
-  const summary = $("#liveSummary");
-  const pillBudget = $("#pillBudget");
-  const pillZaza = $("#pillZaza");
-  const pillSpent = $("#pillSpent");
-  const zazaProg = $("#zazaProg");
-  const archivesList = $("#archivesList");
+  const summary = $('#liveSummary');
+  const pillBudget = $('#pillBudget');
+  const pillZaza = $('#pillZaza');
+  const pillSpent = $('#pillSpent');
+  const zazaProg = $('#zazaProg');
+  const archivesList = $('#archivesList');
+  const expBreakdown = $('#expBreakdown');
   const CATEGORY_LABELS = {
     'Zaza': 'Kanepi kulu ülempiir',
     'Telefon/Internet': 'Telefon/Internet',
@@ -405,21 +633,28 @@
   };
   const CATEGORY_ORDER = ['Zaza','Telefon/Internet','Toit','Transport','Meelelahutus','Riided/Isiklik','Muu'];
   const SUPPORT_KEYS = ['loans','mom','aptSupport'];
-  let currentMonthExpenses = [];
+  bindCurrencyInputs();
 
-  // ===== Kuu‑põhine püsivus =====
-  const KEY = "rahakask-v5";
-  const KEY_EXP = "rahakask-v5-expenses"; // ainult jooksva kuu kulud
+  const KEY = 'rahakask-v5';
+  const KEY_EXP = 'rahakask-v5-expenses';
   const CUR_MONTH = monthKey(new Date());
   let payMarksCache = null;
-  const defaultPayMarks = () => ({supports:{loans:false,mom:false,aptSupport:false}});
-  function readState(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+  let archivesData = [];
+  let currentMonthExpenses = [];
+  let viewMonth = CUR_MONTH;
+  let monthTimeline = [];
+  let expSort = {key:'date',dir:'desc'};
+  let expFilterTerm = '';
+</script>
+<script>
+  function readState(){ try{ return JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){ return {}; } }
   function writeState(obj){ localStorage.setItem(KEY, JSON.stringify(obj)); }
+  const defaultPayMarks = () => ({supports:{loans:false,mom:false,aptSupport:false}});
   function getPayMarks(){
     if(payMarksCache) return payMarksCache;
     const state = readState();
     state.payMarks = state.payMarks || {};
-    const existing = state.payMarks[CUR_MONTH];
+    const existing = state.payMarks[viewMonth] || state.payMarks[CUR_MONTH];
     if(existing){
       payMarksCache = {
         supports: Object.assign({loans:false,mom:false,aptSupport:false}, existing.supports||{})
@@ -427,7 +662,7 @@
     } else {
       payMarksCache = defaultPayMarks();
     }
-    state.payMarks[CUR_MONTH] = payMarksCache;
+    state.payMarks[CUR_MONTH] = state.payMarks[CUR_MONTH] || payMarksCache;
     writeState(state);
     return payMarksCache;
   }
@@ -440,130 +675,43 @@
   }
   function resetPayMarksCache(){ payMarksCache = null; }
 
-  
-  
-  function archiveIfMonthRolled(){
-    const state = readState();
-    const cur = monthKey(new Date());
-    const storedMonth = (state.meta && state.meta.month) || null;
-
-    const hadMeta = !!storedMonth;
-    const monthChanged = hadMeta && storedMonth !== cur;
-
-    state.archives = state.archives || [];
-    state.data = state.data || {};
-
-    if (monthChanged){
-      // Load all expenses (previous + current) from store
-      let allExpenses = [];
-      try { allExpenses = JSON.parse(localStorage.getItem(KEY_EXP) || "[]"); } catch (e) { allExpenses = []; }
-      const prevMonth = storedMonth; // e.g., "2025-09"
-      const prevMonthExpenses = allExpenses.filter(e => String(e.date||"").slice(0,7) === prevMonth);
-
-      // Compute initial carryOver (leftover cash) based on previous month
-      const b = (state.data && state.data.budget) || {};
-      const income = +b.income || 0;
-      const prevAsOf = new Date(prevMonth+"-01T00:00:00");
-      const obligations = monthlyObligations({
-        loans: b.loans,
-        mom: b.mom,
-        momEnd: b.momEnd,
-        aptSupport: b.aptSupport,
-        aptSupportEnd: b.aptSupportEnd,
-        phone: b.phone
-      }, prevAsOf);
-      const spent = spentForMonth(prevMonth, prevMonthExpenses);
-      let carryOver = income - obligations - spent;
-      if (!isFinite(carryOver)) carryOver = 0;
-      if (carryOver < 0) carryOver = 0;
-
-      const archiveEntry = {
-        month: prevMonth,
-        ts: Date.now(),
-        data: state.data || {},
-        expenses: prevMonthExpenses,
-        carryOver: carryOver
-      };
-      state.archives.push(archiveEntry);
-
-      // Apply carryover to EF balance for the new month
-      if (!state.data.budget) state.data.budget = {};
-      state.data.budget.efNow = (+state.data.budget.efNow || 0) + carryOver;
-
-      // Clear only expenses (new month starts fresh)
-      localStorage.removeItem(KEY_EXP);
-
-      // Reset paid markers for the new month
-      state.payMarks = state.payMarks || {};
-      state.payMarks[prevMonth] && delete state.payMarks[prevMonth];
-      state.payMarks[cur] = defaultPayMarks();
-      resetPayMarksCache();
-    }
-
-    // Update current meta month
-    state.meta = { month: cur };
-    writeState(state);
-  }
-  function renderArchives(){
-    const state = readState();
-    const list = (state.archives||[]).slice().reverse();
-    if (!list.length){ archivesList.innerHTML = "<em>Arhiiv on tühi.</em>"; return; }
-    archivesList.innerHTML = list.map(a=>{
-      const tot = (a.expenses||[]).reduce((s,x)=>s+(+x.amt||0),0);
-      const minsT = a.payments && a.payments.minsTotal || 0;
-      const zaza = (a.expenses||[]).filter(x=>x.cat==="Zaza").reduce((s,x)=>s+(+x.amt||0),0);
-      const when = new Date(a.ts).toLocaleString();
-      const payLine = a.payments ? `<div>Maksed võlgadele (auto): min <strong>€ ${fmt2(minsT)}</strong></div>` : "";
-      return `<div class="archiveItem">
-        <div><strong>${a.month}</strong> — arhiveeritud: ${when}</div>
-        <div>Kulud kokku: <strong>€ ${fmt2(tot)}</strong>; Zaza: <strong>€ ${fmt2(zaza)}</strong></div>
-        ${payLine}
-        <div>Ülejääk EF-i: <strong>€ ${fmt2(a.carryOver||0)}</strong></div>
-        <div class="small muted">Kirje sisaldab kogu kuu seisu (eelarve ja sätted) ning kõiki kulusid.</div>
-      </div>`;
-    }).join("");
-  }
-
   function reflectSupportPaid(key){
     const marks = getPayMarks();
     const paid = !!(marks.supports && marks.supports[key]);
-    const btn = document.querySelector(`[data-pay-support="${key}"]`);
-    if(btn){
-      btn.textContent = paid ? "Makstud ✓" : "Märgi makstuks";
-      btn.classList.toggle("paid", paid);
-      const row = btn.closest(".row");
-      if(row) row.classList.toggle("is-paid", paid);
-    }
+    const btn = document.querySelector(`.payToggle[data-key="${key}"]`);
+    if(!btn) return;
+    btn.setAttribute('aria-pressed', paid ? 'true' : 'false');
+    btn.classList.toggle('is-locked', paid);
+    btn.textContent = paid ? 'Makstud ✓' : 'Maksmata';
+    btn.title = paid ? 'Makstud — saad muuta järgmisel kuul' : 'Märgi kohustus makstuks';
+    btn.toggleAttribute('disabled', paid);
+    btn.setAttribute('aria-disabled', paid ? 'true' : 'false');
+    const row = btn.closest('.fieldRow');
+    if(row) row.classList.toggle('is-paid', paid);
   }
-  function toggleSupportPaid(key){
+  function lockSupportPaid(key){
     const marks = getPayMarks();
     marks.supports = marks.supports || {loans:false,mom:false,aptSupport:false};
-    marks.supports[key] = !marks.supports[key];
+    if(marks.supports[key]) return;
+    marks.supports[key] = true;
     savePayMarks();
     reflectSupportPaid(key);
-    recomputeBudget();
+    if(viewMonth === CUR_MONTH) recomputeBudget();
   }
-  let supportButtonsInit=false;
-  function refreshSupportButtons(){
-    document.querySelectorAll('[data-pay-support]').forEach(btn=>{
-      const key=btn.getAttribute('data-pay-support');
+  function initPayToggles(){
+    $$('.payToggle').forEach(btn => {
+      const key = btn.getAttribute('data-key');
+      btn.addEventListener('click',()=>{
+        if(viewMonth !== CUR_MONTH) return;
+        lockSupportPaid(key);
+      });
       reflectSupportPaid(key);
     });
   }
-  function initSupportButtons(){
-    if(!supportButtonsInit){
-      document.querySelectorAll('[data-pay-support]').forEach(btn=>{
-        const key=btn.getAttribute('data-pay-support');
-        btn.addEventListener('click',()=>{ toggleSupportPaid(key); });
-      });
-      supportButtonsInit=true;
-    }
-    refreshSupportButtons();
-  }
-  // ===== Payday helperid =====
+
   function parsePaydays(txt){
     if (!txt) return [];
-    return String(txt).split(/[,\s]+/).map(s=>parseInt(s,10)).filter(n=>Number.isInteger(n)&&n>=1&&n<=31).sort((a,b)=>a-b);
+    return String(txt).split(/[ ,;]+/).map(s=>parseInt(s,10)).filter(n=>Number.isInteger(n)&&n>=1&&n<=31).sort((a,b)=>a-b);
   }
   function nextDatesFromDays(dayList, from=new Date(), count=3){
     if (!dayList.length) return [];
@@ -588,23 +736,29 @@
     return Math.ceil((B-A)/86400000);
   }
   function updatePayInfo(){
-    const el=inputs.paydays, info=$("#nextPayInfo");
+    const el=inputs.paydays, info=$('#nextPayInfo');
     if(!el||!info) return;
     const days=parsePaydays(el.value);
-    if(!days.length){ info.innerHTML="<em>Lisa palgapäeva päev (nt 5 või 5,20).</em>"; return; }
+    if(!days.length){ info.innerHTML='<em>Lisa palgapäeva päev (nt 5 või 5,20).</em>'; return; }
     const next3=nextDatesFromDays(days,new Date(),3);
     const fmtOpts={day:'2-digit',month:'long',year:'numeric'};
     const today=new Date();
-    info.innerHTML = next3.map(d=>`• ${d.toLocaleDateString(undefined,fmtOpts)} — <strong>${daysBetween(today,d)} päeva</strong>`).join("<br>");
+    info.innerHTML = next3.map(d=>`• ${d.toLocaleDateString(undefined,fmtOpts)} — <strong>${daysBetween(today,d)} päeva</strong>`).join('<br>');
   }
 
-  // ===== Eelarve =====
   const inputValue = ref => {
-    if(!ref) return "";
-    if(typeof ref === "object" && "value" in ref) return ref.value;
+    if(ref===null||typeof ref==='undefined') return '';
+    if(typeof ref === 'number') return ref;
+    if(typeof ref === 'string') return ref;
+    if(ref && typeof ref === 'object'){
+      if(ref.classList && ref.classList.contains('currency')){
+        const raw = ref.dataset && typeof ref.dataset.raw !== 'undefined' ? ref.dataset.raw : normalizeCurrencyString(ref.value);
+        return raw || '';
+      }
+      if('value' in ref) return ref.value;
+    }
     return ref;
   };
-  /** Kontrollib, kas kohustus on endiselt aktiivne (lõppkuupäev k.a) */
   function isActive(endInput, asOf=new Date()){
     const raw = inputValue(endInput);
     if(!raw) return true;
@@ -613,20 +767,14 @@
     ref.setHours(23,59,59,999);
     return end >= ref;
   }
-  /** Tagastab maksesumma, kui kohustus on aktiivne */
   function activeAmt(amountInput,endInput,asOf=new Date()){
     const amt = +inputValue(amountInput) || 0;
     return isActive(endInput, asOf) ? amt : 0;
   }
-  /** Kuupõhised kohustused (laenud + toetused) */
   function monthlyObligations(source=inputs, asOf=new Date()){
     const src = source || {};
     const loans = +inputValue(src.loans) || 0;
-    return (
-      loans +
-      activeAmt(src.mom, src.momEnd, asOf) +
-      activeAmt(src.aptSupport, src.aptSupportEnd, asOf)
-    );
+    return loans + activeAmt(src.mom, src.momEnd, asOf) + activeAmt(src.aptSupport, src.aptSupportEnd, asOf);
   }
   function supportAmount(key, source=inputs, asOf=new Date()){
     const src = source || {};
@@ -635,12 +783,9 @@
     if(key === 'aptSupport') return activeAmt(src.aptSupport, src.aptSupportEnd, asOf);
     return 0;
   }
-  function paidSupportsTotal(asOf=new Date()){
-    const marks = getPayMarks();
-    if(!marks || !marks.supports) return 0;
-    return SUPPORT_KEYS.reduce((sum,key)=>{
-      return sum + (marks.supports[key] ? supportAmount(key, inputs, asOf) : 0);
-    },0);
+  function paidSupportsTotal(asOf=new Date(), marks=getPayMarks(), source=inputs){
+    const dataMarks = marks || defaultPayMarks();
+    return SUPPORT_KEYS.reduce((sum,key)=>sum + (dataMarks.supports && dataMarks.supports[key] ? supportAmount(key, source, asOf) : 0),0);
   }
   function categoryLimits(source=inputs){
     const src = source || {};
@@ -657,86 +802,444 @@
   function sumCategoryLimits(limits){
     return Object.values(limits || {}).reduce((sum,val)=>sum+(+val||0),0);
   }
-  function computeOutflows(){
-    const obligations = monthlyObligations();
-    const limitsTotal = sumCategoryLimits(categoryLimits());
-    return obligations + limitsTotal;
-  }
-  /** Summeeri kulud kuuvõtme alusel */
   function spentForMonth(mk, list){
     const expenses = Array.isArray(list) ? list : readExpenses();
-    return expenses
-      .filter(e => String(e.date||"").slice(0,7) === mk)
-      .reduce((sum, x) => sum + (+x.amt||0), 0);
+    return expenses.filter(e => String(e.date||'').slice(0,7) === mk).reduce((sum,x)=>sum+(+x.amt||0),0);
   }
-  /** Kulud jooksval kuul */
   function spentThisMonth(){
     if(Array.isArray(currentMonthExpenses)){
       return currentMonthExpenses.reduce((sum,e)=>sum+(+e.amt||0),0);
     }
-    return spentForMonth(monthKey(new Date()));
+    return spentForMonth(CUR_MONTH);
   }
+</script>
+<script>
+  function createVirtualInputs(budget={}){
+    const wrap = val => ({ value: typeof val === 'undefined' ? '' : val });
+    return {
+      income: wrap(budget.income),
+      loans: wrap(budget.loans),
+      mom: wrap(budget.mom),
+      momEnd: wrap(budget.momEnd),
+      aptSupport: wrap(budget.aptSupport),
+      aptSupportEnd: wrap(budget.aptSupportEnd),
+      phone: wrap(budget.phone),
+      transport: wrap(budget.transport),
+      groceries: wrap(budget.groceries),
+      otherEss: wrap(budget.otherEss),
+      fun: wrap(budget.fun),
+      personal: wrap(budget.personal),
+      zazaCap: wrap(budget.zazaCap)
+    };
+  }
+  function updateKpis(out,totalLeft,allocText,className=''){
+    if(kpis.out) kpis.out.textContent = `€ ${fmt(out)}`;
+    if(kpis.left){
+      kpis.left.textContent = totalLeft >= 0 ? `€ ${fmt(totalLeft)}` : `€ -${fmt(Math.abs(totalLeft))}`;
+      kpis.left.className = ['val', className].filter(Boolean).join(' ');
+    }
+    if(kpis.alloc) kpis.alloc.textContent = allocText;
+  }
+  function updateSummaryContent({income, obligations, paidSupports, spent, limitTotal, plannedLeft, realLeft, obligationsLeft, note}){
+    if(!summary) return;
+    const realClass = realLeft>0?'good':(realLeft<0?'bad':'');
+    summary.innerHTML = `
+      <div>Sissetulek: <strong>€ ${fmt(income)}</strong></div>
+      <div>Kohustuslikud maksed (planeeritud): <strong>€ ${fmt(obligations)}</strong></div>
+      <div>Kohustuslikud maksed (makstud): <strong>€ ${fmt(paidSupports)}</strong> <span class="summaryNote">alles € ${fmt(Math.max(0, obligationsLeft))}</span></div>
+      <div>Kulude limiidid: <strong>€ ${fmt(limitTotal)}</strong></div>
+      <div>Sel kuul kulud: <strong>€ ${fmt(spent)}</strong></div>
+      <div>Plaanijääk: <strong>€ ${fmt(plannedLeft)}</strong></div>
+      <div>Reaaljääk: <strong class="${realClass}">€ ${fmt(realLeft)}</strong></div>
+      ${note?`<div class="summaryNote">${note}</div>`:''}`;
+  }
+
+  function renderExpenseBreakdown(list=currentMonthExpenses, source=inputs, opts={}){
+    if(!expBreakdown) return;
+    const limits = categoryLimits(source);
+    const data = Array.isArray(list) ? list : [];
+    const byCat={};
+    data.forEach(e=>{
+      const cat=(e&&e.cat)||'Muu';
+      byCat[cat]=(byCat[cat]||0)+(+e.amt||0);
+    });
+    const cats=new Set([
+      ...Object.keys(byCat),
+      ...Object.entries(limits).filter(([,limit])=>limit>0).map(([cat])=>cat)
+    ]);
+    if(!cats.size){
+      expBreakdown.innerHTML='<em>Valitud kuul kulusid pole.</em>';
+      return;
+    }
+    const ordered=[];
+    CATEGORY_ORDER.forEach(cat=>{ if(cats.has(cat)){ ordered.push(cat); cats.delete(cat);} });
+    Array.from(cats).sort().forEach(cat=>ordered.push(cat));
+    const asOf = opts.asOf || new Date();
+    const items = ordered.map(cat=>{
+      const spent=+byCat[cat]||0;
+      const limit=+limits[cat]||0;
+      const label=CATEGORY_LABELS[cat]||cat;
+      let status='Alles: € '+fmt2(Math.max(0,limit-spent));
+      let statusClass='left';
+      let ratio = limit ? spent/limit : 0;
+      if(limit===0){
+        status = spent>0 ? `Kulutatud: € ${fmt2(spent)}` : 'Pole limiiti';
+      } else if(spent>limit){
+        status = `Ületatud: € ${fmt2(Math.abs(limit-spent))}`;
+      } else {
+        const pctLeft = limit>0 ? Math.max(0,((limit-spent)/limit)*100) : 0;
+        status = `Alles: € ${fmt2(Math.max(0,limit-spent))} (${fmt2(pctLeft)}%)`;
+      }
+      const percent = limit>0 ? Math.min(100,Math.max(0,(spent/limit)*100)) : (spent>0?100:0);
+      return `<div class="item">
+        <h4><span>${label}</span><span>€ ${fmt2(spent)}${limit>0?` / € ${fmt2(limit)}`:''}</span></h4>
+        <div class="left">${status}</div>
+        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(percent)}" aria-label="${label}"><div style="width:${percent}%"></div></div>
+      </div>`;
+    });
+    expBreakdown.innerHTML=items.join('');
+  }
+
+  function refreshZazaLeft(expenses=currentMonthExpenses, capValue=+inputValue(inputs.zazaCap)||0){
+    if(!pillZaza) return;
+    const spent = (expenses||[]).filter(e=>e.cat==='Zaza').reduce((sum,e)=>sum+(+e.amt||0),0);
+    const left = Math.max(0, capValue - spent);
+    pillZaza.textContent = `Zaza alles: € ${fmt2(left)}`;
+    const usedPct = capValue>0 ? Math.min(100,(spent/capValue)*100) : (spent>0?100:0);
+    if(zazaProg){
+      zazaProg.style.width = `${usedPct}%`;
+      zazaProg.style.background = usedPct>100?'var(--bad)':(usedPct>90?'var(--warn)':'var(--accent)');
+    }
+  }
+
   function recomputeBudget(){
-    const income=+inputs.income.value||0;
-    const obligations = monthlyObligations();
-    const limits = categoryLimits();
+    const income=+inputValue(inputs.income)||0;
+    const obligations = monthlyObligations(inputs,new Date());
+    const limits = categoryLimits(inputs);
     const limitTotal = sumCategoryLimits(limits);
     const plannedTotal = obligations + limitTotal;
     const plannedLeft = income - plannedTotal;
     const spent = spentThisMonth();
-    const paidSupports = paidSupportsTotal();
+    const paidSupports = paidSupportsTotal(new Date(), getPayMarks(), inputs);
     const realLeft = income - paidSupports - spent;
-    const totalOut=computeOutflows();
-    const realClass = realLeft>0?"good":(realLeft===0?"":"bad");
+    const totalOut = obligations + limitTotal;
     const obligationsLeft = Math.max(0, obligations - paidSupports);
-    kpis.out.textContent="€ "+fmt(totalOut);
-    kpis.left.textContent=(realLeft>=0?"€ "+fmt(realLeft):"€ -"+fmt(Math.abs(realLeft)));
-    kpis.left.className="val mono "+realClass;
-    kpis.alloc.textContent=`Kohustused € ${fmt(obligations)}  |  Limiidid € ${fmt(limitTotal)}  |  Plaanijääk € ${fmt(plannedLeft)}`;
-    if(pillBudget) pillBudget.textContent=`Reaaljääk: € ${fmt(realLeft)}`;
-    if(summary){
-      summary.innerHTML=`
-      <div>Sissetulek: <strong>€ ${fmt(income)}</strong></div>
-      <div>Kohustuslikud maksed (planeeritud): <strong>€ ${fmt(obligations)}</strong></div>
-      <div>Kohustuslikud maksed (makstud): <strong>€ ${fmt(paidSupports)}</strong> <span class="small muted">alles € ${fmt(Math.max(0, obligationsLeft))}</span></div>
-      <div>Kulude limiidid: <strong>€ ${fmt(limitTotal)}</strong></div>
-      <div>Sel kuul kulud: <strong>€ ${fmt(spent)}</strong></div>
-      <div>Plaanijääk (kui järgid limiite): <strong>€ ${fmt(plannedLeft)}</strong></div>
-      <div>Reaaljääk (pärast oste): <strong class="${realClass}">€ ${fmt(realLeft)}</strong></div>`;
+    const realClass = realLeft>0?'good':(realLeft<0?'bad':'');
+    updateKpis(totalOut, realLeft, `Kohustused € ${fmt(obligations)} | Limiidid € ${fmt(limitTotal)} | Plaanijääk € ${fmt(plannedLeft)}`, realClass);
+    updateSummaryContent({income, obligations, paidSupports, spent, limitTotal, plannedLeft, realLeft, obligationsLeft});
+    if(pillBudget) pillBudget.textContent = `Reaaljääk: € ${fmt(realLeft)}`;
+    renderExpenseBreakdown(currentMonthExpenses, inputs, {asOf:new Date()});
+    refreshZazaLeft(currentMonthExpenses, +inputValue(inputs.zazaCap)||0);
+  }
+</script>
+<script>
+  function withTransition(fn){
+    return (...args)=>{
+      if(document.startViewTransition){ document.startViewTransition(()=>fn(...args)); }
+      else{ fn(...args); }
+    };
+  }
+  function readExpenses(){ try{ return JSON.parse(localStorage.getItem(KEY_EXP)||'[]'); }catch(e){ return []; } }
+  function writeExpenses(list){ localStorage.setItem(KEY_EXP, JSON.stringify(list)); }
+
+  const expTblBody=$('#expTbl tbody');
+  const expSum=$('#expSum');
+  const expFilter=$('#expFilter');
+  const prevMonthBtn=$('#prevMonth');
+  const nextMonthBtn=$('#nextMonth');
+
+  function formatMonthLabel(mk){
+    const [year,month] = mk.split('-').map(Number);
+    if(!year||!month) return mk;
+    const dt = new Date(year, month-1, 1);
+    return dt.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  }
+  function updateMonthBadge(){
+    if(monthBadge) monthBadge.textContent = formatMonthLabel(viewMonth);
+  }
+  function updateMonthControls(){
+    const idx = monthTimeline.indexOf(viewMonth);
+    if(prevMonthBtn) prevMonthBtn.toggleAttribute('disabled', idx<=0);
+    if(nextMonthBtn) nextMonthBtn.toggleAttribute('disabled', idx>=monthTimeline.length-1);
+  }
+  function virtualBudgetForMonth(month){
+    if(month===CUR_MONTH) return null;
+    const entry = archivesData.find(a=>a.month===month);
+    return entry && entry.data && entry.data.budget ? createVirtualInputs(entry.data.budget) : createVirtualInputs();
+  }
+  function renderArchiveSummary(month, expenses, entry){
+    const budgetInputs = virtualBudgetForMonth(month);
+    if(!budgetInputs){
+      recomputeBudget();
+      return;
     }
-    renderExpenseBreakdown();
-    refreshZazaLeft();
+    const asOf = new Date(month+'-01T00:00:00');
+    const income = +inputValue(budgetInputs.income)||0;
+    const obligations = monthlyObligations(budgetInputs, asOf);
+    const limits = categoryLimits(budgetInputs);
+    const limitTotal = sumCategoryLimits(limits);
+    const plannedTotal = obligations + limitTotal;
+    const plannedLeft = income - plannedTotal;
+    const spent = (expenses||[]).reduce((sum,e)=>sum+(+e.amt||0),0);
+    const paidSupports = obligations; // eeldame, et kuu lõikes tasutud
+    const realLeft = income - paidSupports - spent;
+    const obligationsLeft = Math.max(0, obligations - paidSupports);
+    const alloc = `Kohustused € ${fmt(obligations)} | Limiidid € ${fmt(limitTotal)} | Plaanijääk € ${fmt(plannedLeft)}`;
+    updateKpis(obligations+limitTotal, realLeft, alloc, realLeft>0?'good':(realLeft<0?'bad':''));
+    updateSummaryContent({income, obligations, paidSupports, spent, limitTotal, plannedLeft, realLeft, obligationsLeft, note:'Arhiivikuul salvestatud seis.'});
+    if(pillBudget) pillBudget.textContent = `Arhiivikuu jääk: € ${fmt(realLeft)}`;
+    const cap = +inputValue(budgetInputs.zazaCap)||0;
+    refreshZazaLeft(expenses, cap);
+    renderExpenseBreakdown(expenses, budgetInputs, {asOf:asOf});
   }
 
-  // ===== Kanepi kalkulaator =====
-  const capMsg=$("#capMsg");
+  function renderExpenses(){
+    if(!expTblBody) return;
+    const all = readExpenses();
+    const isCurrent = viewMonth === CUR_MONTH;
+    const archiveEntry = viewMonth!==CUR_MONTH ? archivesData.find(a=>a.month===viewMonth) : null;
+    const sourceList = isCurrent ? all.filter(e=>String(e.date||'').slice(0,7)===viewMonth) : (archiveEntry?.expenses||[]);
+    if(isCurrent) currentMonthExpenses = sourceList.slice();
+    const term = expFilterTerm.trim().toLowerCase();
+    let filtered = sourceList;
+    if(term){
+      filtered = sourceList.filter(e=>[
+        e.cat||'',
+        e.note||'',
+        e.date||''
+      ].some(val=>String(val).toLowerCase().includes(term)));
+    }
+    const sorted = filtered.slice().sort((a,b)=>{
+      const dir = expSort.dir==='asc'?1:-1;
+      if(expSort.key==='amount'){
+        const diff = (+a.amt||0) - (+b.amt||0);
+        return diff===0?0:(diff>0?dir:-dir);
+      }
+      const at = new Date(a.date||'').getTime() || 0;
+      const bt = new Date(b.date||'').getTime() || 0;
+      return at===bt?0:(at>bt?dir:-dir);
+    });
+    expTblBody.innerHTML='';
+    sorted.forEach(exp => {
+      const originalIndex = all.indexOf(exp);
+      const tr=document.createElement('tr');
+      const when=new Date(exp.date);
+      const formattedDate = Number.isFinite(when.getTime()) ? when.toLocaleDateString() : (exp.date||'');
+      tr.innerHTML=`<td>${formattedDate}</td><td>${exp.cat||''}</td><td>${exp.note?exp.note.replace(/</g,'&lt;'):''}</td><td class="right">${fmt2(exp.amt)}</td><td>${isCurrent?'<button class="btn ghost icon" data-delete="true" aria-label="Kustuta">✕</button>':''}</td>`;
+      if(isCurrent){
+        const btn = tr.querySelector('[data-delete]');
+        if(btn){
+          btn.addEventListener('click',()=>{
+            const latest = readExpenses();
+            let idx = originalIndex;
+            if(idx<0){
+              idx = latest.findIndex(item => item && item.date===exp.date && item.cat===exp.cat && item.note===exp.note && +item.amt===+exp.amt);
+            }
+            if(idx>-1){
+              latest.splice(idx,1);
+              writeExpenses(latest);
+              withTransition(renderExpenses)();
+              persist();
+            }
+          });
+        }
+      }
+      expTblBody.appendChild(tr);
+    });
+    const total = sorted.reduce((sum,e)=>sum+(+e.amt||0),0);
+    if(expSum) expSum.textContent = fmt2(total);
+    const monthLabel = formatMonthLabel(viewMonth);
+    if(pillSpent) pillSpent.textContent = `${isCurrent?'Sel kuul':'Valitud kuu'}: € ${fmt2(total)}`;
+    updateSortIndicators();
+    if(isCurrent){
+      recomputeBudget();
+    } else {
+      renderArchiveSummary(viewMonth, sorted, archiveEntry||{});
+    }
+  }
+  function updateSortIndicators(){
+    $$('[data-sort]').forEach(btn=>{
+      const key = btn.getAttribute('data-sort');
+      btn.closest('th')?.setAttribute('aria-sort', key===expSort.key ? (expSort.dir==='asc'?'ascending':'descending') : 'none');
+    });
+  }
+
+  function renderArchives(){
+    if(!archivesList) return;
+    const list = (archivesData||[]).slice().reverse();
+    if(!list.length){ archivesList.innerHTML = '<em>Arhiiv on tühi.</em>'; return; }
+    archivesList.innerHTML = list.map(a=>{
+      const tot = (a.expenses||[]).reduce((s,x)=>s+(+x.amt||0),0);
+      const zaza = (a.expenses||[]).filter(x=>x.cat==='Zaza').reduce((s,x)=>s+(+x.amt||0),0);
+      const when = new Date(a.ts).toLocaleString();
+      return `<div class="archiveItem">
+        <div><strong>${a.month}</strong> — arhiveeritud: ${when}</div>
+        <div>Kulud kokku: <strong>€ ${fmt2(tot)}</strong>; Zaza: <strong>€ ${fmt2(zaza)}</strong></div>
+        <div>Ülejääk EF-i: <strong>€ ${fmt2(a.carryOver||0)}</strong></div>
+        <div class="summaryNote">Kirje sisaldab kogu kuu seisu (eelarve ja sätted) ning kõiki kulusid.</div>
+      </div>`;
+    }).join('');
+  }
+
+  function archiveIfMonthRolled(){
+    const state = readState();
+    const cur = monthKey(new Date());
+    const storedMonth = (state.meta && state.meta.month) || null;
+    const hadMeta = !!storedMonth;
+    const monthChanged = hadMeta && storedMonth !== cur;
+    state.archives = state.archives || [];
+    state.data = state.data || {};
+    if(monthChanged){
+      let allExpenses = [];
+      try { allExpenses = JSON.parse(localStorage.getItem(KEY_EXP) || '[]'); } catch (e) { allExpenses = []; }
+      const prevMonth = storedMonth;
+      const prevMonthExpenses = allExpenses.filter(e => String(e.date||'').slice(0,7) === prevMonth);
+      const b = (state.data && state.data.budget) || {};
+      const income = +b.income || 0;
+      const prevAsOf = new Date(prevMonth+'-01T00:00:00');
+      const obligations = monthlyObligations(createVirtualInputs(b), prevAsOf);
+      const spent = prevMonthExpenses.reduce((s,x)=>s+(+x.amt||0),0);
+      let carryOver = income - obligations - spent;
+      if (!isFinite(carryOver)) carryOver = 0;
+      if (carryOver < 0) carryOver = 0;
+      const archiveEntry = {
+        month: prevMonth,
+        ts: Date.now(),
+        data: state.data || {},
+        expenses: prevMonthExpenses,
+        carryOver: carryOver
+      };
+      state.archives.push(archiveEntry);
+      if (!state.data.budget) state.data.budget = {};
+      state.data.budget.efNow = (+state.data.budget.efNow || 0) + carryOver;
+      localStorage.removeItem(KEY_EXP);
+      state.payMarks = state.payMarks || {};
+      if(state.payMarks[prevMonth]) delete state.payMarks[prevMonth];
+      state.payMarks[cur] = defaultPayMarks();
+      resetPayMarksCache();
+    }
+    state.meta = { month: cur };
+    writeState(state);
+  }
+
+  function updateTimeline(){
+    monthTimeline = archivesData.map(a=>a.month);
+    if(!monthTimeline.includes(CUR_MONTH)) monthTimeline.push(CUR_MONTH);
+    monthTimeline.sort();
+    if(!monthTimeline.includes(viewMonth)) viewMonth = CUR_MONTH;
+    updateMonthBadge();
+    updateMonthControls();
+  }
+
+  function handleMonthNav(delta){
+    const idx = monthTimeline.indexOf(viewMonth);
+    const nextIdx = idx + delta;
+    if(nextIdx<0 || nextIdx>=monthTimeline.length) return;
+    viewMonth = monthTimeline[nextIdx];
+    updateMonthBadge();
+    updateMonthControls();
+    renderExpenses();
+  }
+
   function recomputeZaza(){
-    const monthly=(+inputs.pricePerGram.value||0)*(+inputs.gramsPerWeek.value||0)*4.3;
-    inputs.zazaAuto.value=(isFinite(monthly)? monthly.toFixed(0):"");
+    const monthly=(+inputValue(inputs.pricePerGram)||0)*(+inputs.gramsPerWeek.value||0)*4.3;
+    if(inputs.zazaAuto) setCurrencyValue(inputs.zazaAuto, monthly);
     return monthly;
   }
+
+  const capMsg=$('#capMsg');
   if(inputs.applyCap){
-    inputs.applyCap.addEventListener("click",()=>{
+    inputs.applyCap.addEventListener('click',()=>{
       const monthly=recomputeZaza();
       const cutPct=clamp(+inputs.zazaCutPct.value||0,0,100);
       const newCap=Math.round(monthly*(1-cutPct/100));
       const savings=Math.max(0,Math.round(monthly-newCap));
-      inputs.zazaCap.value=newCap;
-      const efNeed=Math.max(0,(+inputs.efTarget.value||0)-(+inputs.efNow.value||0));
+      setCurrencyValue(inputs.zazaCap, newCap);
+      const efNeed=Math.max(0,(+inputValue(inputs.efTarget)||0)-(+inputValue(inputs.efNow)||0));
       if(capMsg) capMsg.textContent=`Ülempiir €${fmt(newCap)}. Sääst €${fmt(savings)} suunatud EF-i (vajadus €${fmt(efNeed)}).`;
       recomputeBudget(); persist();
     });
   }
-  // ===== Tahtmise taimer =====
-  const startUrge=$("#startUrge"); const urgeClock=$("#urgeClock"); let urgeTimer=null;
-  if(startUrge){ startUrge.addEventListener("click",()=>{ if(urgeTimer){clearInterval(urgeTimer); urgeTimer=null;} let secs=180; if(urgeClock) urgeClock.textContent="03:00";
-    urgeTimer=setInterval(()=>{ secs--; if(secs<=0){clearInterval(urgeTimer); urgeTimer=null; if(urgeClock) urgeClock.textContent="Valmis ✓"; return;}
-      const m=String(Math.floor(secs/60)).padStart(2,"0"); const s=String(secs%60).padStart(2,"0"); if(urgeClock) urgeClock.textContent=`${m}:${s}`; },1000);
-  });}
 
-  // ===== Kulutuste jälgija =====
-  const expTblBody=$("#expTbl tbody"); const expSum=$("#expSum"); const expBreakdown=$("#expBreakdown");
-  function todayISO(){ const d=new Date(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0'); return `${d.getFullYear()}-${m}-${day}`; }
+  const startUrge=$('#startUrge'); const urgeClock=$('#urgeClock'); let urgeTimer=null;
+  if(startUrge){ startUrge.addEventListener('click',()=>{ if(urgeTimer){clearInterval(urgeTimer); urgeTimer=null;} let secs=180; if(urgeClock) urgeClock.textContent='03:00';
+    urgeTimer=setInterval(()=>{ secs--; if(secs<=0){clearInterval(urgeTimer); urgeTimer=null; if(urgeClock) urgeClock.textContent='Valmis ✓'; return;}
+      const m=String(Math.floor(secs/60)).padStart(2,'0'); const s=String(secs%60).padStart(2,'0'); if(urgeClock) urgeClock.textContent=`${m}:${s}`; },1000);
+  });}
+</script>
+<script>
+  function collectData(){
+    return {
+      budget:{
+        income:+inputValue(inputs.income)||0,
+        loans:+inputValue(inputs.loans)||0,
+        mom:+inputValue(inputs.mom)||0,
+        momEnd:inputValue(inputs.momEnd)||'',
+        aptSupport:+inputValue(inputs.aptSupport)||0,
+        aptSupportEnd:inputValue(inputs.aptSupportEnd)||'',
+        phone:+inputValue(inputs.phone)||0,
+        transport:+inputValue(inputs.transport)||0,
+        groceries:+inputValue(inputs.groceries)||0,
+        otherEss:+inputValue(inputs.otherEss)||0,
+        fun:+inputValue(inputs.fun)||0,
+        personal:+inputValue(inputs.personal)||0,
+        zazaCap:+inputValue(inputs.zazaCap)||0,
+        efTarget:+inputValue(inputs.efTarget)||0,
+        efNow:+inputValue(inputs.efNow)||0
+      },
+      cannabis:{ price:+inputValue(inputs.pricePerGram)||0, grams:+inputs.gramsPerWeek.value||0, cutPct:+inputs.zazaCutPct.value||0 },
+      user:{ paydays: (inputs.paydays||{}).value || '' },
+      psych:{ impl: ($('#implIntents')||{}).value || '' }
+    };
+  }
+  function applyData(d){
+    if(d.budget){
+      for(const k in d.budget){
+        if(inputs[k]) setCurrencyValue(inputs[k], d.budget[k]);
+      }
+      if(inputs.momEnd) inputs.momEnd.value = d.budget.momEnd || '';
+      if(inputs.aptSupportEnd) inputs.aptSupportEnd.value = d.budget.aptSupportEnd || '';
+    }
+    if(d.cannabis){
+      setCurrencyValue(inputs.pricePerGram, d.cannabis.price||0);
+      inputs.gramsPerWeek.value = d.cannabis.grams || 0;
+      inputs.zazaCutPct.value = d.cannabis.cutPct || 0;
+    }
+    if(d.budget && typeof d.budget.zazaCap !== 'undefined'){ setCurrencyValue(inputs.zazaCap, d.budget.zazaCap); }
+    if(d.budget && typeof d.budget.efTarget !== 'undefined'){ setCurrencyValue(inputs.efTarget, d.budget.efTarget); }
+    if(d.budget && typeof d.budget.efNow !== 'undefined'){ setCurrencyValue(inputs.efNow, d.budget.efNow); }
+    if(d.user&&inputs.paydays){ inputs.paydays.value=d.user.paydays||''; }
+    if(d.psych&&$('#implIntents')) $('#implIntents').value=d.psych.impl||'';
+  }
+  function persist(){ const state=readState(); state.data=collectData(); writeState(state); }
+
+  function load(){
+    archiveIfMonthRolled();
+    const state=readState();
+    archivesData = state.archives || [];
+    applyData(state.data||{});
+    recomputeZaza();
+    updateTimeline();
+    initPayToggles();
+    renderArchives();
+    updatePayInfo();
+    renderExpenses();
+  }
+
+  const filterHandler = debounce(value=>{ expFilterTerm = value; renderExpenses(); },180);
+  if(expFilter){
+    expFilter.addEventListener('input',e=>filterHandler(e.target.value));
+  }
+  $$('[data-sort]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const key = btn.getAttribute('data-sort');
+      if(expSort.key===key){ expSort.dir = expSort.dir==='asc'?'desc':'asc'; }
+      else{ expSort = {key,dir:'desc'}; }
+      renderExpenses();
+    });
+  });
+  if(prevMonthBtn) prevMonthBtn.addEventListener('click',()=>handleMonthNav(-1));
+  if(nextMonthBtn) nextMonthBtn.addEventListener('click',()=>handleMonthNav(1));
 
   const expDialog=document.querySelector('#expDialog');
   const btnExpQuick=document.querySelector('#expQuick');
@@ -748,169 +1251,63 @@
   const expNote=expDialog?expDialog.querySelector('#expNote'):document.querySelector('#expNote');
   const addExp=expDialog?expDialog.querySelector('#addExp'):document.querySelector('#addExp');
 
+  function todayISO(){ const d=new Date(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0'); return `${d.getFullYear()}-${m}-${day}`; }
   if(btnExpQuick && expDialog){
-    btnExpQuick.addEventListener('click', ()=>{
+    btnExpQuick.addEventListener('click',()=>{
+      if(viewMonth!==CUR_MONTH){
+        viewMonth = CUR_MONTH;
+        updateMonthBadge();
+        updateMonthControls();
+        renderExpenses();
+      }
       if(expDate) expDate.value=todayISO();
-      if(expAmt) expAmt.value='';
+      if(expAmt) { expAmt.value=''; delete expAmt.dataset.raw; setFieldError(expAmt,''); }
       if(expNote) expNote.value='';
       expDialog.showModal();
       requestAnimationFrame(()=>{ expCat && expCat.focus(); });
     });
   }
   [btnCloseExpDlg, btnCancelExp].forEach(b=> b && b.addEventListener('click', ()=> expDialog && expDialog.close()));
-  if(expDialog){
-    expDialog.addEventListener('close', ()=>{ if(btnExpQuick) btnExpQuick.focus(); });
-  }
+  if(expDialog){ expDialog.addEventListener('close', ()=>{ if(btnExpQuick) btnExpQuick.focus(); }); }
 
-  function withTransition(fn){ return (...args)=>{
-    if(document.startViewTransition){ document.startViewTransition(()=>fn(...args)); }
-    else{ fn(...args); }
-  }; }
-
-
-  function readExpenses(){ try{ return JSON.parse(localStorage.getItem(KEY_EXP)||"[]"); }catch(e){ return []; } }
-  function writeExpenses(list){ localStorage.setItem(KEY_EXP, JSON.stringify(list)); }
-  function addExpenseRow(e, idx){
-    const tr=document.createElement("tr"); const when=new Date(e.date);
-    tr.innerHTML=`<td>${isFinite(when)? when.toLocaleDateString():e.date}</td><td>${e.cat}</td><td>${e.note? e.note.replace(/</g,'&lt;'):''}</td><td class="right mono">${fmt2(e.amt)}</td><td><button class="btn" data-i="${idx}">✕</button></td>`;
-    tr.querySelector("button").addEventListener("click",(ev)=>{ const i=+ev.currentTarget.getAttribute("data-i"); const all=readExpenses(); all.splice(i,1); writeExpenses(all); withTransition(renderExpenses)(); persist(); });
-    expTblBody.appendChild(tr);
-  }
-  function renderExpenseBreakdown(list){
-    if(!expBreakdown) return;
-    const limits = categoryLimits();
-    const data = Array.isArray(list) ? list : currentMonthExpenses;
-    const byCat={};
-    (data||[]).forEach(e=>{
-      const cat=(e&&e.cat)||'Muu';
-      byCat[cat]=(byCat[cat]||0)+(+e.amt||0);
-    });
-    const cats=new Set([
-      ...Object.keys(byCat),
-      ...Object.entries(limits).filter(([,limit])=>limit>0).map(([cat])=>cat)
-    ]);
-    if(!cats.size){
-      expBreakdown.innerHTML="<em>Sel kuul kulusid pole.</em>";
-      return;
-    }
-    const ordered=[];
-    CATEGORY_ORDER.forEach(cat=>{ if(cats.has(cat)){ ordered.push(cat); cats.delete(cat);} });
-    Array.from(cats).sort().forEach(cat=>ordered.push(cat));
-    const rows=ordered.map(cat=>{
-      const spent=+byCat[cat]||0;
-      const limit=+limits[cat]||0;
-      const label=CATEGORY_LABELS[cat]||cat;
-      if(limit>0){
-        const left=limit-spent;
-        let statusClass='muted';
-        let statusText=`alles € ${fmt2(Math.max(0,left))}`;
-        if(left<0){
-          statusClass='bad';
-          statusText=`ületatud € ${fmt2(Math.abs(left))}`;
-        } else if(spent>0){
-          const ratio=limit?spent/limit:0;
-          if(ratio>=1){
-            statusClass='bad';
-            statusText=`ületatud € ${fmt2(Math.abs(left))}`;
-          } else if(ratio>=0.95){
-            statusClass='warn';
-          } else {
-            statusClass='good';
-          }
-        } else {
-          statusClass='good';
-          statusText=`alles € ${fmt2(limit)}`;
-        }
-        return `<div>• ${label}: <strong>€ ${fmt2(spent)}</strong> / € ${fmt2(limit)} <span class="${statusClass}">(${statusText})</span></div>`;
-      }
-      if(spent>0){
-        return `<div>• ${label}: <strong>€ ${fmt2(spent)}</strong></div>`;
-      }
-      return '';
-    }).filter(Boolean);
-    expBreakdown.innerHTML=rows.length?rows.join(""):"<em>Sel kuul kulusid pole.</em>";
-  }
-  function renderExpenses(){
-    const all=readExpenses(); const mk=monthKey(new Date());
-    const monthList=all.filter(e=> (e.date||"").slice(0,7)===mk);
-    currentMonthExpenses = monthList.slice();
-    expTblBody.innerHTML=""; monthList.forEach((e,i)=> addExpenseRow(e, readExpenses().indexOf(e)));
-    const total=monthList.reduce((a,b)=>a+(+b.amt||0),0); expSum.textContent=fmt2(total);
-    renderExpenseBreakdown(monthList);
-    pillSpent.textContent=`Sel kuul: € ${fmt2(total)}`; refreshZazaLeft();
-    recomputeBudget();
-  }
-  if(addExp){ addExp.addEventListener("click",()=>{
+  if(addExp){ addExp.addEventListener('click',()=>{
+      const amt = +inputValue(expAmt) || 0;
+      if(!amt){ setFieldError(expAmt,'Sisesta summa.'); expAmt && expAmt.focus(); return; }
+      setFieldError(expAmt,'');
       const e={
         cat: expCat?.value || '',
-        amt: +expAmt?.value || 0,
+        amt,
         date: expDate?.value || todayISO(),
         note: expNote?.value?.trim() || ''
       };
-      if(!e.amt){ alert("Sisesta summa."); if(expAmt) expAmt.focus(); return; }
-      const all=(typeof readExpenses==='function'?readExpenses():[]);
+      const all=readExpenses();
       all.push(e);
-      if(typeof writeExpenses==='function') writeExpenses(all);
-      if(expAmt) expAmt.value='';
+      writeExpenses(all);
+      if(expAmt){ expAmt.value=''; delete expAmt.dataset.raw; }
       if(expNote) expNote.value='';
-      if(typeof renderExpenses==='function'){ withTransition(renderExpenses)(); }
-      if(typeof persist==='function') persist();
+      withTransition(renderExpenses)();
+      persist();
       if(expDialog?.open) expDialog.close();
       if(btnExpQuick) btnExpQuick.focus();
   }); }
 
-  function refreshZazaLeft(){
-    const cap=+inputs.zazaCap.value||0; const all=readExpenses(); const mk=monthKey(new Date());
-    const zazaSpent=all.filter(e=> (e.date||"").slice(0,7)===mk && e.cat==="Zaza").reduce((a,b)=>a+(+b.amt||0),0);
-    const left=Math.max(0, cap-zazaSpent); pillZaza.textContent=`Zaza alles: € ${fmt2(left)}`;
-    const usedPct=cap>0? Math.max(0,Math.min(100,(zazaSpent/cap)*100)):0;
-    if(zazaProg){ zazaProg.style.width=usedPct+"%"; zazaProg.style.background= usedPct>100?"var(--bad)":(usedPct>90?"var(--warn)":"var(--accent)"); }
-  }
-
-  // ===== Persist + rakenduse laadimine =====
-  function collectData(){
-    return {
-      budget:{
-        income:+inputs.income.value||0, loans:+inputs.loans.value||0, mom:+inputs.mom.value||0, momEnd:inputValue(inputs.momEnd), aptSupport:+inputs.aptSupport.value||0, aptSupportEnd:inputValue(inputs.aptSupportEnd),
-        phone:+inputs.phone.value||0, transport:+inputs.transport.value||0, groceries:+inputs.groceries.value||0, otherEss:+inputs.otherEss.value||0,
-        fun:+inputs.fun.value||0, personal:+inputs.personal.value||0, zazaCap:+inputs.zazaCap.value||0, efTarget:+inputs.efTarget.value||0, efNow:+inputs.efNow.value||0
-      },
-      cannabis:{ price:+inputs.pricePerGram.value||0, grams:+inputs.gramsPerWeek.value||0, cutPct:+inputs.zazaCutPct.value||0 },
-      user:{ paydays: (inputs.paydays||{}).value || "" },
-      psych:{ impl: ($("#implIntents")||{}).value || "" }
-    };
-  }
-  function applyData(d){
-    if(d.budget){ for(const k in d.budget){ if(inputs[k]&&typeof d.budget[k]!=="undefined") inputs[k].value=d.budget[k]; } }
-    if(d.cannabis){ inputs.pricePerGram.value=d.cannabis.price||0; inputs.gramsPerWeek.value=d.cannabis.grams||0; inputs.zazaCutPct.value=d.cannabis.cutPct||0; }
-    if(d.user&&inputs.paydays){ inputs.paydays.value=d.user.paydays||""; }
-    if(d.psych&&$("#implIntents")){ $("#implIntents").value=d.psych.impl||""; }
-  }
-  function persist(){ const state=readState(); state.data=collectData(); writeState(state); }
-
-  function load(){
-    archiveIfMonthRolled();
-    initSupportButtons();
-    const state=readState(); applyData(state.data||{});
-    // init
-    recomputeZaza();
-    recomputeBudget();
-    renderExpenses();
-    updatePayInfo();
-    renderArchives();
-  }
-
-  document.querySelectorAll("input,select,textarea").forEach(el=>{
-    el.addEventListener("input", ()=>{
+  document.querySelectorAll('input,select,textarea').forEach(el=>{
+    el.addEventListener('input', ()=>{
       if(el===inputs.pricePerGram || el===inputs.gramsPerWeek){ recomputeZaza(); }
-      if(["income","loans","mom","momEnd","aptSupport","aptSupportEnd","phone","transport","groceries","otherEss","fun","personal","zazaCap","efTarget","efNow"].includes(el.id)){ recomputeBudget(); }
+      if(['income','loans','mom','momEnd','aptSupport','aptSupportEnd','phone','transport','groceries','otherEss','fun','personal','zazaCap','efTarget','efNow'].includes(el.id)){
+        validateCurrencyInput(el);
+        recomputeBudget();
+      }
       if(el===inputs.paydays){ updatePayInfo(); }
       persist();
     });
+    if(el.classList.contains('currency')){
+      el.addEventListener('blur',()=>{ validateCurrencyInput(el); });
+    }
   });
 
-  // Käivitus
   document.documentElement.style.setProperty('--app-min-h','100dvh');
+  updateMonthBadge();
   load();
 </script>
 </body>
