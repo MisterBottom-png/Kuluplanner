@@ -118,11 +118,11 @@
 <main class="grid grid-2">
   <!-- VASAK VEERG -->
   <section class="grid">
-    <!-- 1) Eelarve -->
+    <!-- Eelarve -->
     <div class="card">
       <details open>
         <summary>
-          <div class="sum-left"><span class="chev">▶</span><h2>1) Sissetulek ja püsikulud (kuu‑põhine)</h2></div>
+          <div class="sum-left"><span class="chev">▶</span><h2>Sissetulek ja püsikulud (kuu‑põhine)</h2></div>
           <div class="pill" id="pillBudget">—</div>
         </summary>
         <div class="content">
@@ -163,11 +163,11 @@
       </details>
     </div>
 
-    <!-- 2) Kanepi kalkulaator -->
+    <!-- Kanepi kalkulaator -->
     <div class="card">
       <details>
         <summary>
-          <div class="sum-left"><span class="chev">▶</span><h2>2) Kanepi tegelikkuse kontroll</h2></div>
+          <div class="sum-left"><span class="chev">▶</span><h2>Kanepi tegelikkuse kontroll</h2></div>
           <div class="pill" id="pillZaza">Zaza alles: —</div>
         </summary>
         <div class="content">
@@ -183,46 +183,11 @@
       </details>
     </div>
 
-    <div class="row" style="margin:0 0 -6px 0"><label><input type="checkbox" id="useDebtPlan"> Kasutan detailset võlaplaani</label></div>
-    <!-- 3) Võlaplaan -->
-    <div class="card" id="debtCard">
-      <details>
-        <summary>
-          <div class="sum-left"><span class="chev">▶</span><h2>3) Võlaplaan (snowball, ilma intressita)</h2></div>
-          <div class="pill" id="pillDebt">—</div>
-        </summary>
-        <div class="content">
-          <div class="row"><button class="btn" id="addDebt">+ Lisa võlg</button> <button class="btn" id="exportDebtCsv">Ekspordi CSV</button></div>
-          <div class="tableWrap">
-            <table id="debtsTbl">
-              <thead>
-                <tr>
-                  <th>Võlg</th><th class="right">Jääk (€)</th><th class="right">Miinimum (€)</th><th>Tähtaeg (PP)</th><th>Märkused</th><th>Makstud?</th><th></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-              <tfoot>
-              <tr><td><strong>Kokku</strong></td><td class="right mono" id="sumBal">0</td>
-                  <td class="right mono" id="sumMin">0</td><td></td><td></td><td></td><td></td></tr>
-              </tfoot>
-            </table>
-          </div>
-          <div class="row"><label><input type="checkbox" id="autoApply" /> Rakenda kuu maksed automaatselt</label></div>
-          <div class="kpi" style="margin-top:10px">
-            <div class="box"><div class="label">Aeg võlavabaks</div><div class="val mono" id="kpiMonths">—</div></div>
-            <div class="box"><div class="label">Esimesena tasutav</div><div class="val mono" id="kpiFirstDone">—</div></div>
-            <div class="box"><div class="label">Võlavaba kuupäev</div><div class="val mono" id="kpiDebtFreeDate">—</div></div>
-          </div>
-          <p class="small muted">Intressi ei arvestata. Kõik miinimumid makstakse; ülejääk suunatakse väikseima jäägiga võlale.</p>
-        </div>
-      </details>
-    </div>
-
-    <!-- 4) Kulutuste jälgija -->
+    <!-- Kulutuste jälgija -->
     <div class="card">
       <details open>
         <summary>
-          <div class="sum-left"><span class="chev">▶</span><h2>4) Kulutuste jälgija (selle kuu)</h2></div>
+          <div class="sum-left"><span class="chev">▶</span><h2>Kulutuste jälgija (selle kuu)</h2></div>
           <div class="pill" id="pillSpent">Sel kuul: —</div>
         </summary>
         <div class="content">
@@ -300,17 +265,14 @@
       </details>
     </div>
 
-    <!-- Jooksev kokkuvõte + maksepäevad -->
+    <!-- Jooksev kokkuvõte -->
     <div class="card">
       <details open>
         <summary>
-          <div class="sum-left"><span class="chev">▶</span><h2>Jooksev kokkuvõte & maksepäevad</h2></div>
+          <div class="sum-left"><span class="chev">▶</span><h2>Jooksev kokkuvõte</h2></div>
         </summary>
         <div class="content">
           <div id="liveSummary" class="small"></div>
-          <div class="divider"></div>
-          <h3>Lähenevad maksepäevad (võlad PP)</h3>
-          <div id="upcomingPays" class="small"></div>
         </div>
       </details>
     </div>
@@ -354,7 +316,6 @@
     zazaAuto:    $("#zazaAuto"),
     zazaCutPct:  $("#zazaCutPct"),
     applyCap:    $("#applyCap"),
-    autoApply:   $("#autoApply"),
     paydays:     $("#paydaysInput"),
   };
 
@@ -362,21 +323,14 @@
     out:   $("#kpiOut"),
     left:  $("#kpiLeft"),
     alloc: $("#kpiAlloc"),
-    months:$("#kpiMonths"),
-    firstDone:$("#kpiFirstDone"),
-    debtFreeDate:$("#kpiDebtFreeDate"),
   };
 
   const summary = $("#liveSummary");
-  const upcomingPays = $("#upcomingPays");
   const pillBudget = $("#pillBudget");
   const pillZaza = $("#pillZaza");
-  const pillDebt = $("#pillDebt");
   const pillSpent = $("#pillSpent");
   const zazaProg = $("#zazaProg");
   const archivesList = $("#archivesList");
-  const useDebtPlan = $("#useDebtPlan");
-  const debtCard = $("#debtCard");
   const CATEGORY_LABELS = {
     'Zaza': 'Kanepi kulu ülempiir',
     'Telefon/Internet': 'Telefon/Internet',
@@ -395,7 +349,7 @@
   const KEY_EXP = "rahakask-v5-expenses"; // ainult jooksva kuu kulud
   const CUR_MONTH = monthKey(new Date());
   let payMarksCache = null;
-  const defaultPayMarks = () => ({supports:{loans:false,mom:false,aptSupport:false}, debts:{}});
+  const defaultPayMarks = () => ({supports:{loans:false,mom:false,aptSupport:false}});
   function readState(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
   function writeState(obj){ localStorage.setItem(KEY, JSON.stringify(obj)); }
   function getPayMarks(){
@@ -405,8 +359,7 @@
     const existing = state.payMarks[CUR_MONTH];
     if(existing){
       payMarksCache = {
-        supports: Object.assign({loans:false,mom:false,aptSupport:false}, existing.supports||{}),
-        debts: Object.assign({}, existing.debts||{})
+        supports: Object.assign({loans:false,mom:false,aptSupport:false}, existing.supports||{})
       };
     } else {
       payMarksCache = defaultPayMarks();
@@ -461,54 +414,14 @@
       if (!isFinite(carryOver)) carryOver = 0;
       if (carryOver < 0) carryOver = 0;
 
-      // Prepare debts for update
-      const debts = (state.data && state.data.debts ? JSON.parse(JSON.stringify(state.data.debts)) : []);
-      const minsPaid = [];
-      let minTotalApplied = 0;
-
-      // Auto-apply toggle
-      const ds = (state.data && state.data.debtSettings) || {};
-      const autoApply = !!ds.autoApply && !!ds.usePlan;
-
-      if (autoApply && debts.length){
-        // 1) Apply per-debt minimums (reduce balances)
-        debts.forEach(d => {
-          const before = +d.balance || 0;
-          let pay = Math.min(+d.min || 0, before);
-          if (pay > 0){
-            d.balance = Math.max(0, before - pay);
-            minTotalApplied += pay;
-            minsPaid.push({name:d.name, amount:pay});
-          }
-        });
-
-        // Write updated debts back
-        state.data.debts = debts;
-
-        // Archive snapshot incl. payments summary
-        const archiveEntry = {
-          month: prevMonth,
-          ts: Date.now(),
-          data: state.data || {},
-          expenses: prevMonthExpenses,
-          carryOver: carryOver,
-          payments: {
-            mins: minsPaid,
-            minsTotal: minTotalApplied
-          }
-        };
-        state.archives.push(archiveEntry);
-      } else {
-        // No auto-apply: archive without altering debts
-        const archiveEntry = {
-          month: prevMonth,
-          ts: Date.now(),
-          data: state.data || {},
-          expenses: prevMonthExpenses,
-          carryOver: carryOver
-        };
-        state.archives.push(archiveEntry);
-      }
+      const archiveEntry = {
+        month: prevMonth,
+        ts: Date.now(),
+        data: state.data || {},
+        expenses: prevMonthExpenses,
+        carryOver: carryOver
+      };
+      state.archives.push(archiveEntry);
 
       // Apply carryover to EF balance for the new month
       if (!state.data.budget) state.data.budget = {};
@@ -537,13 +450,13 @@
       const minsT = a.payments && a.payments.minsTotal || 0;
       const zaza = (a.expenses||[]).filter(x=>x.cat==="Zaza").reduce((s,x)=>s+(+x.amt||0),0);
       const when = new Date(a.ts).toLocaleString();
-      const payLine = a.payments ? `<div>Maksed võlgadele (auto): min <strong>€ ${fmt2(minsT)}</strong></div>` : `<div>Auto-makseid ei tehtud.</div>`;
+      const payLine = a.payments ? `<div>Maksed võlgadele (auto): min <strong>€ ${fmt2(minsT)}</strong></div>` : "";
       return `<div class="archiveItem">
         <div><strong>${a.month}</strong> — arhiveeritud: ${when}</div>
         <div>Kulud kokku: <strong>€ ${fmt2(tot)}</strong>; Zaza: <strong>€ ${fmt2(zaza)}</strong></div>
         ${payLine}
         <div>Ülejääk EF-i: <strong>€ ${fmt2(a.carryOver||0)}</strong></div>
-        <div class="small muted">Kirje sisaldab kogu kuu seisu (eelarve, võlad, sätted) ja kõiki kulusid.</div>
+        <div class="small muted">Kirje sisaldab kogu kuu seisu (eelarve ja sätted) ning kõiki kulusid.</div>
       </div>`;
     }).join("");
   }
@@ -584,34 +497,6 @@
     }
     refreshSupportButtons();
   }
-  function reflectDebtPaid(id){
-    const marks = getPayMarks();
-    const paid = !!(marks.debts && marks.debts[id]);
-    const row = debtsTbl.querySelector(`tr[data-id="${id}"]`);
-    if(row){
-      row.classList.toggle("paid", paid);
-      const btn = row.querySelector("[data-pay-debt]");
-      if(btn){
-        btn.textContent = paid ? "Makstud ✓" : "Märgi makstuks";
-        btn.classList.toggle("paid", paid);
-      }
-    }
-  }
-  function toggleDebtPaid(id){
-    const marks = getPayMarks();
-    marks.debts = marks.debts || {};
-    marks.debts[id] = !marks.debts[id];
-    savePayMarks();
-    reflectDebtPaid(id);
-  }
-  function clearDebtPaid(id){
-    const marks = getPayMarks();
-    if(marks.debts && marks.debts[id]){
-      delete marks.debts[id];
-      savePayMarks();
-    }
-  }
-
   // ===== Payday helperid =====
   function parsePaydays(txt){
     if (!txt) return [];
@@ -746,7 +631,6 @@
     kpis.left.className="val mono "+realClass;
     kpis.alloc.textContent=`Kohustused € ${fmt(obligations)}  |  Limiidid € ${fmt(limitTotal)}  |  Plaanijääk € ${fmt(plannedLeft)}`;
     if(pillBudget) pillBudget.textContent=`Reaaljääk: € ${fmt(realLeft)}`;
-    // pillDebt uuendatakse simulatsiooni põhjal
     if(summary){
       summary.innerHTML=`
       <div>Sissetulek: <strong>€ ${fmt(income)}</strong></div>
@@ -780,113 +664,6 @@
       recomputeBudget(); persist();
     });
   }
-
-  // ===== Võlaplaan =====
-  const debtsTbl=$("#debtsTbl tbody");
-  const sumBal=$("#sumBal");
-  const sumMin=$("#sumMin");
-  function addDebtRow(d={name:"Laen",balance:0,min:0,due:"",notes:"",id:null}){
-    const tr=document.createElement("tr");
-    const rowId=d.id||`d-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
-    tr.dataset.id=rowId;
-    tr.innerHTML=`
-      <td><input value="${d.name||''}" /></td>
-      <td class="right"><input type="number" class="mono" value="${d.balance||0}" step="1" min="0" /></td>
-      <td class="right"><input type="number" class="mono" value="${d.min||0}" step="1" min="0" /></td>
-      <td><input value="${d.due||''}" placeholder="PP" /></td>
-      <td><input value="${d.notes||''}" /></td>
-      <td><button class="btn payToggle" data-pay-debt="${rowId}">Märgi makstuks</button></td>
-      <td><button class="btn" data-action="remove">✕</button></td>`;
-    const removeBtn=tr.querySelector('[data-action="remove"]');
-    if(removeBtn){
-      removeBtn.addEventListener("click",()=>{ tr.remove(); clearDebtPaid(rowId); updateDebtTotals(); persist(); renderUpcomingPays(); simulatePayoff(); });
-    }
-    tr.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",()=>{ updateDebtTotals(); persist(); renderUpcomingPays(); simulatePayoff(); }));
-    const payBtn=tr.querySelector(`[data-pay-debt="${rowId}"]`);
-    if(payBtn){
-      payBtn.addEventListener("click",()=>{ toggleDebtPaid(rowId); });
-    }
-    debtsTbl.appendChild(tr); updateDebtTotals(); renderUpcomingPays(); simulatePayoff();
-    reflectDebtPaid(rowId);
-  }
-  function readDebts(){
-    return [...debtsTbl.querySelectorAll("tr")].map(r=>{
-      const [name,balance,min,due,notes]=[...r.querySelectorAll("input")].map(x=>x.value);
-      const id=r.dataset.id||"";
-      return {id, name, balance:+balance||0, min:+min||0, due, notes};
-    });
-  }
-  function updateDebtTotals(){
-    const d=readDebts();
-    sumBal.textContent=fmt(d.reduce((a,b)=>a+b.balance,0));
-    sumMin.textContent=fmt(d.reduce((a,b)=>a+b.min,0));
-  }
-  $("#addDebt").addEventListener("click",()=>addDebtRow());
-  function simulatePayoff(){
-    if(useDebtPlan && !useDebtPlan.checked){
-      kpis.months.textContent="—";
-      kpis.firstDone.textContent="—";
-      kpis.debtFreeDate.textContent="—";
-      pillDebt.textContent="Esimesena tasutav: —";
-      return;
-    }
-    const debts=readDebts().filter(d=>d.balance>0).map(d=>({...d}));
-    if(!debts.length){
-      kpis.months.textContent="—";
-      kpis.firstDone.textContent="—";
-      kpis.debtFreeDate.textContent="—";
-      pillDebt.textContent="Esimesena tasutav: —";
-      return;
-    }
-    const nextTarget = debts.slice().sort((a,b)=>a.balance-b.balance).find(d=>d.balance>0);
-    let month=0, firstDone=null;
-    const sort=()=>debts.sort((a,b)=>a.balance-b.balance); sort();
-    let snowballExtra = 0;
-    while(debts.some(d=>d.balance>0)&&month<600){
-      month++;
-      debts.forEach(d=>{ if(d.balance<=0) return; d.balance-=Math.min(d.min,d.balance); });
-      let monthExtra = snowballExtra;
-      debts.forEach(d=>{
-        if(d.balance>0&&d.balance<0.01) d.balance=0;
-        if(d.balance===0&&!d._done){
-          d._done=true;
-          snowballExtra += d.min;
-          monthExtra += d.min;
-          if(!firstDone) firstDone={name:d.name,month};
-        }
-      });
-      sort();
-      while(monthExtra>0){
-        const target=debts.find(d=>d.balance>0);
-        if(!target) break;
-        const pay=Math.min(monthExtra,target.balance);
-        target.balance-=pay;
-        monthExtra-=pay;
-        if(target.balance>0&&target.balance<0.01) target.balance=0;
-        if(target.balance===0&&!target._done){
-          target._done=true;
-          snowballExtra += target.min;
-          monthExtra += target.min;
-          if(!firstDone) firstDone={name:target.name,month};
-        }
-        sort();
-      }
-    }
-    const years=Math.floor(month/12), mRem=month%12;
-    kpis.months.textContent= month? (years? `${years} a ${mRem} k`:`${month} k`) :"—";
-    kpis.firstDone.textContent= firstDone? `${firstDone.name} → ${firstDone.month}. kuu` :"—";
-    const debtFree=new Date(); debtFree.setMonth(debtFree.getMonth()+month);
-    kpis.debtFreeDate.textContent=debtFree.toLocaleDateString(undefined,{day:'2-digit',month:'long',year:'numeric'});
-    pillDebt.textContent = `Esimesena tasutav: ${nextTarget ? nextTarget.name : '—'}`;
-  }
-  $("#exportDebtCsv").addEventListener("click",()=>{
-    const debts=readDebts();
-    let csv="Võlg,Jääk,Miinimum,Tähtaeg (PP),Märkused\n";
-    debts.forEach(d=>{ csv+=`"${d.name}",${d.balance},${d.min},"${d.due}","${(d.notes||'').replace(/"/g,'""')}"\n`; });
-    const blob=new Blob([csv],{type:"text/csv"}); const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob); a.download="volgade_loetelu.csv"; a.click();
-  });
-
   // ===== Tahtmise taimer =====
   const startUrge=$("#startUrge"); const urgeClock=$("#urgeClock"); let urgeTimer=null;
   if(startUrge){ startUrge.addEventListener("click",()=>{ if(urgeTimer){clearInterval(urgeTimer); urgeTimer=null;} let secs=180; if(urgeClock) urgeClock.textContent="03:00";
@@ -995,11 +772,6 @@
         fun:+inputs.fun.value||0, personal:+inputs.personal.value||0, zazaCap:+inputs.zazaCap.value||0, efTarget:+inputs.efTarget.value||0, efNow:+inputs.efNow.value||0
       },
       cannabis:{ price:+inputs.pricePerGram.value||0, grams:+inputs.gramsPerWeek.value||0, cutPct:+inputs.zazaCutPct.value||0 },
-      debtSettings:{
-        autoApply: !!(inputs.autoApply && inputs.autoApply.checked),
-        usePlan: !!(useDebtPlan && useDebtPlan.checked)
-      },
-      debts: readDebts(),
       user:{ paydays: (inputs.paydays||{}).value || "" },
       psych:{ impl: ($("#implIntents")||{}).value || "" }
     };
@@ -1007,35 +779,21 @@
   function applyData(d){
     if(d.budget){ for(const k in d.budget){ if(inputs[k]&&typeof d.budget[k]!=="undefined") inputs[k].value=d.budget[k]; } }
     if(d.cannabis){ inputs.pricePerGram.value=d.cannabis.price||0; inputs.gramsPerWeek.value=d.cannabis.grams||0; inputs.zazaCutPct.value=d.cannabis.cutPct||0; }
-    if(d.debtSettings){
-      if(inputs.autoApply) inputs.autoApply.checked=!!d.debtSettings.autoApply;
-      if(useDebtPlan) useDebtPlan.checked=!!d.debtSettings.usePlan;
-    }
-    if(d.debts){ debtsTbl.innerHTML=""; d.debts.forEach(addDebtRow); }
     if(d.user&&inputs.paydays){ inputs.paydays.value=d.user.paydays||""; }
     if(d.psych&&$("#implIntents")){ $("#implIntents").value=d.psych.impl||""; }
   }
   function persist(){ const state=readState(); state.data=collectData(); writeState(state); }
 
-  function applyDebtPlanVisibility(){
-    if(!debtCard) return;
-    const active = !!(useDebtPlan && useDebtPlan.checked);
-    debtCard.style.display = active ? "" : "none";
-  }
-
   function load(){
     archiveIfMonthRolled();
     initSupportButtons();
     const state=readState(); applyData(state.data||{});
-    applyDebtPlanVisibility();
     // init
-    recomputeZaza(); recomputeBudget(); renderExpenses(); renderUpcomingPays(); updatePayInfo(); simulatePayoff(); renderArchives();
-    // default debts if none
-    if(!state.data || !state.data.debts || !state.data.debts.length){
-      addDebtRow({name:"Kaart A", balance:1200, min:50, due:"15"});
-      addDebtRow({name:"Laen B", balance:2000, min:70, due:"28"});
-      persist();
-    }
+    recomputeZaza();
+    recomputeBudget();
+    renderExpenses();
+    updatePayInfo();
+    renderArchives();
   }
 
   document.querySelectorAll("input,select,textarea").forEach(el=>{
@@ -1046,37 +804,6 @@
       persist();
     });
   });
-
-  if(useDebtPlan){
-    useDebtPlan.addEventListener("change",()=>{
-      applyDebtPlanVisibility();
-      renderUpcomingPays();
-      simulatePayoff();
-      persist();
-    });
-  }
-
-  // ===== Võlgade maksepäevad (PP) =====
-  function nextDueDate(dayStr){
-    const dd=parseInt(dayStr,10); if(!dd||dd<1||dd>31) return null;
-    const t=new Date(); const y=t.getFullYear(); const m=t.getMonth(); let cand=new Date(y,m,dd);
-    const today=new Date(y,m,t.getDate());
-    if(cand<today){ const nmY=m===11?y+1:y; const nmM=(m+1)%12; const last=new Date(nmY,nmM+1,0).getDate(); cand=new Date(nmY,nmM,Math.min(dd,last)); }
-    else { const last=new Date(y,m+1,0).getDate(); cand=new Date(y,m,Math.min(dd,last)); }
-    return cand;
-  }
-  function renderUpcomingPays(){
-    if(useDebtPlan && !useDebtPlan.checked){
-      if(upcomingPays) upcomingPays.innerHTML="<em>Võlaplaan on välja lülitatud.</em>";
-      return;
-    }
-    const debts=readDebts();
-    const list=debts.map(d=>({name:d.name, date: nextDueDate(d.due)})).filter(x=>x.date);
-    list.sort((a,b)=>a.date-b.date);
-    if(!list.length){ upcomingPays.innerHTML="<em>Lisa võlgadele tähtaeg (PP), nt 15.</em>"; return; }
-    const fmtOpt={day:'2-digit',month:'long',year:'numeric'};
-    upcomingPays.innerHTML=list.map(x=>`<div>• ${x.name}: <strong>${x.date.toLocaleDateString(undefined,fmtOpt)}</strong></div>`).join("");
-  }
 
   // Käivitus
   load();
