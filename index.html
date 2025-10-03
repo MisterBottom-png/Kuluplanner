@@ -45,8 +45,8 @@
   .btn.primary{background:var(--accent);color:#050714;border-color:var(--accent);box-shadow:0 16px 32px -22px rgba(124,155,255,.9)}
   .btn.ghost{background:rgba(12,15,30,.6);border-color:rgba(124,155,255,.2);padding:7px 12px;line-height:1}
   .btn.icon{width:32px;aspect-ratio:1;border-radius:10px}
-  main.layout{max-width:1200px;margin:0 auto;padding:20px 18px 90px;display:grid;gap:1rem}
-  .grid{display:grid;gap:1rem;align-content:start}
+  main.layout{max-width:1200px;margin:0 auto;padding:20px 18px 90px;display:grid;gap:1rem;align-items:start}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem;align-content:start;justify-items:stretch}
   .col{min-width:0}
   .card{background:var(--elev-1);border:1px solid color-mix(in oklch,var(--accent) 12%,transparent);border-radius:18px;box-shadow:var(--shadow-lg);padding:0;position:relative;overflow:hidden}
   .card:not([data-sticky]){scroll-margin-top:calc(var(--header-h) + 14px)}
@@ -110,7 +110,7 @@
   .dialog-actions{padding:16px 18px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:flex-end;gap:.6rem}
   .pill{display:inline-flex;align-items:center;gap:.5rem;padding:6px 12px;border-radius:999px;border:1px solid rgba(124,155,255,.22);font-size:.75rem;background:rgba(124,155,255,.14);color:var(--accent);font-weight:600}
   :focus-visible{outline:2px solid color-mix(in oklch,var(--accent) 85%,white 10%);outline-offset:2px}
-  .card[data-sticky]{top:calc(var(--header-h) + 16px);align-self:start}
+  .card[data-sticky]{top:calc(var(--header-h) + 16px);align-self:start;z-index:5}
   @media (min-width:980px){
     body{overflow:hidden}
     main.layout{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);height:calc(100vh - var(--header-h));padding:20px 22px 40px}
