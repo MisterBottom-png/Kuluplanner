@@ -1,255 +1,373 @@
 <!DOCTYPE html>
 <html lang="et">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kuluplanner</title>
-  <link rel="stylesheet" href="styles.css">
-  <script type="module" src="app.js" defer></script>
+<meta charset="utf-8" />
+    <!-- Responsive viewport: allow the page to extend into device cutouts and scale properly on small screens -->
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0f1221" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<title>Rahakäsk – Kuu‑põhine eelarve + võlad</title>
+    <!-- Preload main stylesheet for faster first paint -->
+    <link rel="preload" as="style" href="styles.css">
+    <link rel="stylesheet" href="styles.css">
+
+
 </head>
 <body>
-  <a class="skip-link" href="#sisu">Jätka sisuni</a>
-  <header class="app-header" data-sticky>
-    <div class="wrap">
-      <div class="brand">
-        <h1 class="app-title">Kuluplanner</h1>
-        <nav aria-label="Leivapuru">
-          <ol class="breadcrumbs">
-            <li><a href="#">Kodu</a></li>
-            <li aria-current="page">Kulud</li>
-          </ol>
-        </nav>
-      </div>
-      <div class="month-picker" data-container>
-        <button type="button" class="btn icon" data-month="prev" aria-label="Eelmine kuu">&#8592;</button>
-        <div class="month-display" role="group" aria-live="polite" aria-atomic="true">
-          <span class="month-display__label" id="current-month">Märts 2024</span>
-        </div>
-        <button type="button" class="btn icon" data-month="next" aria-label="Järgmine kuu">&#8594;</button>
-        <button type="button" class="btn" id="open-add-expense">+ Lisa kulu</button>
-        <details class="overflow-menu">
-          <summary class="btn ghost icon" aria-label="Lisavalikud">☰</summary>
-          <div class="overflow-menu__content">
-            <nav aria-label="Lisavalikud">
-              <ol class="breadcrumbs">
-                <li><a href="#">Kodu</a></li>
-                <li aria-current="page">Kulud</li>
-              </ol>
-            </nav>
-            <a href="#add-expense-dialog" class="btn primary" data-overflow-add>+ Lisa kulu</a>
+<header class="appBar" data-sticky>
+  <div class="appBar__brand">
+    <h1>Rahakäsk • Kuu‑põhine eelarve + võlad</h1>
+    <div class="appBar__meta">
+      <span id="todayDate">—</span>
+      <span class="summaryNote">Kuu alguses arhiveeritakse eelmise kuu seis automaatselt.</span>
+    </div>
+  </div>
+  <div class="monthNav" role="group" aria-label="Kuu navigeerimine">
+    <button class="btn ghost icon" id="prevMonth" type="button" aria-label="Eelmine kuu">‹</button>
+    <span class="monthBadge" id="monthBadge" aria-live="polite">—</span>
+    <button class="btn ghost icon" id="nextMonth" type="button" aria-label="Järgmine kuu">›</button>
+  </div>
+  <button class="btn primary" id="expQuick" type="button">Lisa kulu</button>
+</header>
+
+<main class="layout">
+  <div class="sectionGrid">
+    <button class="sectionButton" type="button" data-dialog-target="dlg-budget">
+      <span class="sectionButton__label">Sissetulek ja püsikulud (kuu)</span>
+      <span class="pill sectionButton__pill" data-pill="budget">—</span>
+      <span class="sectionButton__hint">Vaata ja uuenda igakuised kohustused.</span>
+    </button>
+    <button class="sectionButton" type="button" data-dialog-target="dlg-summary">
+      <span class="sectionButton__label">Jooksev kokkuvõte</span>
+      <span class="sectionButton__hint">Kiire ülevaade valitud kuu seisu kohta.</span>
+    </button>
+    <button class="sectionButton" type="button" data-dialog-target="dlg-zaza">
+      <span class="sectionButton__label">Kanepi tegelikkuse kontroll</span>
+      <span class="pill sectionButton__pill" data-pill="zaza">Zaza alles: —</span>
+      <span class="sectionButton__hint">Planeeri kulud ja sea vajadusel ülempiir.</span>
+    </button>
+    <button class="sectionButton" type="button" data-dialog-target="dlg-expenses">
+      <span class="sectionButton__label">Selle kuu kulud</span>
+      <span class="pill sectionButton__pill" data-pill="spent">Sel kuul: —</span>
+      <span class="sectionButton__hint">Filtreeri ja halda kuu jooksul tehtud kulusid.</span>
+    </button>
+    <button class="sectionButton" type="button" data-dialog-target="dlg-archive">
+      <span class="sectionButton__label">Arhiiv (varasemad kuud)</span>
+      <span class="sectionButton__hint">Sirvi automaatselt salvestatud kuu kokkuvõtteid.</span>
+    </button>
+  </div>
+</main>
+
+<dialog id="dlg-budget" data-section-dialog aria-labelledby="dlg-budget-title">
+  <div class="dialog-head">
+    <h3 id="dlg-budget-title" style="margin:0">Sissetulek ja püsikulud (kuu)</h3>
+    <button class="btn ghost icon" type="button" data-dialog-close aria-label="Sulge">✕</button>
+  </div>
+  <div class="dialog-body">
+    <div class="sectionDialog__summary">
+      <span class="pill" data-pill="budget">—</span>
+      <p class="sectionDialog__hint">Jälgi sissetulekut ja püsikohustusi ning vaata, kui palju jääb alles.</p>
+    </div>
+    <div class="sectionDialog__scroll">
+      <div class="card-body">
+        <div class="fieldRow">
+          <label for="income">Kuu netosissetulek</label>
+          <div class="field currency">
+            <input id="income" class="currency" type="text" inputmode="decimal" autocomplete="off" aria-errormessage="incomeErr">
+            <p class="err" id="incomeErr" hidden role="alert"></p>
           </div>
-        </details>
+        </div>
+        <h3 class="helper">Püsikohustused</h3>
+        <div class="fieldRow">
+          <label for="loans">Laenud</label>
+          <div class="field">
+            <div class="payWrap">
+              <div class="field currency" style="flex:1">
+                <input id="loans" class="currency" type="text" inputmode="decimal" aria-errormessage="loansErr">
+                <p class="err" id="loansErr" hidden role="alert"></p>
+              </div>
+              <button class="btn payToggle" type="button" data-key="loans" aria-pressed="false">Maksmata</button>
+            </div>
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label for="mom">Toetus emale</label>
+          <div class="field">
+            <div class="payWrap">
+              <div class="field currency" style="flex:1">
+                <input id="mom" class="currency" type="text" inputmode="decimal" aria-errormessage="momErr">
+                <p class="err" id="momErr" hidden role="alert"></p>
+              </div>
+              <div class="field" style="min-width:160px">
+                <input id="momEnd" type="date" aria-describedby="momEndHelp">
+                <p class="helper" id="momEndHelp">Lõppkuupäev (k.a), kui kohustus lõpeb.</p>
+              </div>
+              <button class="btn payToggle" type="button" data-key="mom" aria-pressed="false">Maksmata</button>
+            </div>
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label for="aptSupport">Korteri tugi õele</label>
+          <div class="field">
+            <div class="payWrap">
+              <div class="field currency" style="flex:1">
+                <input id="aptSupport" class="currency" type="text" inputmode="decimal" aria-errormessage="aptSupportErr">
+                <p class="err" id="aptSupportErr" hidden role="alert"></p>
+              </div>
+              <div class="field" style="min-width:160px">
+                <input id="aptSupportEnd" type="date" aria-describedby="aptEndHelp">
+                <p class="helper" id="aptEndHelp">Lõppkuupäev (k.a), kui tugi lõpeb.</p>
+              </div>
+              <button class="btn payToggle" type="button" data-key="aptSupport" aria-pressed="false">Maksmata</button>
+            </div>
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label for="phone">Telefon/Internet</label>
+          <div class="field currency">
+            <input id="phone" class="currency" type="text" inputmode="decimal" aria-errormessage="phoneErr">
+            <p class="err" id="phoneErr" hidden role="alert"></p>
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label for="transport">Transport</label>
+          <div class="field currency">
+            <input id="transport" class="currency" type="text" inputmode="decimal" aria-errormessage="transportErr">
+            <p class="err" id="transportErr" hidden role="alert"></p>
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label for="groceries">Toit</label>
+          <div class="field currency">
+            <input id="groceries" class="currency" type="text" inputmode="decimal" aria-errormessage="groceriesErr">
+            <p class="err" id="groceriesErr" hidden role="alert"></p>
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label for="otherEss">Muud esmavajadused</label>
+          <div class="field currency">
+            <input id="otherEss" class="currency" type="text" inputmode="decimal" aria-errormessage="otherEssErr">
+            <p class="err" id="otherEssErr" hidden role="alert"></p>
+          </div>
+        </div>
+        <h3 class="helper">Vaba valik</h3>
+        <div class="fieldRow">
+          <label for="fun">Meelelahutus</label>
+          <div class="field currency">
+            <input id="fun" class="currency" type="text" inputmode="decimal" aria-errormessage="funErr">
+            <p class="err" id="funErr" hidden role="alert"></p>
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label for="personal">Riided/Isiklik</label>
+          <div class="field currency">
+            <input id="personal" class="currency" type="text" inputmode="decimal" aria-errormessage="personalErr">
+            <p class="err" id="personalErr" hidden role="alert"></p>
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label for="zazaCap">Kanepi kulu ülempiir</label>
+          <div class="field currency">
+            <input id="zazaCap" class="currency" type="text" inputmode="decimal" aria-errormessage="zazaCapErr">
+            <p class="err" id="zazaCapErr" hidden role="alert"></p>
+          </div>
+        </div>
+        <h3 class="helper">Ohutus ja eesmärgid</h3>
+        <div class="fieldRow">
+          <label for="efTarget">Hädaabifondi siht</label>
+          <div class="field currency">
+            <input id="efTarget" class="currency" type="text" inputmode="decimal" aria-errormessage="efTargetErr">
+            <p class="err" id="efTargetErr" hidden role="alert"></p>
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label for="efNow">Hädaabifondi jääk</label>
+          <div class="field currency">
+            <input id="efNow" class="currency" type="text" inputmode="decimal" aria-errormessage="efNowErr">
+            <p class="err" id="efNowErr" hidden role="alert"></p>
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label for="paydaysInput">Palgapäev (nt 5 või 5,20)</label>
+          <div class="field">
+            <input id="paydaysInput" placeholder="Lisa päevad komaga eraldatult" aria-describedby="paydaysHelp">
+            <p class="helper" id="paydaysHelp">Arvuta järgnevate maksepäevade vahe automaatselt.</p>
+            <div class="helper" id="nextPayInfo"></div>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="box"><div class="label">Väljavool kokku</div><div class="val" id="kpiOut">—</div></div>
+          <div class="box"><div class="label">Ülejääk / Puudujääk</div><div class="val" id="kpiLeft">—</div></div>
+          <div class="box"><div class="label">Jaotus</div><div class="val" id="kpiAlloc">—</div></div>
+        </div>
       </div>
     </div>
-  </header>
-  <main id="sisu" class="layout">
-    <section class="summary" aria-labelledby="summary-title">
-      <div class="section-heading">
-        <h2 id="summary-title">Kokkuvõte</h2>
-        <p class="section-sub">Ülevaade selle kuu võtmemõõdikutest.</p>
-      </div>
-      <div class="summary-grid" data-container>
-        <article class="summary-card" data-amount="1840.34">
-          <header>
-            <p class="summary-label">Kättesaadav</p>
-          </header>
-          <div class="summary-body">
-            <div class="summary-value" data-summary-value>€ 1 840,34</div>
-            <p class="summary-meta">Pärast kohustuslikke arveid.</p>
-          </div>
-        </article>
-        <article class="summary-card" data-amount="3250.00">
-          <header>
-            <p class="summary-label">Sissetulek</p>
-          </header>
-          <div class="summary-body">
-            <div class="summary-value" data-summary-value>€ 3 250,00</div>
-            <p class="summary-meta">Brutotulu sellel kuul.</p>
-          </div>
-        </article>
-        <article class="summary-card" data-amount="2410.16">
-          <header>
-            <p class="summary-label">Fikseeritud kulud</p>
-          </header>
-          <div class="summary-body">
-            <div class="summary-value" data-summary-value>€ 2 410,16</div>
-            <p class="summary-meta">Üür, teenused ja liising.</p>
-          </div>
-        </article>
-        <article class="summary-card" data-amount="640.50">
-          <header>
-            <p class="summary-label">Säästud</p>
-          </header>
-          <div class="summary-body">
-            <div class="summary-value" data-summary-value>€ 640,50</div>
-            <p class="summary-meta">Kogu kuu jooksul kõrvale pandud.</p>
-          </div>
-        </article>
-      </div>
-    </section>
+  </div>
+</dialog>
 
-    <section class="categories" aria-labelledby="categories-title">
-      <div class="section-heading">
-        <h2 id="categories-title">Kategooriad</h2>
-        <p class="section-sub">Jälgi suurimaid kuluridu.</p>
+<dialog id="dlg-summary" data-section-dialog aria-labelledby="dlg-summary-title">
+  <div class="dialog-head">
+    <h3 id="dlg-summary-title" style="margin:0">Jooksev kokkuvõte</h3>
+    <button class="btn ghost icon" type="button" data-dialog-close aria-label="Sulge">✕</button>
+  </div>
+  <div class="dialog-body">
+    <div class="sectionDialog__summary">
+      <p class="sectionDialog__hint">Tabel ja jaotus peegeldavad valitud kuu seisu.</p>
+    </div>
+    <div class="sectionDialog__scroll">
+      <div class="card-body">
+        <div class="summaryList" id="liveSummary" aria-live="polite"></div>
+        <p class="summaryNote">Tabel peegeldab valitud kuu seisu.</p>
+        <section>
+          <h3 style="font-size:.85rem;margin-top:.6rem">Kategooriate jälgimine</h3>
+          <div class="breakdown" id="expBreakdown"></div>
+        </section>
       </div>
-      <ul class="category-list" data-container>
-        <li class="category-item" data-progress="72">
-          <div class="category-head">
-            <span class="category-name">Toit</span>
-            <span class="category-amount" data-progress-value data-amount="312.4">€ 312,40</span>
-          </div>
-          <div class="category-bar" role="progressbar" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100">
-            <span class="category-bar__fill" style="width:72%"></span>
-          </div>
-          <p class="category-meta">Eelarvest kasutatud 72%.</p>
-        </li>
-        <li class="category-item" data-progress="54">
-          <div class="category-head">
-            <span class="category-name">Transport</span>
-            <span class="category-amount" data-progress-value data-amount="128">€ 128,00</span>
-          </div>
-          <div class="category-bar" role="progressbar" aria-valuenow="54" aria-valuemin="0" aria-valuemax="100">
-            <span class="category-bar__fill" style="width:54%"></span>
-          </div>
-          <p class="category-meta">Eelarvest kasutatud 54%.</p>
-        </li>
-        <li class="category-item" data-progress="38">
-          <div class="category-head">
-            <span class="category-name">Meelelahutus</span>
-            <span class="category-amount" data-progress-value data-amount="89.9">€ 89,90</span>
-          </div>
-          <div class="category-bar" role="progressbar" aria-valuenow="38" aria-valuemin="0" aria-valuemax="100">
-            <span class="category-bar__fill" style="width:38%"></span>
-          </div>
-          <p class="category-meta">Eelarvest kasutatud 38%.</p>
-        </li>
-        <li class="category-item" data-progress="20">
-          <div class="category-head">
-            <span class="category-name">Muu</span>
-            <span class="category-amount" data-progress-value data-amount="45.3">€ 45,30</span>
-          </div>
-          <div class="category-bar" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">
-            <span class="category-bar__fill" style="width:20%"></span>
-          </div>
-          <p class="category-meta">Eelarvest kasutatud 20%.</p>
-        </li>
-      </ul>
-    </section>
+    </div>
+  </div>
+</dialog>
 
-    <section class="transactions" aria-labelledby="transactions-title">
-      <div class="section-heading">
-        <div>
-          <h2 id="transactions-title">Tehingud</h2>
-          <p class="section-sub">Värskeimad kirjed. Puuduta rea avamiseks.</p>
+<dialog id="dlg-zaza" data-section-dialog aria-labelledby="dlg-zaza-title">
+  <div class="dialog-head">
+    <h3 id="dlg-zaza-title" style="margin:0">Kanepi tegelikkuse kontroll</h3>
+    <button class="btn ghost icon" type="button" data-dialog-close aria-label="Sulge">✕</button>
+  </div>
+  <div class="dialog-body">
+    <div class="sectionDialog__summary">
+      <span class="pill" data-pill="zaza">Zaza alles: —</span>
+      <p class="sectionDialog__hint">Sisesta harjumused ja vajadusel kärbi kulusid.</p>
+    </div>
+    <div class="sectionDialog__scroll">
+      <div class="card-body">
+        <div class="fieldRow">
+          <label for="pricePerGram">Hind €/g</label>
+          <div class="field currency">
+            <input id="pricePerGram" class="currency" type="text" inputmode="decimal" aria-errormessage="priceErr">
+            <p class="err" id="priceErr" hidden role="alert"></p>
+          </div>
         </div>
-        <form class="transaction-filter" role="search" aria-label="Otsi tehinguid">
-          <label for="transaction-filter">Otsi</label>
-          <input id="transaction-filter" name="q" type="search" placeholder="Otsi kategooria või märkuse järgi">
-        </form>
+        <div class="fieldRow">
+          <label for="gramsPerWeek">Gramme nädalas</label>
+          <div class="field">
+            <input id="gramsPerWeek" type="number" min="0" step="0.1">
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label for="zazaAuto">Kuu kulu (auto)</label>
+          <div class="field currency">
+            <input id="zazaAuto" class="currency" type="text" inputmode="decimal" disabled>
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label for="zazaCutPct">Vähenda (%)</label>
+          <div class="field">
+            <input id="zazaCutPct" type="number" min="0" max="100" step="1">
+          </div>
+        </div>
+        <div class="fieldRow">
+          <label aria-hidden="true"></label>
+          <div class="field">
+            <button class="btn" id="applyCap" type="button">Sea ülempiir ja liiguta sääst EF-i</button>
+            <p class="helper" id="capMsg"></p>
+            <div class="progress" aria-hidden="true"><div id="zazaProg"></div></div>
+          </div>
+        </div>
       </div>
-      <div class="table-shell" data-container>
-        <div class="table-scroll" tabindex="0">
-          <table class="transactions-table" aria-describedby="transactions-title">
-            <caption>Igakuine tehingute nimekiri</caption>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="dlg-expenses" data-section-dialog aria-labelledby="dlg-expenses-title">
+  <div class="dialog-head">
+    <h3 id="dlg-expenses-title" style="margin:0">Selle kuu kulud</h3>
+    <button class="btn ghost icon" type="button" data-dialog-close aria-label="Sulge">✕</button>
+  </div>
+  <div class="dialog-body">
+    <div class="sectionDialog__summary">
+      <span class="pill" data-pill="spent">Sel kuul: —</span>
+      <p class="sectionDialog__hint">Filtreeri kirjeid ja vaata kogusummat.</p>
+    </div>
+    <div class="sectionDialog__scroll">
+      <div class="card-body" id="expSection">
+        <div class="tableToolbar">
+          <label for="expFilter">Filtreeri</label>
+          <input id="expFilter" type="search" placeholder="Otsi kategooria või märkuse järgi">
+        </div>
+        <div class="tableWrap">
+          <table id="expTbl" class="exp-table" aria-live="polite">
             <thead>
               <tr>
-                <th scope="col">Kuupäev</th>
-                <th scope="col">Kategooria</th>
-                <th scope="col" class="col-notes">Märkus</th>
-                <th scope="col" class="numeric">Summa (€)</th>
+                <th><button type="button" data-sort="date">Kuupäev <span class="sortIcon" aria-hidden="true">⇅</span></button></th>
+                <th>Kategooria</th>
+                <th>Märkus</th>
+                <th class="right"><button type="button" data-sort="amount">€ <span class="sortIcon" aria-hidden="true">⇅</span></button></th>
+                <th aria-label="Tegevused"></th>
               </tr>
             </thead>
-            <tbody id="transaction-rows">
-              <tr data-id="1">
-                <td data-label="Kuupäev">04.03.2024</td>
-                <td data-label="Kategooria">Toit</td>
-                <td data-label="Märkus" class="col-notes">Turukülastus</td>
-                <td data-label="Summa" class="numeric" data-amount="-28.6">-28,60</td>
-              </tr>
-              <tr data-id="2">
-                <td data-label="Kuupäev">05.03.2024</td>
-                <td data-label="Kategooria">Transport</td>
-                <td data-label="Märkus" class="col-notes">Ühiskaart</td>
-                <td data-label="Summa" class="numeric" data-amount="-12">-12,00</td>
-              </tr>
-              <tr data-id="3">
-                <td data-label="Kuupäev">06.03.2024</td>
-                <td data-label="Kategooria">Sissetulek</td>
-                <td data-label="Märkus" class="col-notes">Põhipalk</td>
-                <td data-label="Summa" class="numeric" data-amount="2450">2 450,00</td>
-              </tr>
-              <tr data-id="4">
-                <td data-label="Kuupäev">08.03.2024</td>
-                <td data-label="Kategooria">Meelelahutus</td>
-                <td data-label="Märkus" class="col-notes">Kino</td>
-                <td data-label="Summa" class="numeric" data-amount="-18.5">-18,50</td>
-              </tr>
-              <tr data-id="5">
-                <td data-label="Kuupäev">09.03.2024</td>
-                <td data-label="Kategooria">Muu</td>
-                <td data-label="Märkus" class="col-notes">Kingitus</td>
-                <td data-label="Summa" class="numeric" data-amount="-35">-35,00</td>
-              </tr>
-            </tbody>
+            <tbody></tbody>
+            <tfoot>
+              <tr><td colspan="3"><strong>Kokku (kuu):</strong></td><td class="right" id="expSum">0.00</td><td></td></tr>
+            </tfoot>
           </table>
-          <div class="scroll-shadow scroll-shadow--left" aria-hidden="true"></div>
-          <div class="scroll-shadow scroll-shadow--right" aria-hidden="true"></div>
         </div>
       </div>
-      <div class="transactions-footer">
-        <output id="transaction-total" aria-live="polite">Saldo: € 2 355,90</output>
-      </div>
-    </section>
-  </main>
+    </div>
+  </div>
+</dialog>
 
-  <footer class="app-footer">
-    <small>&copy; 2024 Kuluplanner</small>
-  </footer>
-
-  <dialog id="add-expense-dialog" open aria-labelledby="add-expense-title">
-    <form method="dialog" class="dialog" aria-describedby="add-expense-help">
-      <header class="dialog__head">
-        <h2 id="add-expense-title">Lisa kulu</h2>
-        <button type="button" class="btn ghost icon" data-dialog-close aria-label="Sulge">✕</button>
-      </header>
-      <div class="dialog__body">
-        <p id="add-expense-help">Täida väljad ja salvesta uus tehing.</p>
-        <label for="expense-category">Kategooria</label>
-        <select id="expense-category" name="category" autocomplete="on">
-          <option value="Toit">Toit</option>
-          <option value="Transport">Transport</option>
-          <option value="Meelelahutus">Meelelahutus</option>
-          <option value="Muu">Muu</option>
-        </select>
-        <label for="expense-amount">Summa (€)</label>
-        <input id="expense-amount" name="amount" inputmode="decimal" autocomplete="off" aria-errormessage="expense-amount-error">
-        <p class="field-error" id="expense-amount-error" role="alert" hidden></p>
-        <label for="expense-date">Kuupäev</label>
-        <input id="expense-date" name="date" type="date">
-        <label for="expense-note">Märkus</label>
-        <input id="expense-note" name="note" autocomplete="on" maxlength="80">
+<dialog id="dlg-archive" data-section-dialog aria-labelledby="dlg-archive-title">
+  <div class="dialog-head">
+    <h3 id="dlg-archive-title" style="margin:0">Arhiiv (varasemad kuud)</h3>
+    <button class="btn ghost icon" type="button" data-dialog-close aria-label="Sulge">✕</button>
+  </div>
+  <div class="dialog-body">
+    <div class="sectionDialog__summary">
+      <p class="sectionDialog__hint">Sirvi automaatselt salvestatud kuu kokkuvõtteid.</p>
+    </div>
+    <div class="sectionDialog__scroll">
+      <div class="card-body">
+        <div id="archivesList" class="summaryList"></div>
       </div>
-      <div class="dialog__actions">
-        <button type="submit" class="btn" value="cancel" data-dialog-close>Loobu</button>
-        <button type="submit" class="btn primary" value="confirm" id="submit-expense">Lisa kirje</button>
-      </div>
-    </form>
-  </dialog>
+    </div>
+  </div>
+</dialog>
 
-  <dialog id="transaction-dialog" aria-labelledby="transaction-dialog-title">
-    <article class="dialog" role="document">
-      <header class="dialog__head">
-        <h2 id="transaction-dialog-title">Tehingu detail</h2>
-        <button type="button" class="btn ghost icon" data-dialog-close aria-label="Sulge">✕</button>
-      </header>
-      <div class="dialog__body" id="transaction-dialog-body"></div>
-      <div class="dialog__actions">
-        <button type="button" class="btn" data-dialog-close>Valmis</button>
-      </div>
-    </article>
-  </dialog>
+<dialog id="expDialog" aria-label="Lisa kulu">
+  <div class="dialog-head">
+    <h3 style="margin:0">Lisa kulu</h3>
+    <button class="btn ghost icon" id="closeExpDlg" type="button" aria-label="Sulge">✕</button>
+  </div>
+  <div class="dialog-body">
+    <label for="expCat">Kategooria</label>
+    <select id="expCat">
+      <option>Zaza</option>
+      <option>Telefon/Internet</option>
+      <option>Toit</option>
+      <option>Transport</option>
+      <option>Meelelahutus</option>
+      <option>Riided/Isiklik</option>
+      <option>Muu</option>
+    </select>
+    <label for="expAmt">Summa (€)</label>
+    <input id="expAmt" class="currency" type="text" inputmode="decimal" aria-errormessage="expAmtErr">
+    <p class="err" id="expAmtErr" hidden role="alert"></p>
+    <label for="expDate">Kuupäev</label>
+    <input id="expDate" type="date">
+    <label for="expNote">Märkus</label>
+    <input id="expNote" type="text" placeholder="mis, kus, kelle jaoks">
+  </div>
+  <div class="dialog-actions">
+    <button class="btn" id="cancelExp" type="button">Loobu</button>
+    <button class="btn primary" id="addExp" type="button">+ Lisa kulu</button>
+  </div>
+</dialog>
 
-  <div role="status" aria-live="polite" class="sr-only" id="live-region"></div>
+
+
+
+
+
+<script src="app.js" defer></script>
 </body>
 </html>
