@@ -160,6 +160,27 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
   const adminPasswordInput = $('#adminPasswordInput');
   const adminPasswordSubmit = $('#adminPasswordSubmit');
   const adminPasswordError = $('#adminPasswordError');
+  let adminUnlockMemory = false;
+  const readAdminUnlock = () => {
+    try {
+      return sessionStorage.getItem('adminUnlocked') === '1';
+    } catch (error) {
+      console.warn('Admin unlock state unavailable; falling back to memory only.', error);
+      return adminUnlockMemory;
+    }
+  };
+  const writeAdminUnlock = (value) => {
+    adminUnlockMemory = !!value;
+    try {
+      if (value) {
+        sessionStorage.setItem('adminUnlocked', '1');
+      } else {
+        sessionStorage.removeItem('adminUnlocked');
+      }
+    } catch (error) {
+      console.warn('Unable to persist admin unlock state to sessionStorage.', error);
+    }
+  };
   let activeSectionTrigger = null;
   const pillTargets = {
     budget: $$('[data-pill="budget"]'),
@@ -815,7 +836,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
   const addExp=expDialog?expDialog.querySelector('#addExp'):document.querySelector('#addExp');
 
   if(adminButton && adminMenuDialog){
-    const isAdminUnlocked = () => sessionStorage.getItem('adminUnlocked') === '1';
+    const isAdminUnlocked = () => readAdminUnlock();
     const setAdminView = (unlocked) => {
       if(adminLockView) adminLockView.hidden = !!unlocked;
       if(adminActionView) adminActionView.hidden = !unlocked;
@@ -842,7 +863,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
       if(!adminPasswordInput) return;
       const value = adminPasswordInput.value.trim();
       if(value === ADMIN_PASSWORD){
-        sessionStorage.setItem('adminUnlocked','1');
+        writeAdminUnlock(true);
         adminPasswordInput.value = '';
         setAdminView(true);
         const firstAction = adminActionView ? adminActionView.querySelector('.adminMenu__action') : null;
@@ -856,11 +877,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
       }
     };
 
-    if(isAdminUnlocked()){
-      setAdminView(true);
-    } else {
-      setAdminView(false);
-    }
+    setAdminView(isAdminUnlocked());
 
     adminButton.addEventListener('click', () => {
       setAdminView(isAdminUnlocked());
