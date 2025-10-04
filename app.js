@@ -929,13 +929,34 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
         actionBtn.addEventListener('click', () => {
           const action = actionBtn.getAttribute('data-admin-action');
           if(action === 'zaza'){
+
+            const openZazaDialog = () => {
+              const zazaDialog = document.getElementById('dlg-zaza');
+              if(!(zazaDialog && typeof zazaDialog.showModal === 'function')){
+                return;
+              }
+              if(zazaDialog.open){
+                return;
+              }
+
             adminActionsDialog.close();
             const zazaDialog = document.getElementById('dlg-zaza');
             if(zazaDialog && typeof zazaDialog.showModal === 'function'){
+ main
               activeSectionTrigger = adminButton;
-              if(!zazaDialog.open){
+              try {
                 zazaDialog.showModal();
+              } catch (error) {
+                console.error('Unable to open Kanepi kontroll dialog.', error);
               }
+            };
+            if(adminActionsDialog.open){
+              adminActionsDialog.addEventListener('close', () => {
+                requestAnimationFrame(openZazaDialog);
+              }, { once: true });
+              adminActionsDialog.close();
+            } else {
+              openZazaDialog();
             }
           }
         });
