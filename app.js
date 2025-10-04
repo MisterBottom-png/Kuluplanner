@@ -929,6 +929,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
         actionBtn.addEventListener('click', () => {
           const action = actionBtn.getAttribute('data-admin-action');
           if(action === 'zaza'){
+
             const openZazaDialog = () => {
               const zazaDialog = document.getElementById('dlg-zaza');
               if(!(zazaDialog && typeof zazaDialog.showModal === 'function')){
@@ -937,6 +938,11 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
               if(zazaDialog.open){
                 return;
               }
+
+            adminActionsDialog.close();
+            const zazaDialog = document.getElementById('dlg-zaza');
+            if(zazaDialog && typeof zazaDialog.showModal === 'function'){
+ main
               activeSectionTrigger = adminButton;
               try {
                 zazaDialog.showModal();
