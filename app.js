@@ -155,8 +155,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
   const ADMIN_PASSWORD = 'FalseAtta9k';
   const adminButton = $('#adminAccessBtn');
   const adminMenuDialog = $('#adminMenuDialog');
-  const adminLockView = $('#adminLockView');
-  const adminActionView = $('#adminActionView');
+  const adminActionsDialog = $('#adminActionsDialog');
   const adminPasswordInput = $('#adminPasswordInput');
   const adminPasswordSubmit = $('#adminPasswordSubmit');
   const adminPasswordError = $('#adminPasswordError');
@@ -837,26 +836,22 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
 
   if(adminButton && adminMenuDialog){
     const isAdminUnlocked = () => readAdminUnlock();
-    const setAdminView = (unlocked) => {
-      if(adminLockView) adminLockView.hidden = !!unlocked;
-      if(adminActionView) adminActionView.hidden = !unlocked;
-      if(unlocked){
-        if(adminPasswordError) adminPasswordError.hidden = true;
-      } else {
-        if(adminPasswordInput){
-          adminPasswordInput.value = '';
-        }
-        if(adminPasswordError) adminPasswordError.hidden = true;
+    let skipFocusOnClose = false;
+    const focusPasswordInput = () => {
+      if(adminPasswordInput){
+        adminPasswordInput.focus();
       }
     };
-    const focusAdminDefault = () => {
-      if(isAdminUnlocked()){
-        const firstAction = adminActionView ? adminActionView.querySelector('.adminMenu__action') : null;
-        if(firstAction){
-          firstAction.focus();
-        }
-      } else if(adminPasswordInput){
-        adminPasswordInput.focus();
+    const openAdminActions = () => {
+      if(!adminActionsDialog) return;
+      if(!adminActionsDialog.open){
+        adminActionsDialog.showModal();
+        requestAnimationFrame(() => {
+          const firstAction = adminActionsDialog.querySelector('.adminMenu__action');
+          if(firstAction){
+            firstAction.focus();
+          }
+        });
       }
     };
     const tryUnlockAdmin = () => {
@@ -865,11 +860,11 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
       if(value === ADMIN_PASSWORD){
         writeAdminUnlock(true);
         adminPasswordInput.value = '';
-        setAdminView(true);
-        const firstAction = adminActionView ? adminActionView.querySelector('.adminMenu__action') : null;
-        if(firstAction){
-          firstAction.focus();
-        }
+        if(adminPasswordError) adminPasswordError.hidden = true;
+        skipFocusOnClose = true;
+        adminMenuDialog.close();
+        openAdminActions();
+        skipFocusOnClose = false;
       } else {
         if(adminPasswordError) adminPasswordError.hidden = false;
         adminPasswordInput.select();
@@ -877,30 +872,33 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
       }
     };
 
-    setAdminView(isAdminUnlocked());
-
     adminButton.addEventListener('click', () => {
-      setAdminView(isAdminUnlocked());
-      if(!adminMenuDialog.open){
-        adminMenuDialog.showModal();
-        requestAnimationFrame(focusAdminDefault);
+      if(isAdminUnlocked()){
+        openAdminActions();
+      } else {
+        if(adminPasswordError) adminPasswordError.hidden = true;
+        if(adminPasswordInput) adminPasswordInput.value = '';
+        if(!adminMenuDialog.open){
+          adminMenuDialog.showModal();
+          requestAnimationFrame(focusPasswordInput);
+        } else {
+          focusPasswordInput();
+        }
       }
     });
 
-    if(adminMenuDialog){
-      adminMenuDialog.addEventListener('cancel', (event) => {
-        event.preventDefault();
-        adminMenuDialog.close();
-      });
-      adminMenuDialog.addEventListener('close', () => {
-        if(adminButton){
-          adminButton.focus();
-        }
-      });
-      adminMenuDialog.querySelectorAll('[data-dialog-close]').forEach(btn => {
-        btn.addEventListener('click', () => adminMenuDialog.close());
-      });
-    }
+    adminMenuDialog.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      adminMenuDialog.close();
+    });
+    adminMenuDialog.addEventListener('close', () => {
+      if(!skipFocusOnClose && adminButton){
+        adminButton.focus();
+      }
+    });
+    adminMenuDialog.querySelectorAll('[data-dialog-close]').forEach(btn => {
+      btn.addEventListener('click', () => adminMenuDialog.close());
+    });
 
     if(adminPasswordSubmit){
       adminPasswordSubmit.addEventListener('click', tryUnlockAdmin);
@@ -914,12 +912,24 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
       });
     }
 
-    if(adminActionView){
-      adminActionView.querySelectorAll('[data-admin-action]').forEach(actionBtn => {
+    if(adminActionsDialog){
+      adminActionsDialog.addEventListener('cancel', event => {
+        event.preventDefault();
+        adminActionsDialog.close();
+      });
+      adminActionsDialog.addEventListener('close', () => {
+        if(adminButton){
+          adminButton.focus();
+        }
+      });
+      adminActionsDialog.querySelectorAll('[data-dialog-close]').forEach(btn => {
+        btn.addEventListener('click', () => adminActionsDialog.close());
+      });
+      adminActionsDialog.querySelectorAll('[data-admin-action]').forEach(actionBtn => {
         actionBtn.addEventListener('click', () => {
           const action = actionBtn.getAttribute('data-admin-action');
           if(action === 'zaza'){
-            adminMenuDialog.close();
+            adminActionsDialog.close();
             const zazaDialog = document.getElementById('dlg-zaza');
             if(zazaDialog && typeof zazaDialog.showModal === 'function'){
               activeSectionTrigger = adminButton;
