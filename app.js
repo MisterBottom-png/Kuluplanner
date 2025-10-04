@@ -1,3 +1,108 @@
+
+// --- ADM dialog safety helpers (added by ChatGPT) ---
+const canModal = dlg => !!(dlg && typeof dlg.showModal === 'function');
+const safeShow = dlg => { if (!dlg) return; if (canModal(dlg)) { dlg.showModal(); } else { dlg.setAttribute('open',''); } };
+const safeClose = dlg => { if (!dlg) return; if (typeof dlg.close === 'function') { dlg.close(); } else { dlg.removeAttribute('open'); } };
+// --- end helpers ---
+
+// === Hardened dialog utilities (ESC, backdrop, focus trap/return) ===
+(function(){
+  const canModal = dlg => !!(dlg && typeof dlg.showModal === 'function');
+  const safeShow = dlg => { if (!dlg) return; if (canModal(dlg)) { dlg.showModal(); } else { dlg.setAttribute('open',''); } };
+  const safeClose = dlg => { if (!dlg) return; if (typeof dlg.close === 'function') { dlg.close(); } else { dlg.removeAttribute('open'); } };
+
+  const getFocusable = root => {
+    const sel = [
+      'a[href]','area[href]','input:not([disabled])','select:not([disabled])','textarea:not([disabled])',
+      'button:not([disabled])','summary','iframe','object','embed','[contenteditable]','[tabindex]:not([tabindex="-1"])'
+    ].join(',');
+    return Array.from(root.querySelectorAll(sel)).filter(el => el.offsetParent !== null || el === document.activeElement);
+  };
+
+  const wireDialog = (dialog, trigger) => {
+    if (!dialog || dialog.__wired) return;
+    dialog.__wired = true;
+
+    // Close buttons
+    dialog.querySelectorAll('[data-dialog-close]').forEach(btn => {
+      btn.addEventListener('click', () => safeClose(dialog));
+    });
+
+    // Cancel (ESC on native <dialog> fires cancel)
+    dialog.addEventListener('cancel', (ev) => {
+      ev.preventDefault();
+      safeClose(dialog);
+    });
+
+    // Global keydown while dialog is open: trap focus + ESC
+    const keyHandler = (ev) => {
+      if (!dialog.open) return;
+      if (ev.key === 'Escape') { ev.preventDefault(); safeClose(dialog); return; }
+      if (ev.key === 'Tab') {
+        const f = getFocusable(dialog);
+        if (f.length === 0) return;
+        const first = f[0], last = f[f.length-1];
+        const current = document.activeElement;
+        if (ev.shiftKey) {
+          if (current === first || !dialog.contains(current)) { ev.preventDefault(); last.focus(); }
+        } else {
+          if (current === last) { ev.preventDefault(); first.focus(); }
+        }
+      }
+    };
+    dialog.addEventListener('keydown', keyHandler);
+
+    // Backdrop click (clicking <dialog> background)
+    dialog.addEventListener('click', (ev) => {
+      const rect = dialog.getBoundingClientRect();
+      const inBounds = ev.clientX >= rect.left && ev.clientX <= rect.right && ev.clientY >= rect.top && ev.clientY <= rect.bottom;
+      if (!inBounds) return; // safety
+      if (ev.target === dialog) {
+        // native dialog backdrop click lands on <dialog> itself
+        safeClose(dialog);
+      }
+    });
+
+    // Focus return
+    dialog.addEventListener('close', () => {
+      if (trigger && typeof trigger.focus === 'function') {
+        trigger.focus();
+      }
+    });
+
+    // When opened, move focus to first focusable (or dialog)
+    const openObserver = new MutationObserver(() => {
+      if (dialog.open) {
+        const f = getFocusable(dialog);
+        (f[0] || dialog).focus();
+      }
+    });
+    openObserver.observe(dialog, { attributes: true, attributeFilter: ['open'] });
+  };
+
+  // Wire all section dialogs and remember their triggers
+  const mapById = {};
+  document.querySelectorAll('[data-dialog-target]').forEach(btn => {
+    const id = btn.getAttribute('data-dialog-target');
+    if (!id) return;
+    mapById[id] = btn;
+  });
+
+  document.querySelectorAll('dialog[data-section-dialog]').forEach(dlg => {
+    const id = dlg.id;
+    wireDialog(dlg, mapById[id]);
+  });
+
+  // Ensure admin/zaza openings also get wiring
+  const zazaDialog = document.getElementById('dlg-zaza');
+  if (zazaDialog) wireDialog(zazaDialog, mapById['dlg-zaza'] || document.querySelector('[data-admin-action="zaza"]'));
+
+  // Expose helpers globally if needed elsewhere
+  window.ADM_DIALOG = { safeShow, safeClose, wireDialog };
+})();
+// === end hardened dialog utilities ===
+
+
 const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
   const LOCALE = 'et-EE';
@@ -845,7 +950,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
     const openAdminActions = () => {
       if(!adminActionsDialog) return;
       if(!adminActionsDialog.open){
-        adminActionsDialog.showModal();
+        safeShow(adminActionsDialog);
         requestAnimationFrame(() => {
           const firstAction = adminActionsDialog.querySelector('.adminMenu__action');
           if(firstAction){
@@ -862,7 +967,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
         adminPasswordInput.value = '';
         if(adminPasswordError) adminPasswordError.hidden = true;
         skipFocusOnClose = true;
-        adminMenuDialog.close();
+        safeClose(adminMenuDialog);
         openAdminActions();
         skipFocusOnClose = false;
       } else {
@@ -879,7 +984,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
         if(adminPasswordError) adminPasswordError.hidden = true;
         if(adminPasswordInput) adminPasswordInput.value = '';
         if(!adminMenuDialog.open){
-          adminMenuDialog.showModal();
+          safeShow(adminMenuDialog);
           requestAnimationFrame(focusPasswordInput);
         } else {
           focusPasswordInput();
@@ -889,7 +994,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
 
     adminMenuDialog.addEventListener('cancel', (event) => {
       event.preventDefault();
-      adminMenuDialog.close();
+      safeClose(adminMenuDialog);
     });
     adminMenuDialog.addEventListener('close', () => {
       if(!skipFocusOnClose && adminButton){
@@ -897,7 +1002,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
       }
     });
     adminMenuDialog.querySelectorAll('[data-dialog-close]').forEach(btn => {
-      btn.addEventListener('click', () => adminMenuDialog.close());
+      btn.addEventListener('click', () => safeClose(adminMenuDialog));
     });
 
     if(adminPasswordSubmit){
@@ -915,7 +1020,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
     if(adminActionsDialog){
       adminActionsDialog.addEventListener('cancel', event => {
         event.preventDefault();
-        adminActionsDialog.close();
+        safeClose(adminActionsDialog);
       });
       adminActionsDialog.addEventListener('close', () => {
         if(adminButton){
@@ -923,13 +1028,13 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
         }
       });
       adminActionsDialog.querySelectorAll('[data-dialog-close]').forEach(btn => {
-        btn.addEventListener('click', () => adminActionsDialog.close());
+        btn.addEventListener('click', () => safeClose(adminActionsDialog));
       });
       adminActionsDialog.querySelectorAll('[data-admin-action]').forEach(actionBtn => {
         actionBtn.addEventListener('click', () => {
           const action = actionBtn.getAttribute('data-admin-action');
           if(action === 'zaza'){
-            adminActionsDialog.close();
+            safeClose(adminActionsDialog);
             const zazaDialog = document.getElementById('dlg-zaza');
             if(zazaDialog && typeof zazaDialog.showModal === 'function'){
               activeSectionTrigger = adminButton;
@@ -950,11 +1055,11 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
     const dialog = document.getElementById(targetId);
     if(!(dialog && typeof dialog.showModal === 'function')) return;
     dialog.querySelectorAll('[data-dialog-close]').forEach(closeBtn => {
-      closeBtn.addEventListener('click', () => dialog.close());
+      closeBtn.addEventListener('click', () => safeClose(dialog));
     });
     dialog.addEventListener('cancel', event => {
       event.preventDefault();
-      dialog.close();
+      safeClose(dialog);
     });
     dialog.addEventListener('close', () => {
       if(activeSectionTrigger){
@@ -986,7 +1091,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
       requestAnimationFrame(()=>{ expCat && expCat.focus(); });
     });
   }
-  [btnCloseExpDlg, btnCancelExp].forEach(b=> b && b.addEventListener('click', ()=> expDialog && expDialog.close()));
+  [btnCloseExpDlg, btnCancelExp].forEach(b=> b && b.addEventListener('click', ()=> safeClose(expDialog)));
   if(expDialog){ expDialog.addEventListener('close', ()=>{ if(btnExpQuick) btnExpQuick.focus(); }); }
 
   if(addExp){ addExp.addEventListener('click',()=>{
@@ -1006,7 +1111,7 @@ document.addEventListener('touchstart', ()=>{}, {passive:true});
       if(expNote) expNote.value='';
       withTransition(renderExpenses)();
       persist();
-      if(expDialog?.open) expDialog.close();
+      safeClose(expDialog);
       if(btnExpQuick) btnExpQuick.focus();
   }); }
 
