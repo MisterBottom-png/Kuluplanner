@@ -381,7 +381,16 @@
         <button class="btn primary" type="button" id="adminPasswordSubmit">Ava menüü</button>
       </div>
     </section>
-    <section class="adminMenu__view" id="adminActionView" hidden>
+  </div>
+</dialog>
+
+<dialog id="adminActionsDialog" aria-labelledby="adminActionsTitle">
+  <div class="dialog-head">
+    <h3 id="adminActionsTitle" style="margin:0">Administraatori toimingud</h3>
+    <button class="btn ghost icon" type="button" data-dialog-close aria-label="Sulge">✕</button>
+  </div>
+  <div class="dialog-body adminMenu">
+    <section class="adminMenu__view" aria-live="polite">
       <p class="adminMenu__hint">Vali soovitud administraatori toiming.</p>
       <div class="adminMenu__actions">
         <button class="btn primary adminMenu__action" type="button" data-admin-action="zaza">Kanepi tegelikkuse kontroll</button>
