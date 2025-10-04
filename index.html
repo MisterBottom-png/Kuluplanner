@@ -28,7 +28,10 @@
     <span class="monthBadge" id="monthBadge" aria-live="polite">—</span>
     <button class="btn ghost icon" id="nextMonth" type="button" aria-label="Järgmine kuu">›</button>
   </div>
-  <button class="btn primary" id="expQuick" type="button">Lisa kulu</button>
+  <div class="appBar__actions">
+    <button class="btn primary" id="expQuick" type="button">Lisa kulu</button>
+    <button class="btn primary" id="adminAccessBtn" type="button">ADM</button>
+  </div>
 </header>
 
 <main class="layout">
@@ -41,11 +44,6 @@
     <button class="sectionButton" type="button" data-dialog-target="dlg-summary">
       <span class="sectionButton__label">Jooksev kokkuvõte</span>
       <span class="sectionButton__hint">Kiire ülevaade valitud kuu seisu kohta.</span>
-    </button>
-    <button class="sectionButton" type="button" data-dialog-target="dlg-zaza">
-      <span class="sectionButton__label">Kanepi tegelikkuse kontroll</span>
-      <span class="pill sectionButton__pill" data-pill="zaza">Zaza alles: —</span>
-      <span class="sectionButton__hint">Planeeri kulud ja sea vajadusel ülempiir.</span>
     </button>
     <button class="sectionButton" type="button" data-dialog-target="dlg-expenses">
       <span class="sectionButton__label">Selle kuu kulud</span>
@@ -368,6 +366,31 @@
 
 
 
+<dialog id="adminMenuDialog" aria-labelledby="adminMenuTitle">
+  <div class="dialog-head">
+    <h3 id="adminMenuTitle" style="margin:0">Administraatori menüü</h3>
+    <button class="btn ghost icon" type="button" data-dialog-close aria-label="Sulge">✕</button>
+  </div>
+  <div class="dialog-body adminMenu">
+    <section class="adminMenu__view" id="adminLockView" aria-live="polite">
+      <p class="adminMenu__hint">Kanepi tegelikkuse kontroll on ainult administraatoritele. Sisesta parool, et avada menüü.</p>
+      <label class="adminMenu__label" for="adminPasswordInput">Parool</label>
+      <input id="adminPasswordInput" type="password" autocomplete="current-password" spellcheck="false" aria-describedby="adminPasswordError">
+      <p class="err" id="adminPasswordError" hidden role="alert">Vale parool. Proovi uuesti.</p>
+      <div class="adminMenu__actions">
+        <button class="btn primary" type="button" id="adminPasswordSubmit">Ava menüü</button>
+      </div>
+    </section>
+    <section class="adminMenu__view" id="adminActionView" hidden>
+      <p class="adminMenu__hint">Vali soovitud administraatori toiming.</p>
+      <div class="adminMenu__actions">
+        <button class="btn primary adminMenu__action" type="button" data-admin-action="zaza">Kanepi tegelikkuse kontroll</button>
+      </div>
+    </section>
+  </div>
+</dialog>
+
 <script src="app.js" defer></script>
 </body>
 </html>
+
