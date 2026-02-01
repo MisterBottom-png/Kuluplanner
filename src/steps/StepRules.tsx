@@ -1,0 +1,243 @@
+import { useMemo, useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { FiltersConfig, RulesConfig } from '@/types';
+
+interface StepRulesProps {
+  rules: RulesConfig;
+  filters: FiltersConfig;
+  onChangeRules: (rules: RulesConfig) => void;
+  onChangeFilters: (filters: FiltersConfig) => void;
+  availableMethods: string[];
+  availableProducts: string[];
+  availableMonths: string[];
+}
+
+export default function StepRules({
+  rules,
+  filters,
+  onChangeRules,
+  onChangeFilters,
+  availableMethods,
+  availableProducts,
+  availableMonths
+}: StepRulesProps) {
+  const [newMethod, setNewMethod] = useState('');
+  const [newProduct, setNewProduct] = useState('');
+  const [regexDraft, setRegexDraft] = useState(rules.statusRegex);
+
+  const regexError = useMemo(() => {
+    if (!regexDraft) return '';
+    try {
+      new RegExp(regexDraft, 'i');
+      return '';
+    } catch {
+      return 'Invalid regex pattern.';
+    }
+  }, [regexDraft]);
+
+  const addFilter = (type: 'methods' | 'products', value: string) => {
+    if (!value) return;
+    const list = filters[type];
+    if (list.includes(value)) return;
+    onChangeFilters({ ...filters, [type]: [...list, value] });
+  };
+
+  const removeFilter = (type: 'methods' | 'products', value: string) => {
+    onChangeFilters({ ...filters, [type]: filters[type].filter((item) => item !== value) });
+  };
+
+  const clearFilters = () => {
+    onChangeFilters({ ...filters, methods: [], products: [], monthRange: [null, null] });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3 text-xs text-slate-300">
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            className="h-4 w-4"
+            checked={rules.excludeChina}
+            onChange={(event) => onChangeRules({ ...rules, excludeChina: event.target.checked })}
+          />
+          Exclude China shipments
+        </label>
+      </div>
+
+      <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-100">Shipped status matching</p>
+            <p className="text-xs text-slate-400">
+              Provide phrases to match against the status column. Matching is case-insensitive.
+            </p>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button type="button" variant="outline" size="sm">
+                Advanced
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Advanced status matching</DialogTitle>
+                <DialogDescription>
+                  Provide a regular expression to match statuses. Leave empty to use only the list
+                  below.
+                </DialogDescription>
+              </DialogHeader>
+              <input
+                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                value={regexDraft}
+                onChange={(event) => setRegexDraft(event.target.value)}
+              />
+              {regexError ? <AlertDescription className="text-red-400">{regexError}</AlertDescription> : null}
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    if (regexError) return;
+                    onChangeRules({ ...rules, statusRegex: regexDraft });
+                  }}
+                >
+                  Save
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <textarea
+          className="mt-3 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+          rows={3}
+          value={rules.statusMatchers.join(', ')}
+          onChange={(event) =>
+            onChangeRules({
+              ...rules,
+              statusMatchers: event.target.value
+                .split(',')
+                .map((item) => item.trim())
+                .filter(Boolean)
+            })
+          }
+        />
+      </div>
+
+      <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+        <p className="text-sm font-semibold text-slate-100">Filters</p>
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <div className="space-y-2">
+            <Select value={newMethod} onValueChange={(value) => setNewMethod(value)}>
+              <SelectTrigger aria-label="Filter by method">
+                <SelectValue placeholder="Select method" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableMethods.map((method) => (
+                  <SelectItem key={method} value={method}>
+                    {method}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button type="button" variant="secondary" size="sm" onClick={() => addFilter('methods', newMethod)}>
+              Add method filter
+            </Button>
+            <div className="flex flex-wrap gap-2">
+              {filters.methods.map((method) => (
+                <Badge key={method} className="cursor-pointer" onClick={() => removeFilter('methods', method)}>
+                  {method} ×
+                </Badge>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Select value={newProduct} onValueChange={(value) => setNewProduct(value)}>
+              <SelectTrigger aria-label="Filter by product">
+                <SelectValue placeholder="Select product" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableProducts.map((product) => (
+                  <SelectItem key={product} value={product}>
+                    {product}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button type="button" variant="secondary" size="sm" onClick={() => addFilter('products', newProduct)}>
+              Add product filter
+            </Button>
+            <div className="flex flex-wrap gap-2">
+              {filters.products.map((product) => (
+                <Badge key={product} className="cursor-pointer" onClick={() => removeFilter('products', product)}>
+                  {product} ×
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div>
+            <label className="text-xs text-slate-400">Start month</label>
+            <Select
+              value={filters.monthRange[0] ?? ''}
+              onValueChange={(value) => onChangeFilters({ ...filters, monthRange: [value || null, filters.monthRange[1]] })}
+            >
+              <SelectTrigger aria-label="Start month">
+                <SelectValue placeholder="Start month" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">None</SelectItem>
+                {availableMonths.map((month) => (
+                  <SelectItem key={month} value={month}>
+                    {month}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-slate-400">End month</label>
+            <Select
+              value={filters.monthRange[1] ?? ''}
+              onValueChange={(value) => onChangeFilters({ ...filters, monthRange: [filters.monthRange[0], value || null] })}
+            >
+              <SelectTrigger aria-label="End month">
+                <SelectValue placeholder="End month" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">None</SelectItem>
+                {availableMonths.map((month) => (
+                  <SelectItem key={month} value={month}>
+                    {month}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={clearFilters}>
+            Clear all filters
+          </Button>
+          {filters.methods.length || filters.products.length || filters.monthRange[0] || filters.monthRange[1] ? (
+            <span className="text-xs text-slate-400">Filters applied</span>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
