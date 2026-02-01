@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sample Turnover & SLA Dashboard (Single File)</title>
+
+  <style>
+    :root{
+      --card:#111827;
+      --muted:#94a3b8;
+      --text:#e5e7eb;
+      --bad:#ef4444;
+      --ok:#22c55e;
+      --panel:#0f172a;
+      --border:rgba(148,163,184,.18);
+      --border2:rgba(148,163,184,.12);
+    }
+
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    body{margin:0;background:linear-gradient(180deg,#070a10,#0b0f17 30%,#0b0f17);color:var(--text)}
+    header{padding:24px 16px;max-width:1200px;margin:0 auto;display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+    h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.2px}
+    .sub{color:var(--muted);font-size:13px;margin-top:6px;max-width:820px}
+
+    main{max-width:1200px;margin:0 auto;padding:0 16px 40px}
+
+    /* BUGFIX: increase gap so shadows don't overlap neighboring panels */
+    .grid{display:grid;grid-template-columns:1fr;gap:22px}
+    @media(min-width:980px){.grid{grid-template-columns:420px 1fr}}
+
+    /* BUGFIX: reduce shadow radius (the old one visibly darkened neighbors) */
+    .card{
+      background:rgba(17,24,39,.92);
+      border:1px solid rgba(148,163,184,.12);
+      border-radius:18px;
+      padding:14px 14px 12px;
+      box-shadow:0 10px 20px rgba(0,0,0,.22);
+      min-width:0; /* helps grid children not force overflow */
+    }
+
+    .card h2{margin:0 0 10px;font-size:14px;font-weight:700;color:#f3f4f6}
+
+    .row{display:grid;grid-template-columns:1fr;gap:10px}
+
+    /* BUGFIX: row2 should stack on small screens */
+    .row2{display:grid;grid-template-columns:1fr;gap:10px}
+    @media(min-width:640px){.row2{grid-template-columns:1fr 1fr}}
+
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+
+    /* BUGFIX: don't apply full-width "input" styling to button */
+    input,select,textarea{
+      width:100%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--panel);
+      color:var(--text);
+      outline:none;
+      min-width:0;
+    }
+    textarea{min-height:84px;resize:vertical}
+
+    /* Optional: visible focus without changing your theme */
+    input:focus,select:focus,textarea:focus,button:focus{
+      border-color:rgba(96,165,250,.45);
+      box-shadow:0 0 0 3px rgba(96,165,250,.18);
+    }
+
+    /* BUGFIX: checkbox should not inherit input padding/background */
+    input[type="checkbox"]{
+      width:auto;
+      padding:0;
+      border:none;
+      background:transparent;
+      border-radius:0;
+      accent-color:#22c55e;
+      transform:translateY(1px);
+    }
+
+    /* BUGFIX: file input needs special handling + themed button */
+    input[type="file"]{
+      padding:8px 10px;
+      line-height:1.2;
+    }
+    input[type="file"]::file-selector-button{
+      border:none;
+      border-radius:10px;
+      padding:8px 10px;
+      margin-right:10px;
+      cursor:pointer;
+      background:#1f2937;
+      color:var(--text);
+      border:1px solid rgba(148,163,184,.20);
+    }
+    input[type="file"]::file-selector-button:hover{
+      background:#243244;
+    }
+
+    .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .inline .pill{
+      padding:8px 10px;border-radius:999px;
+      background:rgba(148,163,184,.10);
+      border:1px solid rgba(148,163,184,.12);
+      font-size:12px;color:var(--muted)
+    }
+
+    /* BUGFIX: buttons shouldn’t be forced to width:100% in .inline rows */
+    button{
+      width:auto;
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      background:linear-gradient(90deg,#16a34a,#22c55e);
+      border:none;
+      color:#052e14;
+      font-weight:800;
+      flex:0 0 auto;
+    }
+    button.secondary{
+      background:var(--panel);
+      border:1px solid var(--border);
+      color:var(--text);
+      font-weight:700
+    }
+    button:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+
+    .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    @media(min-width:640px){.kpis{grid-template-columns:repeat(4,1fr)}}
+    .kpi{padding:12px;border-radius:16px;background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.12)}
+    .kpi .v{font-size:18px;font-weight:800}
+    .kpi .l{font-size:12px;color:var(--muted);margin-top:4px}
+
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+    .tab{padding:8px 10px;border-radius:999px;background:var(--panel);border:1px solid var(--border);font-size:12px;color:var(--text);cursor:pointer}
+    .tab.active{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.35)}
+
+    /* BUGFIX: avoid overflow:hidden on table; let scroll containers scroll naturally */
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      border-radius:14px;
+      border:1px solid var(--border2);
+    }
+    thead th{background:var(--panel);color:#cbd5e1;font-size:12px;text-align:left;padding:10px;border-bottom:1px solid var(--border2)}
+    tbody td{padding:9px 10px;border-bottom:1px solid rgba(148,163,184,.08);font-size:12px;color:#e5e7eb}
+    tbody tr:last-child td{border-bottom:none}
+
+    .small{font-size:12px;color:var(--muted)}
+    .warn{padding:10px 12px;border-radius:14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.18);color:#fecaca;font-size:12px;white-space:pre-wrap}
+    .note{padding:10px 12px;border-radius:14px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.18);color:#dbeafe;font-size:12px;white-space:pre-wrap}
+
+    canvas{max-height:340px}
+
+    .footer{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .linklike{color:#93c5fd;text-decoration:underline;cursor:pointer}
+
+    /* BUGFIX: make preview not “double bordered” and keep rounding */
+    .preview{
+      max-height:160px;
+      overflow:auto;
+      border-radius:14px;
+      border:1px solid rgba(148,163,184,.12);
+      background:rgba(15,23,42,.55);
+    }
+    .preview table{
+      border:none;
+      border-radius:0;
+    }
+
+    .badge-ok{color:var(--ok);font-weight:800}
+    .badge-bad{color:var(--bad);font-weight:800}
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Sample Turnover & SLA Dashboard</h1>
+      <div class="sub">
+        Your diagnostics show the app is reading a <b>metadata sheet</b> (keys like CatalogNickname/EnvironmentKey), not the raw sample table.
+        Use the <b>Sheet</b> dropdown and adjust <b>Header row</b> until the preview shows headers like <i>order_date</i>, <i>shipping_date</i>, etc.
+      </div>
+    </div>
+    <div class="inline">
+      <div class="pill">Single file</div>
+      <div class="pill">No server</div>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <h2>1) Load data</h2>
+      <div class="row">
+        <div>
+          <label>Excel file (.xlsx)</label>
+          <input id="file" type="file" accept=".xlsx,.xls" />
+        </div>
+
+        <div class="row2">
+          <div>
+            <label>Sheet</label>
+            <select id="sheetSelect" disabled><option value="">Load a file…</option></select>
+          </div>
+          <div>
+            <label>Header row (1-based)</label>
+            <input id="headerRow" type="number" min="1" step="1" value="1" />
+            <div class="small">Auto-detected after loading; change if needed.</div>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label>Shipped status filter</label>
+            <select id="statusMode">
+              <option value="te">Only “Shipped out from TE”</option>
+              <option value="anyshipped">Any status containing “shipped”</option>
+            </select>
+          </div>
+          <div>
+            <label>Header detection</label>
+            <div class="small">Result: <span id="hdrBadge" class="badge-bad">not run</span></div>
+          </div>
+        </div>
+
+        <div>
+          <label>Preview (header row + next 7 rows)</label>
+          <div class="preview"><table id="previewTable"></table></div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:14px">2) Business rules</h2>
+      <div class="row">
+        <div class="row2">
+          <div>
+            <label>SLA due date basis</label>
+            <select id="dueRule">
+              <option value="max">Real due date = max(required_date_of_arrival, order_date + min lead)</option>
+              <option value="required">Use required_date_of_arrival as-is (even if impossible)</option>
+            </select>
+          </div>
+          <div>
+            <label>China exclusion</label>
+            <div class="inline">
+              <input id="excludeChina" type="checkbox" checked />
+              <span class="small">Exclude rows that look China-related</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label>Minimum lead-times (days) — editable mapping</label>
+          <textarea id="leadMap" spellcheck="false">duvet=30
+pillow=14
+pillow pair=14</textarea>
+          <div class="small">Case-insensitive; matches if the product name contains the key.</div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label>Default minimum lead (days) for other products</label>
+            <input id="defaultLead" type="number" min="0" step="1" value="30" />
+          </div>
+          <div>
+            <label>SLA definition</label>
+            <input value="Ship-by due (shipping_date ≤ RealDueDate)" disabled />
+          </div>
+        </div>
+
+        <div class="inline">
+          <button id="run" disabled>Calculate</button>
+          <button id="download" class="secondary" disabled>Download filtered CSV</button>
+          <button id="copy" class="secondary" disabled>Copy monthly table</button>
+        </div>
+        <div id="msg" class="note" style="display:none"></div>
+        <div id="warn" class="warn" style="display:none"></div>
+      </div>
+
+      <h2 style="margin-top:14px">3) Filters</h2>
+      <div class="row">
+        <div class="row2">
+          <div>
+            <label>Product type</label>
+            <select id="productFilter"><option value="__all__">All</option></select>
+          </div>
+          <div>
+            <label>Shipping method</label>
+            <select id="methodFilter"><option value="__all__">All</option></select>
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label>Start month</label>
+            <input id="startMonth" type="month" />
+          </div>
+          <div>
+            <label>End month</label>
+            <input id="endMonth" type="month" />
+          </div>
+        </div>
+        <div class="small">Months are based on <b>shipping_date</b>.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="tabs">
+        <div class="tab active" data-tab="summary">Summary</div>
+        <div class="tab" data-tab="monthly">Monthly table</div>
+        <div class="tab" data-tab="quality">Data quality</div>
+      </div>
+
+      <div id="tab-summary">
+        <div class="kpis" id="kpis"></div>
+        <div style="height:12px"></div>
+        <canvas id="chart"></canvas>
+        <div class="footer">
+          <div class="small" id="meta"></div>
+          <div class="small"><span class="linklike" id="reset">Reset filters</span></div>
+        </div>
+      </div>
+
+      <div id="tab-monthly" style="display:none">
+        <div class="small" style="margin-bottom:8px">Avg turnover and ship-by SLA rate per month and product.</div>
+        <div style="overflow:auto">
+          <table id="monthlyTable"></table>
+        </div>
+      </div>
+
+      <div id="tab-quality" style="display:none">
+        <div class="small" style="margin-bottom:8px">Checks to spot missing/odd dates and why rows get filtered out.</div>
+        <div style="overflow:auto">
+          <table id="qualityTable"></table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+  /* --- JS unchanged from your original --- */
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n, d=1) => (Number.isFinite(n) ? n.toFixed(d) : '—');
+  const pct = (n) => (Number.isFinite(n) ? (n*100).toFixed(1) + '%' : '—');
+
+  function safeLower(x){ return (x==null?'':String(x)).toLowerCase(); }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function normalizeHeaderCell(x){
+    return safeLower(x)
+      .replace(/\s+/g,'_')
+      .replace(/[^a-z0-9_]/g,'')
+      .replace(/_+/g,'_')
+      .replace(/^_+|_+$/g,'');
+  }
+
+  function getField(row, needles){
+    for(const n of needles){ if(row[n] !== undefined) return row[n]; }
+    const keys = Object.keys(row);
+    for(const n of needles){
+      const nl = String(n).toLowerCase();
+      const exact = keys.find(k => String(k).toLowerCase() === nl);
+      if(exact) return row[exact];
+    }
+    for(const n of needles){
+      const nl = String(n).toLowerCase();
+      const partial = keys.find(k => String(k).toLowerCase().includes(nl));
+      if(partial) return row[partial];
+    }
+    return undefined;
+  }
+
+  function parseExcelDate(v){
+    if(v == null || v === '') return null;
+    if(v instanceof Date && !isNaN(v)) return v;
+    if(typeof v === 'number'){
+      const utc_days = Math.floor(v - 25569);
+      const date = new Date(utc_days * 86400 * 1000);
+      return isNaN(date) ? null : date;
+    }
+    if(typeof v === 'string'){
+      const s = v.trim();
+      const d = new Date(s);
+      if(!isNaN(d)) return d;
+      const m = s.match(/^([0-3]?\d)[.\-/]([01]?\d)[.\-/](\d{4})$/);
+      if(m){
+        const dd = Number(m[1]), mm = Number(m[2])-1, yy = Number(m[3]);
+        const dd2 = new Date(yy,mm,dd);
+        return isNaN(dd2) ? null : dd2;
+      }
+    }
+    return null;
+  }
+
+  function monthKey(d){
+    if(!d) return null;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+
+  function daysBetween(a,b){
+    if(!a || !b) return null;
+    return (b.getTime() - a.getTime()) / (1000*60*60*24);
+  }
+
+  function leadMapFromText(txt){
+    const map = [];
+    (txt||'').split(/\r?\n/).forEach(line=>{
+      const t = line.trim();
+      if(!t || t.startsWith('#')) return;
+      const m = t.match(/^(.+?)\s*=\s*(\d+(?:\.\d+)?)\s*$/);
+      if(m) map.push({key:m[1].trim().toLowerCase(), days:Number(m[2])});
+    });
+    map.sort((a,b)=>b.key.length-a.key.length);
+    return map;
+  }
+
+  function minLeadDays(product, map, defDays){
+    const p = safeLower(product);
+    for(const it of map){ if(p.includes(it.key)) return it.days; }
+    return defDays;
+  }
+
+  function looksChinaRelated(row){
+    const fields = [
+      getField(row, ['Column1.country','country']),
+      getField(row, ['Column1.current_status','current_status']),
+      getField(row, ['Column1.shipping_method','shipping_method']),
+      getField(row, ['Column1.china_required','china_required']),
+      getField(row, ['Column1.china_arrival_date','china_arrival_date'])
+    ].map(safeLower).join(' | ');
+
+    if(fields.includes('china')) return true;
+    if(/\bcn\b/.test(fields)) return true;
+    if(/\bchinese\b/.test(fields)) return true;
+    const cr = safeLower(getField(row, ['Column1.china_required','china_required']));
+    if(cr.includes('yes')) return true;
+    const cad = getField(row, ['Column1.china_arrival_date','china_arrival_date']);
+    if(cad) return true;
+    return false;
+  }
+
+  function groupBy(arr, keyFn){
+    const m = new Map();
+    for(const x of arr){
+      const k = keyFn(x);
+      if(k==null) continue;
+      if(!m.has(k)) m.set(k, []);
+      m.get(k).push(x);
+    }
+    return m;
+  }
+
+  function quantile(sorted, q){
+    if(sorted.length===0) return null;
+    const pos=(sorted.length-1)*q;
+    const base=Math.floor(pos);
+    const rest=pos-base;
+    if(sorted[base+1]==null) return sorted[base];
+    return sorted[base] + rest*(sorted[base+1]-sorted[base]);
+  }
+
+  function showMsg(text){
+    const el = $('msg');
+    if(!text){ el.style.display='none'; el.textContent=''; return; }
+    el.style.display='block';
+    el.textContent=text;
+  }
+
+  function showWarn(text){
+    const el = $('warn');
+    if(!text){ el.style.display='none'; el.textContent=''; return; }
+    el.style.display='block';
+    el.textContent=text;
+  }
+
+  function setHdrBadge(ok, text){
+    const b = $('hdrBadge');
+    b.className = ok ? 'badge-ok' : 'badge-bad';
+    b.textContent = text;
+  }
+
+  let wb = null;
+  let rawRows = [];
+  let enriched = [];
+  let filtered = [];
+  let chart = null;
+
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      const tab=t.dataset.tab;
+      $('tab-summary').style.display = tab==='summary'?'block':'none';
+      $('tab-monthly').style.display = tab==='monthly'?'block':'none';
+      $('tab-quality').style.display = tab==='quality'?'block':'none';
+    });
+  });
+
+  $('reset').addEventListener('click', ()=>{
+    $('productFilter').value='__all__';
+    $('methodFilter').value='__all__';
+    $('startMonth').value='';
+    $('endMonth').value='';
+    if(enriched.length) applyFiltersAndRender();
+  });
+
+  $('file').addEventListener('change', async (e)=>{
+    const f = e.target.files?.[0];
+    if(!f) return;
+    try{
+      const data = await f.arrayBuffer();
+      wb = XLSX.read(data, {type:'array'});
+      const sel = $('sheetSelect');
+      sel.innerHTML = wb.SheetNames.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+      sel.disabled = false;
+      sel.value = wb.SheetNames[0];
+      await loadSelectedSheet(false);
+      $('run').disabled = rawRows.length===0;
+      showMsg(`Loaded workbook. Sheets: ${wb.SheetNames.length}. Rows detected: ${rawRows.length.toLocaleString()}.`);
+      showWarn('');
+    }catch(err){
+      showWarn(String(err.message||err));
+      showMsg('');
+      $('run').disabled = true;
+    }
+  });
+
+  $('sheetSelect').addEventListener('change', ()=>loadSelectedSheet(false));
+  $('headerRow').addEventListener('change', ()=>loadSelectedSheet(true));
+
+  async function loadSelectedSheet(manualHeader){
+    if(!wb) return;
+    const sheetName = $('sheetSelect').value;
+    const sheet = wb.Sheets[sheetName];
+    if(!sheet){ showWarn('Sheet not found.'); return; }
+
+    const aoa = XLSX.utils.sheet_to_json(sheet, {header:1, defval:''});
+
+    let headerIndex = Math.max(0, (Number($('headerRow').value||1)-1));
+
+    if(!manualHeader){
+      const requiredTokens = ['order_date','shipping_date','required_date_of_arrival','shipping_method','current_status','product','country'];
+      let best = {idx:0, score:-1};
+      for(let i=0;i<Math.min(aoa.length, 100);i++){
+        const row = aoa[i] || [];
+        const norm = row.map(normalizeHeaderCell);
+        let score = 0;
+        for(const t of requiredTokens){
+          if(norm.includes(t) || norm.some(x=>x.includes(t))) score++;
+        }
+        score += Math.min(5, norm.filter(Boolean).length/10);
+        if(score > best.score){ best = {idx:i, score}; }
+      }
+      headerIndex = best.idx;
+      $('headerRow').value = String(headerIndex+1);
+      setHdrBadge(best.score >= 3, best.score >= 3 ? `auto: row ${headerIndex+1}` : `weak match (row ${headerIndex+1})`);
+    } else {
+      setHdrBadge(true, `manual: row ${headerIndex+1}`);
+    }
+
+    rawRows = XLSX.utils.sheet_to_json(sheet, {range: headerIndex, defval:''});
+    renderPreview(aoa, headerIndex);
+
+    const keys = rawRows[0] ? Object.keys(rawRows[0]) : [];
+    if(rawRows.length <= 3 && keys.length <= 8){
+      showWarn(
+        `This sheet looks like it may NOT be the raw sample table (very small).\n\n`+
+        `Try another sheet from the Sheet dropdown.\n`+
+        `You want a table where the header row contains columns like order_date / shipping_date / required_date_of_arrival / shipping_method / current_status.\n\n`+
+        `First-row keys: ${keys.slice(0,30).join(', ')}`
+      );
+    } else {
+      showWarn('');
+    }
+
+    $('run').disabled = rawRows.length===0;
+  }
+
+  function renderPreview(aoa, headerIndex){
+    const slice = aoa.slice(headerIndex, headerIndex+8);
+    const header = (slice[0]||[]).map(x=>String(x||''));
+    const rows = slice.slice(1);
+
+    const cols = Math.max(1, Math.min(12, header.length || (rows[0]?.length||12)));
+    const thead = `<thead><tr>${Array.from({length:cols}).map((_,i)=>`<th>${escapeHtml(header[i] ?? '')}</th>`).join('')}</tr></thead>`;
+    const tbody = `<tbody>${rows.map(r=>`<tr>${Array.from({length:cols}).map((_,i)=>`<td>${escapeHtml(r?.[i] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody>`;
+    $('previewTable').innerHTML = thead + tbody;
+  }
+
+  $('run').addEventListener('click', ()=>calculate());
+  $('productFilter').addEventListener('change', ()=>applyFiltersAndRender());
+  $('methodFilter').addEventListener('change', ()=>applyFiltersAndRender());
+  $('startMonth').addEventListener('change', ()=>applyFiltersAndRender());
+  $('endMonth').addEventListener('change', ()=>applyFiltersAndRender());
+  $('download').addEventListener('click', ()=>downloadCSV());
+  $('copy').addEventListener('click', ()=>copyMonthly());
+
+  function calculate(){
+    if(!rawRows.length){ showWarn('No rows found on the selected sheet.'); return; }
+
+    const leadMap = leadMapFromText($('leadMap').value);
+    const defLead = Number($('defaultLead').value||0);
+    const dueRule = $('dueRule').value;
+    const excludeChina = $('excludeChina').checked;
+    const statusMode = $('statusMode').value;
+
+    let c_hasStatus=0, c_matchStatus=0, c_hasShipDate=0, c_isChina=0;
+
+    enriched = rawRows.map(r=>{
+      const product = getField(r, ['Column1.product','product']) || '';
+      const method = getField(r, ['Column1.shipping_method','shipping_method']) || '';
+
+      const orderDate = parseExcelDate(getField(r, ['Column1.order_date','order_date']));
+      const reqDate = parseExcelDate(getField(r, ['Column1.required_date_of_arrival','required_date_of_arrival']));
+      const shipDate = parseExcelDate(getField(r, ['Column1.shipping_date','shipping_date']));
+
+      const stRaw = getField(r, ['Column1.current_status','current_status']);
+      const st = safeLower(stRaw);
+      if(stRaw !== undefined && stRaw !== '') c_hasStatus++;
+      if(shipDate) c_hasShipDate++;
+
+      const statusMatch = (statusMode==='te') ? st.includes('shipped out from te') : st.includes('shipped');
+      if(statusMatch) c_matchStatus++;
+
+      const shipped = !!(shipDate && statusMatch);
+
+      const china = looksChinaRelated(r);
+      if(china) c_isChina++;
+
+      const minLead = minLeadDays(product, leadMap, defLead);
+      const minLeadDue = orderDate ? new Date(orderDate.getTime() + minLead*86400000) : null;
+
+      let realDue = reqDate;
+      if(dueRule === 'max'){
+        if(!realDue) realDue = minLeadDue;
+        else if(minLeadDue && realDue < minLeadDue) realDue = minLeadDue;
+      }
+
+      const turnover = (orderDate && shipDate) ? daysBetween(orderDate, shipDate) : null;
+      const invalidDates = (orderDate && shipDate) ? (shipDate < orderDate) : false;
+      const slaShip = (shipDate && realDue) ? (shipDate <= realDue) : null;
+
+      return {
+        ...r,
+        Product_clean: String(product||'').trim(),
+        ShipMethod_clean: String(method||'').trim(),
+        OrderDate: orderDate,
+        RequiredDate: reqDate,
+        ShipDate: shipDate,
+        ShipMonth: shipDate ? monthKey(shipDate) : null,
+        IsShipped: shipped,
+        IsChinaRelated: china,
+        MinLeadDays: minLead,
+        MinLeadDueDate: minLeadDue,
+        RealDueDate: realDue,
+        TurnoverDays: turnover,
+        InvalidDateFlag: invalidDates,
+        SLA_ship_by_due: slaShip,
+      };
+    });
+
+    const products = Array.from(new Set(enriched.map(x=>x.Product_clean).filter(Boolean))).sort((a,b)=>a.localeCompare(b));
+    const methods  = Array.from(new Set(enriched.map(x=>x.ShipMethod_clean).filter(Boolean))).sort((a,b)=>a.localeCompare(b));
+    $('productFilter').innerHTML = '<option value="__all__">All</option>' + products.map(p=>`<option>${escapeHtml(p)}</option>`).join('');
+    $('methodFilter').innerHTML  = '<option value="__all__">All</option>' + methods.map(m=>`<option>${escapeHtml(m)}</option>`).join('');
+
+    let base = enriched.filter(x=>x.IsShipped && x.ShipDate);
+    const before = base.length;
+    if(excludeChina) base = base.filter(x=>!x.IsChinaRelated);
+    const excluded = before - base.length;
+
+    if(base.length === 0){
+      const sampleKeys = rawRows[0] ? Object.keys(rawRows[0]).slice(0,30) : [];
+      const sampleStatuses = enriched.map(x => String(getField(x, ['Column1.current_status','current_status'])||'')).filter(Boolean).slice(0,8);
+      showWarn(
+        `No rows passed the shipped filter.\n\nDiagnostics:\n- Rows loaded: ${rawRows.length}\n- Rows with any current_status value: ${c_hasStatus}\n- Rows where status matched shipped filter: ${c_matchStatus}\n- Rows with a shipping_date value: ${c_hasShipDate}\n- Rows detected as China-related: ${c_isChina}\n\nFirst-row keys (first 30):\n${sampleKeys.join(', ')}\n\nExample status values:\n${sampleStatuses.map(s=>'- '+s).join('\\n') || '(none)'}\n\nFix: pick another Sheet OR change Header row until preview shows real column names.`
+      );
+    } else {
+      showWarn('');
+    }
+
+    showMsg(`Calculated ${base.length.toLocaleString()} shipped rows${excludeChina ? ` (excluded ${excluded.toLocaleString()} China-related)` : ''}.`);
+
+    const months = Array.from(new Set(base.map(x=>x.ShipMonth).filter(Boolean))).sort();
+    if(months.length){
+      if(!$('startMonth').value) $('startMonth').value = months[0];
+      if(!$('endMonth').value) $('endMonth').value = months[months.length-1];
+    }
+
+    filtered = base;
+    applyFiltersAndRender();
+
+    $('download').disabled = false;
+    $('copy').disabled = false;
+  }
+
+  function applyFiltersAndRender(){
+    if(!enriched.length) return;
+
+    let base = enriched.filter(x=>x.IsShipped && x.ShipDate);
+    if($('excludeChina').checked) base = base.filter(x=>!x.IsChinaRelated);
+
+    const product = $('productFilter').value;
+    const method = $('methodFilter').value;
+    const startM = $('startMonth').value || null;
+    const endM = $('endMonth').value || null;
+
+    let arr = base;
+    if(product !== '__all__') arr = arr.filter(x=>x.Product_clean === product);
+    if(method !== '__all__') arr = arr.filter(x=>x.ShipMethod_clean === method);
+    if(startM) arr = arr.filter(x=>x.ShipMonth && x.ShipMonth >= startM);
+    if(endM) arr = arr.filter(x=>x.ShipMonth && x.ShipMonth <= endM);
+
+    filtered = arr;
+    renderAll();
+  }
+
+  function renderAll(){
+    renderKPIs();
+    renderChart();
+    renderMonthlyTable();
+    renderQualityTable();
+  }
+
+  function renderKPIs(){
+    const rows = filtered;
+    const turn = rows.map(x=>x.TurnoverDays).filter(v=>Number.isFinite(v)).sort((a,b)=>a-b);
+
+    const avg = turn.length ? (turn.reduce((a,b)=>a+b,0)/turn.length) : null;
+    const med = turn.length ? quantile(turn,0.5) : null;
+    const p90 = turn.length ? quantile(turn,0.9) : null;
+
+    const shipSLA = rows.map(x=>x.SLA_ship_by_due).filter(v=>v===true||v===false);
+    const shipRate = shipSLA.length ? shipSLA.filter(Boolean).length / shipSLA.length : null;
+
+    const kpis = [
+      {v: rows.length.toLocaleString(), l:'Shipped rows (filtered)'},
+      {v: fmt(avg,1), l:'Avg turnover (days)'},
+      {v: fmt(med,1), l:'Median turnover (days)'},
+      {v: fmt(p90,1), l:'P90 turnover (days)'},
+      {v: pct(shipRate), l:'SLA: ship-by due'},
+    ];
+
+    $('kpis').innerHTML = kpis.map(k=>`<div class="kpi"><div class="v">${k.v}</div><div class="l">${k.l}</div></div>`).join('');
+
+    $('meta').textContent =
+      `Rows: ${rows.length.toLocaleString()} • Due rule: ${$('dueRule').value==='max'?'max(required, min lead)':'required only'} • `+
+      `Status: ${$('statusMode').value==='te'?'Shipped out from TE':'Any shipped'} • China excluded: ${$('excludeChina').checked?'yes':'no'}`;
+  }
+
+  function renderChart(){
+    const rows = filtered;
+    const byMonth = groupBy(rows, x=>x.ShipMonth);
+    const months = Array.from(byMonth.keys()).sort();
+
+    const avgTurn = [];
+    const shipRate = [];
+
+    for(const m of months){
+      const r = byMonth.get(m);
+      const t = r.map(x=>x.TurnoverDays).filter(v=>Number.isFinite(v));
+      avgTurn.push(t.length ? (t.reduce((p,c)=>p+c,0)/t.length) : null);
+
+      const s = r.map(x=>x.SLA_ship_by_due).filter(v=>v===true||v===false);
+      shipRate.push(s.length ? (s.filter(Boolean).length/s.length) : null);
+    }
+
+    const ctx = $('chart');
+    if(chart) chart.destroy();
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [
+          { label: 'Avg Turnover (days)', data: avgTurn, yAxisID: 'y', tension: 0.25 },
+          { label: 'Ship-by SLA rate', data: shipRate, yAxisID: 'y1', tension: 0.25 }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins:{
+          legend:{labels:{color:'#e5e7eb'}},
+          tooltip:{callbacks:{
+            label:(ctx)=>{
+              const v = ctx.raw;
+              return ctx.dataset.yAxisID==='y1' ? `${ctx.dataset.label}: ${pct(v)}` : `${ctx.dataset.label}: ${fmt(v,1)}`;
+            }
+          }}
+        },
+        scales:{
+          x:{ticks:{color:'#cbd5e1'},grid:{color:'rgba(148,163,184,.10)'}},
+          y:{position:'left',ticks:{color:'#cbd5e1'},grid:{color:'rgba(148,163,184,.10)'}},
+          y1:{position:'right',min:0,max:1,ticks:{color:'#cbd5e1',callback:(v)=> (v*100)+'%'},grid:{drawOnChartArea:false}}
+        }
+      }
+    });
+  }
+
+  function renderMonthlyTable(){
+    const rows = filtered;
+    const by = new Map();
+    for(const r of rows){
+      const key = `${r.ShipMonth}|||${r.Product_clean}`;
+      if(!by.has(key)) by.set(key, []);
+      by.get(key).push(r);
+    }
+
+    const out = [];
+    for(const [k, arr] of by.entries()){
+      const parts = k.split('|||');
+      const m = parts[0];
+      const p = parts[1];
+      const t = arr.map(x=>x.TurnoverDays).filter(v=>Number.isFinite(v)).sort((a,b)=>a-b);
+      const avg = t.length ? t.reduce((a,b)=>a+b,0)/t.length : null;
+      const med = t.length ? quantile(t,0.5) : null;
+      const s = arr.map(x=>x.SLA_ship_by_due).filter(v=>v===true||v===false);
+      const shipRate = s.length ? s.filter(Boolean).length/s.length : null;
+      out.push({month:m, product:p, n:arr.length, avg, med, shipRate});
+    }
+
+    out.sort((a,b)=> a.month.localeCompare(b.month) || a.product.localeCompare(b.product));
+
+    $('monthlyTable').innerHTML = `
+      <thead><tr>
+        <th>Ship month</th><th>Product</th><th>Rows</th>
+        <th>Avg turnover (d)</th><th>Median (d)</th>
+        <th>Ship-by SLA</th>
+      </tr></thead>
+      <tbody>
+        ${out.map(r=>`
+          <tr>
+            <td>${r.month||''}</td>
+            <td>${escapeHtml(r.product||'')}</td>
+            <td>${r.n}</td>
+            <td>${fmt(r.avg,1)}</td>
+            <td>${fmt(r.med,1)}</td>
+            <td>${pct(r.shipRate)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    `;
+  }
+
+  function renderQualityTable(){
+    const rows = filtered;
+    const total = rows.length || 1;
+
+    const missingOrder = rows.filter(x=>!x.OrderDate).length;
+    const missingReq = rows.filter(x=>!x.RequiredDate).length;
+    const missingShip = rows.filter(x=>!x.ShipDate).length;
+    const invalid = rows.filter(x=>x.InvalidDateFlag).length;
+
+    $('qualityTable').innerHTML = `
+      <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Filtered rows (current)</td><td>${rows.length}</td></tr>
+        <tr><td>Missing order_date</td><td>${missingOrder} (${pct(missingOrder/total)})</td></tr>
+        <tr><td>Missing required_date_of_arrival</td><td>${missingReq} (${pct(missingReq/total)})</td></tr>
+        <tr><td>Missing shipping_date</td><td>${missingShip} (${pct(missingShip/total)})</td></tr>
+        <tr><td>shipping_date earlier than order_date</td><td>${invalid} (${pct(invalid/total)})</td></tr>
+      </tbody>
+    `;
+  }
+
+  function downloadCSV(){
+    const rows = filtered;
+    const cols = ['Product_clean','ShipMethod_clean','MinLeadDays','TurnoverDays','SLA_ship_by_due','ShipMonth'];
+    const lines = [cols.join(',')];
+    for(const r of rows){
+      lines.push(cols.map(c=>{
+        let v = r[c];
+        if(typeof v === 'boolean') v = v ? 1 : 0;
+        if(v == null) v = '';
+        const s = String(v);
+        return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+      }).join(','));
+    }
+    const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'turnover_sla_filtered.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function copyMonthly(){
+    const tbl = $('monthlyTable');
+    if(!tbl || !tbl.rows?.length) return;
+    const rows = Array.from(tbl.querySelectorAll('tr')).map(tr=>
+      Array.from(tr.children).map(td=>td.innerText.replace(/\s+/g,' ').trim()).join('\t')
+    );
+    navigator.clipboard.writeText(rows.join('\n'))
+      .then(()=>showMsg('Copied monthly table to clipboard (TSV).'))
+      .catch(()=>showWarn('Could not copy (clipboard permission blocked).'));
+  }
+</script>
+</body>
+</html>
