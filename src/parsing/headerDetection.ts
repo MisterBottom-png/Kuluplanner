@@ -1,20 +1,52 @@
-import { normalizeHeader } from './normalize';
+// Header-row detection ported from KPI.html.
+//
+// The KPI.html tool scans the first N rows and chooses the row with the best score,
+// where score is:
+// - +1 for each required token found (exact or partial match)
+// - +bonus for how "header-like" the row is (more non-empty cells)
 
-export function detectHeaderRow(rows: unknown[][], maxScan = 20) {
-  let best = { rowIndex: 0, confidence: 0 };
+function normalizeHeaderCell(x: unknown): string {
+  return String(x ?? '')
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
 
-  rows.slice(0, maxScan).forEach((row, index) => {
-    if (!Array.isArray(row)) return;
-    const normalized = row
-      .map((cell) => (typeof cell === 'string' ? normalizeHeader(cell) : ''))
-      .filter(Boolean);
-    const unique = new Set(normalized);
-    if (unique.size === 0) return;
-    const score = unique.size / Math.max(row.length, 1);
-    if (score > best.confidence) {
-      best = { rowIndex: index, confidence: Math.round(score * 100) / 100 };
+export function detectHeaderRow(rows: unknown[][], maxScan = 100) {
+  const requiredTokens = [
+    'order_date',
+    'shipping_date',
+    'required_date_of_arrival',
+    'shipping_method',
+    'current_status',
+    'product',
+    'country'
+  ];
+
+  let best = { rowIndex: 0, score: -Infinity };
+  const scan = Math.min(rows.length, Math.max(0, maxScan));
+
+  for (let i = 0; i < scan; i++) {
+    const row = rows[i];
+    if (!Array.isArray(row)) continue;
+
+    const norm = row.map(normalizeHeaderCell);
+    if (!norm.some(Boolean)) continue;
+
+    let score = 0;
+    for (const t of requiredTokens) {
+      if (norm.includes(t) || norm.some((x) => x.includes(t))) score += 1;
     }
-  });
 
-  return best;
+    score += Math.min(5, norm.filter(Boolean).length / 10);
+
+    if (score > best.score) best = { rowIndex: i, score };
+  }
+
+  const maxScore = requiredTokens.length + 5;
+  const confidence = best.score > 0 ? Math.min(1, Math.max(0, best.score / maxScore)) : 0;
+
+  return { rowIndex: best.rowIndex, confidence: Math.round(confidence * 100) / 100 };
 }

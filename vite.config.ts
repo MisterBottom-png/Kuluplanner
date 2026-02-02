@@ -1,18 +1,25 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import path from 'node:path';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { viteSingleFile } from "vite-plugin-singlefile";
+import path from "path";
 
 export default defineConfig({
-  base: './',
-  plugins: [react()],
+  plugins: [react(), viteSingleFile()],
+
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
-    }
+      "@": path.resolve(__dirname, "src"),
+    },
   },
-  test: {
-    environment: 'node',
-    globals: true,
-    include: ['src/tests/**/*.test.ts']
-  }
+
+  build: {
+    cssCodeSplit: false,
+    assetsInlineLimit: 100000000,
+    chunkSizeWarningLimit: 100000000,
+    rollupOptions: {
+      output: {
+        inlineDynamicImports: true,
+      },
+    },
+  },
 });

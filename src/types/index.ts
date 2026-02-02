@@ -96,3 +96,12 @@ export interface FiltersConfig {
   products: string[];
   monthRange: [string | null, string | null];
 }
+
+export interface Preset {
+  id: string;
+  name: string;
+  createdAt: string;
+  mapping: FieldMapping;
+  rules: RulesConfig;
+  filters: FiltersConfig;
+}

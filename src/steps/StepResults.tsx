@@ -1,10 +1,19 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MonthlyTable from '@/results/MonthlyTable';
 import RowTable from '@/results/RowTable';
+import ExcludedRowTable from '@/results/ExcludedRowTable';
 import type { CalculationResult } from '@/types';
 import {
   Bar,
@@ -21,13 +30,26 @@ import {
 
 interface StepResultsProps {
   calculation: CalculationResult | null;
+  onNavigate?: (stepIndex: number) => void;
 }
 
-export default function StepResults({ calculation }: StepResultsProps) {
+const PALETTE = {
+  parchment: '#edede9',
+  dust: '#d6ccc2',
+  linen: '#f5ebe0',
+  petal: '#e3d5ca',
+  almond: '#d5bdaf'
+};
+
+export default function StepResults({ calculation, onNavigate }: StepResultsProps) {
+  const [coverageOpen, setCoverageOpen] = useState(false);
+
   const kpis = useMemo(() => {
     if (!calculation) return null;
     const rows = calculation.rows;
-    const turnover = rows.map((row) => row.turnoverDays).filter((value): value is number => typeof value === 'number');
+    const turnover = rows
+      .map((row) => row.turnoverDays)
+      .filter((value): value is number => typeof value === 'number');
     const avgTurnover = turnover.length ? turnover.reduce((acc, value) => acc + value, 0) / turnover.length : null;
     const onTime = rows.filter((row) => row.isOnTime).length;
     const late = rows.filter((row) => row.isOnTime === false).length;
@@ -72,7 +94,9 @@ export default function StepResults({ calculation }: StepResultsProps) {
           status: item.row.status,
           method: item.row.method,
           product: item.row.product,
-          destinationCountry: item.row.destinationCountry
+          destinationCountry: item.row.destinationCountry,
+          orderId: item.row.orderId ?? '',
+          customer: item.row.customer ?? ''
         }))
       );
       XLSX.utils.book_append_sheet(workbook, excludedSheet, 'excluded_rows');
@@ -95,18 +119,16 @@ export default function StepResults({ calculation }: StepResultsProps) {
     await navigator.clipboard.writeText(csv);
   };
 
-  const coverageWarning =
-    calculation.quality.rawRows &&
-    calculation.quality.includedRows / calculation.quality.rawRows < 0.6
-      ? 'Coverage warning: fewer than 60% of raw rows were included.'
-      : '';
+  const coverageRatio = calculation.quality.rawRows ? calculation.quality.includedRows / calculation.quality.rawRows : 1;
+  const coverageWarning = calculation.quality.rawRows && coverageRatio < 0.6;
 
   return (
     <Tabs defaultValue="summary">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <TabsList>
           <TabsTrigger value="summary">Summary</TabsTrigger>
-          <TabsTrigger value="rows">Row-level</TabsTrigger>
+          <TabsTrigger value="rows">Included rows</TabsTrigger>
+          <TabsTrigger value="excluded">Excluded rows</TabsTrigger>
           <TabsTrigger value="quality">Quality</TabsTrigger>
         </TabsList>
         <div className="flex flex-wrap gap-2">
@@ -125,52 +147,98 @@ export default function StepResults({ calculation }: StepResultsProps) {
       <TabsContent value="summary" className="space-y-6">
         {coverageWarning ? (
           <Alert>
-            <AlertDescription>{coverageWarning}</AlertDescription>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <AlertDescription>
+                Coverage warning: only {Math.round(coverageRatio * 100)}% of raw rows were included.
+              </AlertDescription>
+              <Dialog open={coverageOpen} onOpenChange={setCoverageOpen}>
+                <DialogTrigger asChild>
+                  <Button type="button" variant="outline" size="sm">Explain</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Why rows were excluded</DialogTitle>
+                    <DialogDescription>
+                      Most exclusions come from missing dates/status matches or filtered methods/products.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="overflow-hidden rounded-lg border border-border">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-card">
+                        <tr>
+                          <th className="px-3 py-2 text-muted-foreground">Reason</th>
+                          <th className="px-3 py-2 text-muted-foreground">Count</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {calculation.quality.exclusions.map((item) => (
+                          <tr key={item.reason} className="border-t border-border">
+                            <td className="px-3 py-2">{item.reason}</td>
+                            <td className="px-3 py-2">{item.count}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="secondary" onClick={() => { setCoverageOpen(false); onNavigate?.(4); }}>
+                      Review filters
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => { setCoverageOpen(false); onNavigate?.(3); }}>
+                      Review mapping
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </Alert>
         ) : null}
+
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-            <p className="text-xs text-slate-400">Shipped rows</p>
-            <p className="text-2xl font-semibold text-slate-100">{kpis?.shipped ?? 0}</p>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Shipped rows</p>
+            <p className="text-2xl font-semibold">{kpis?.shipped ?? 0}</p>
           </div>
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-            <p className="text-xs text-slate-400">Avg turnover (days)</p>
-            <p className="text-2xl font-semibold text-slate-100">{kpis?.avgTurnover}</p>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Avg turnover (days)</p>
+            <p className="text-2xl font-semibold">{kpis?.avgTurnover}</p>
           </div>
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-            <p className="text-xs text-slate-400">On-time rate</p>
-            <p className="text-2xl font-semibold text-slate-100">{kpis?.onTimeRate}</p>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">On-time rate</p>
+            <p className="text-2xl font-semibold">{kpis?.onTimeRate}</p>
           </div>
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-            <p className="text-xs text-slate-400">Late rate</p>
-            <p className="text-2xl font-semibold text-slate-100">{kpis?.lateRate}</p>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Late rate</p>
+            <p className="text-2xl font-semibold">{kpis?.lateRate}</p>
           </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-            <p className="mb-3 text-sm font-semibold text-slate-100">On-time vs late by month</p>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="mb-3 text-sm font-semibold">On-time vs late by month</p>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={calculation.monthly}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-                <XAxis dataKey="month" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
+                <CartesianGrid strokeDasharray="3 3" stroke={PALETTE.dust} />
+                <XAxis dataKey="month" stroke="#1f1e1c" />
+                <YAxis stroke="#1f1e1c" />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="onTime" fill="#22c55e" name="On-time" />
-                <Bar dataKey="late" fill="#ef4444" name="Late" />
+                <Bar dataKey="onTime" fill={PALETTE.almond} name="On-time" />
+                <Bar dataKey="late" fill={PALETTE.petal} name="Late" />
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-            <p className="mb-3 text-sm font-semibold text-slate-100">Average turnover by month</p>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="mb-3 text-sm font-semibold">Average turnover by month</p>
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={calculation.monthly}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-                <XAxis dataKey="month" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
+                <CartesianGrid strokeDasharray="3 3" stroke={PALETTE.dust} />
+                <XAxis dataKey="month" stroke="#1f1e1c" />
+                <YAxis stroke="#1f1e1c" />
                 <Tooltip />
-                <Line type="monotone" dataKey="averageTurnover" stroke="#38bdf8" strokeWidth={2} />
+                <Line type="monotone" dataKey="averageTurnover" stroke={PALETTE.almond} strokeWidth={3} dot={{ r: 2 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -183,27 +251,37 @@ export default function StepResults({ calculation }: StepResultsProps) {
         <RowTable data={calculation.rows} />
       </TabsContent>
 
+      <TabsContent value="excluded" className="space-y-4">
+        {calculation.excludedRows.length ? (
+          <ExcludedRowTable data={calculation.excludedRows} />
+        ) : (
+          <Alert>
+            <AlertDescription>No excluded rows recorded.</AlertDescription>
+          </Alert>
+        )}
+      </TabsContent>
+
       <TabsContent value="quality" className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-            <p className="text-xs text-slate-400">Raw rows</p>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Raw rows</p>
             <p className="text-2xl font-semibold">{calculation.quality.rawRows}</p>
           </div>
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-            <p className="text-xs text-slate-400">Valid rows</p>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Valid rows</p>
             <p className="text-2xl font-semibold">{calculation.quality.validRows}</p>
           </div>
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-            <p className="text-xs text-slate-400">Included rows</p>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Included rows</p>
             <p className="text-2xl font-semibold">{calculation.quality.includedRows}</p>
           </div>
         </div>
 
-        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-          <p className="mb-3 text-sm font-semibold text-slate-100">Exclusion reasons</p>
+        <div className="rounded-lg border border-border bg-card p-4">
+          <p className="mb-3 text-sm font-semibold">Exclusion reasons</p>
           {calculation.quality.exclusions.length ? (
             <table className="w-full text-left text-xs">
-              <thead className="text-slate-300">
+              <thead className="text-muted-foreground">
                 <tr>
                   <th className="px-2 py-1">Reason</th>
                   <th className="px-2 py-1">Count</th>
@@ -211,7 +289,7 @@ export default function StepResults({ calculation }: StepResultsProps) {
               </thead>
               <tbody>
                 {calculation.quality.exclusions.map((item) => (
-                  <tr key={item.reason} className="border-t border-slate-800">
+                  <tr key={item.reason} className="border-t border-border">
                     <td className="px-2 py-1">{item.reason}</td>
                     <td className="px-2 py-1">{item.count}</td>
                   </tr>
@@ -219,7 +297,7 @@ export default function StepResults({ calculation }: StepResultsProps) {
               </tbody>
             </table>
           ) : (
-            <p className="text-xs text-slate-400">No exclusions recorded.</p>
+            <p className="text-xs text-muted-foreground">No exclusions recorded.</p>
           )}
         </div>
       </TabsContent>

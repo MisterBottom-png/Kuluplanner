@@ -41,9 +41,9 @@ export default function MonthlyTable({ data }: MonthlyTableProps) {
   });
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-800">
+    <div className="overflow-hidden rounded-lg border border-border">
       <table className="w-full text-left text-xs">
-        <thead className="bg-slate-900 text-slate-300">
+        <thead className="bg-card text-muted-foreground">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -56,9 +56,9 @@ export default function MonthlyTable({ data }: MonthlyTableProps) {
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="border-t border-slate-800">
+            <tr key={row.id} className="border-t border-border">
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-3 py-2 text-slate-100">
+                <td key={cell.id} className="px-3 py-2">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}

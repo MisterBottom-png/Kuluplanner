@@ -2,33 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Warm neutral palette
+  - Parchment:    #edede9
+  - Dust Grey:    #d6ccc2
+  - Linen:        #f5ebe0
+  - Powder Petal: #e3d5ca
+  - Almond Silk:  #d5bdaf
+*/
 :root {
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
-  --card: 222 47% 11%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222 47% 11%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 142 71% 45%;
-  --primary-foreground: 144 100% 10%;
-  --secondary: 217 33% 17%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 215 25% 27%;
-  --muted-foreground: 215 20% 65%;
-  --accent: 210 34% 20%;
-  --accent-foreground: 210 40% 98%;
+  --background: 60 10% 92%;
+  --foreground: 40 5% 12%;
+
+  --card: 31 51% 92%;
+  --card-foreground: 40 5% 12%;
+
+  --popover: 31 51% 92%;
+  --popover-foreground: 40 5% 12%;
+
+  --primary: 22 31% 76%;
+  --primary-foreground: 40 5% 12%;
+
+  --secondary: 26 31% 84%;
+  --secondary-foreground: 40 5% 12%;
+
+  --muted: 30 20% 80%;
+  --muted-foreground: 40 5% 28%;
+
+  --accent: 30 20% 80%;
+  --accent-foreground: 40 5% 12%;
+
   --destructive: 0 72% 51%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 215 25% 25%;
-  --input: 215 25% 25%;
-  --ring: 215 20% 65%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 30 20% 75%;
+  --input: 30 20% 75%;
+  --ring: 22 31% 76%;
+
   --radius: 0.9rem;
 }
 
 body {
-  @apply bg-slate-950 text-slate-100;
+  @apply bg-background text-foreground antialiased;
 }
 
 *:focus-visible {
-  @apply outline-none ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-950;
+  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
 }

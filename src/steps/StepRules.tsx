@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -64,24 +64,27 @@ export default function StepRules({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3 text-xs text-slate-300">
-        <label className="flex items-center gap-2 text-sm">
+      <div className="rounded-lg border border-border bg-card p-3 text-sm">
+        <label className="flex items-center gap-2">
           <input
             type="checkbox"
-            className="h-4 w-4"
+            className="h-4 w-4 accent-[hsl(var(--primary))]"
             checked={rules.excludeChina}
             onChange={(event) => onChangeRules({ ...rules, excludeChina: event.target.checked })}
           />
           Exclude China shipments
         </label>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Useful for isolating EU/UK performance when China adds long lead times.
+        </p>
       </div>
 
-      <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
-        <div className="flex items-center justify-between">
+      <div className="rounded-lg border border-border bg-card p-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-slate-100">Shipped status matching</p>
-            <p className="text-xs text-slate-400">
-              Provide phrases to match against the status column. Matching is case-insensitive.
+            <p className="text-sm font-semibold">Shipped status matching</p>
+            <p className="text-xs text-muted-foreground">
+              Enter phrases to match against the status column (case-insensitive).
             </p>
           </div>
           <Dialog>
@@ -99,11 +102,13 @@ export default function StepRules({
                 </DialogDescription>
               </DialogHeader>
               <input
-                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                 value={regexDraft}
                 onChange={(event) => setRegexDraft(event.target.value)}
               />
-              {regexError ? <AlertDescription className="text-red-400">{regexError}</AlertDescription> : null}
+              {regexError ? (
+                <AlertDescription className="text-destructive">{regexError}</AlertDescription>
+              ) : null}
               <DialogFooter>
                 <Button
                   type="button"
@@ -120,7 +125,7 @@ export default function StepRules({
           </Dialog>
         </div>
         <textarea
-          className="mt-3 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+          className="mt-3 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
           rows={3}
           value={rules.statusMatchers.join(', ')}
           onChange={(event) =>
@@ -135,9 +140,20 @@ export default function StepRules({
         />
       </div>
 
-      <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
-        <p className="text-sm font-semibold text-slate-100">Filters</p>
-        <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <div className="rounded-lg border border-border bg-card p-3">
+        <div className="flex items-end justify-between gap-2">
+          <div>
+            <p className="text-sm font-semibold">Filters</p>
+            <p className="text-xs text-muted-foreground">
+              Narrow the dataset before calculating metrics.
+            </p>
+          </div>
+          <Button type="button" variant="outline" size="sm" onClick={clearFilters}>
+            Clear all
+          </Button>
+        </div>
+
+        <div className="mt-3 grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Select value={newMethod} onValueChange={(value) => setNewMethod(value)}>
               <SelectTrigger aria-label="Filter by method">
@@ -151,17 +167,27 @@ export default function StepRules({
                 ))}
               </SelectContent>
             </Select>
-            <Button type="button" variant="secondary" size="sm" onClick={() => addFilter('methods', newMethod)}>
-              Add method filter
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => addFilter('methods', newMethod)}
+            >
+              Add method
             </Button>
             <div className="flex flex-wrap gap-2">
               {filters.methods.map((method) => (
-                <Badge key={method} className="cursor-pointer" onClick={() => removeFilter('methods', method)}>
+                <Badge
+                  key={method}
+                  className="cursor-pointer hover:bg-muted/70"
+                  onClick={() => removeFilter('methods', method)}
+                >
                   {method} ×
                 </Badge>
               ))}
             </div>
           </div>
+
           <div className="space-y-2">
             <Select value={newProduct} onValueChange={(value) => setNewProduct(value)}>
               <SelectTrigger aria-label="Filter by product">
@@ -175,12 +201,21 @@ export default function StepRules({
                 ))}
               </SelectContent>
             </Select>
-            <Button type="button" variant="secondary" size="sm" onClick={() => addFilter('products', newProduct)}>
-              Add product filter
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => addFilter('products', newProduct)}
+            >
+              Add product
             </Button>
             <div className="flex flex-wrap gap-2">
               {filters.products.map((product) => (
-                <Badge key={product} className="cursor-pointer" onClick={() => removeFilter('products', product)}>
+                <Badge
+                  key={product}
+                  className="cursor-pointer hover:bg-muted/70"
+                  onClick={() => removeFilter('products', product)}
+                >
                   {product} ×
                 </Badge>
               ))}
@@ -188,18 +223,24 @@ export default function StepRules({
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <div>
-            <label className="text-xs text-slate-400">Start month</label>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground">Start month</label>
             <Select
               value={filters.monthRange[0] ?? ''}
-              onValueChange={(value) => onChangeFilters({ ...filters, monthRange: [value || null, filters.monthRange[1]] })}
+              onValueChange={(value) =>
+                onChangeFilters({
+                  ...filters,
+                  monthRange: [value === '__none__' ? null : value, filters.monthRange[1]]
+                })
+              }
             >
               <SelectTrigger aria-label="Start month">
                 <SelectValue placeholder="Start month" />
               </SelectTrigger>
+
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="__none__">None</SelectItem>
                 {availableMonths.map((month) => (
                   <SelectItem key={month} value={month}>
                     {month}
@@ -208,17 +249,23 @@ export default function StepRules({
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <label className="text-xs text-slate-400">End month</label>
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground">End month</label>
             <Select
               value={filters.monthRange[1] ?? ''}
-              onValueChange={(value) => onChangeFilters({ ...filters, monthRange: [filters.monthRange[0], value || null] })}
+              onValueChange={(value) =>
+                onChangeFilters({
+                  ...filters,
+                  monthRange: [filters.monthRange[0], value === '__none__' ? null : value]
+                })
+              }
             >
               <SelectTrigger aria-label="End month">
                 <SelectValue placeholder="End month" />
               </SelectTrigger>
+
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="__none__">None</SelectItem>
                 {availableMonths.map((month) => (
                   <SelectItem key={month} value={month}>
                     {month}
@@ -229,14 +276,11 @@ export default function StepRules({
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={clearFilters}>
-            Clear all filters
-          </Button>
-          {filters.methods.length || filters.products.length || filters.monthRange[0] || filters.monthRange[1] ? (
-            <span className="text-xs text-slate-400">Filters applied</span>
-          ) : null}
-        </div>
+        {filters.methods.length || filters.products.length || filters.monthRange[0] || filters.monthRange[1] ? (
+          <p className="mt-3 text-xs text-muted-foreground">Filters applied.</p>
+        ) : (
+          <p className="mt-3 text-xs text-muted-foreground">No filters applied.</p>
+        )}
       </div>
     </div>
   );

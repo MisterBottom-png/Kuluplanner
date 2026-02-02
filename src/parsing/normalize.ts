@@ -17,33 +17,60 @@ export function buildNormalizedHeaderMap(headers: string[]) {
   }, {});
 }
 
-export const FIELD_SYNONYMS: Record<string, string[]> = {
-  order_date: ['order date', 'order_date', 'orderdate', 'order_dt', 'order created'],
-  shipping_date: ['ship date', 'shipping date', 'shipping_date', 'shipped date', 'ship_dt'],
+// Mapping suggestion logic ported from KPI.html's getField() approach.
+// The goal is to "just work" with Column1.* style headers and common variants,
+// without requiring the user to manually map columns.
+
+function pickHeader(headers: string[], needles: string[]): string | null {
+  // Direct match
+  for (const n of needles) {
+    const direct = headers.find((h) => h === n);
+    if (direct) return direct;
+  }
+
+  // Case-insensitive exact match
+  for (const n of needles) {
+    const nl = String(n).toLowerCase();
+    const exact = headers.find((h) => String(h).toLowerCase() === nl);
+    if (exact) return exact;
+  }
+
+  // Partial match (needle contained in header)
+  for (const n of needles) {
+    const nl = String(n).toLowerCase();
+    const partial = headers.find((h) => String(h).toLowerCase().includes(nl));
+    if (partial) return partial;
+  }
+
+  return null;
+}
+
+const FIELD_NEEDLES: Record<string, string[]> = {
+  // Required
+  order_date: ['Column1.order_date', 'order_date', 'order date', 'orderdate', 'order_dt'],
+  shipping_date: ['Column1.shipping_date', 'shipping_date', 'shipping date', 'ship date', 'ship_dt'],
+  // KPI.html uses required_date_of_arrival; keep both naming styles.
   required_arrival_date: [
-    'required arrival date',
+    'Column1.required_date_of_arrival',
+    'required_date_of_arrival',
     'required_arrival_date',
-    'sla date',
-    'sla target date',
-    'delivery deadline'
+    'sla',
+    'sla date'
   ],
-  status: ['status', 'shipment status', 'order status'],
-  method: ['method', 'shipping method', 'ship method', 'service level'],
-  product: ['product', 'product group', 'sku', 'item', 'product_line'],
-  destination_country: ['destination country', 'country', 'ship country', 'destination'],
-  order_id: ['order id', 'order_id', 'order number', 'order no', 'order'],
-  customer: ['customer', 'customer name', 'client']
+  status: ['Column1.current_status', 'current_status', 'status', 'order status', 'shipment status'],
+  method: ['Column1.shipping_method', 'shipping_method', 'shipping method', 'method', 'ship method'],
+  product: ['Column1.product', 'product', 'sku', 'item'],
+  destination_country: ['Column1.country', 'country', 'destination_country', 'ship country', 'destination'],
+
+  // Optional
+  order_id: ['Column1.order_id', 'order_id', 'order id', 'order number', 'order no', 'order_no'],
+  customer: ['Column1.customer', 'customer', 'customer name', 'client']
 };
 
 export function suggestMapping(headers: string[]): Record<string, string | null> {
-  const normalizedMap = buildNormalizedHeaderMap(headers);
   const mapping: Record<string, string | null> = {};
-
-  Object.entries(FIELD_SYNONYMS).forEach(([field, synonyms]) => {
-    const normalizedSynonyms = synonyms.map((syn) => normalizeHeader(syn));
-    const match = normalizedSynonyms.find((syn) => normalizedMap[syn]);
-    mapping[field] = match ? normalizedMap[match] : null;
+  Object.entries(FIELD_NEEDLES).forEach(([field, needles]) => {
+    mapping[field] = pickHeader(headers, needles);
   });
-
   return mapping;
 }
