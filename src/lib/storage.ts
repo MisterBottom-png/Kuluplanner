@@ -44,7 +44,11 @@ export function loadFilters(): FiltersConfig | null {
       deliveryNotRequired:
         typeof parsed.deliveryNotRequired === 'boolean'
           ? parsed.deliveryNotRequired
-          : DEFAULT_FILTERS.deliveryNotRequired
+          : DEFAULT_FILTERS.deliveryNotRequired,
+      monthBasis:
+        parsed.monthBasis === 'shipped' || parsed.monthBasis === 'sla_due' || parsed.monthBasis === 'order'
+          ? parsed.monthBasis
+          : DEFAULT_FILTERS.monthBasis
     };
   } catch {
     return null;

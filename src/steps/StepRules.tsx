@@ -37,6 +37,7 @@ export default function StepRules({
   const [newMethod, setNewMethod] = useState('');
   const [newProduct, setNewProduct] = useState('');
   const [regexDraft, setRegexDraft] = useState(rules.statusRegex);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const regexError = useMemo(() => {
     if (!regexDraft) return '';
@@ -66,7 +67,8 @@ export default function StepRules({
       methods: [],
       products: [],
       monthRange: [null, null],
-      deliveryNotRequired: DEFAULT_FILTERS.deliveryNotRequired
+      deliveryNotRequired: DEFAULT_FILTERS.deliveryNotRequired,
+      monthBasis: DEFAULT_FILTERS.monthBasis
     });
   };
 
@@ -75,7 +77,8 @@ export default function StepRules({
       filters.products.length ||
       filters.monthRange[0] ||
       filters.monthRange[1] ||
-      !filters.deliveryNotRequired
+      !filters.deliveryNotRequired ||
+      filters.monthBasis !== DEFAULT_FILTERS.monthBasis
   );
   const isMethodAddDisabled = !newMethod || filters.methods.includes(newMethod);
   const isProductAddDisabled = !newProduct || filters.products.includes(newProduct);
@@ -191,7 +194,7 @@ export default function StepRules({
           <div className="space-y-2">
             <Select value={newMethod} onValueChange={(value) => setNewMethod(value)}>
               <SelectTrigger aria-label="Filter by method">
-                <SelectValue placeholder="Select method" />
+                <SelectValue className="truncate" placeholder="Select method" />
               </SelectTrigger>
               <SelectContent>
                 {availableMethods.map((method) => (
@@ -218,7 +221,7 @@ export default function StepRules({
               {filters.methods.map((method) => (
                 <Badge
                   key={method}
-                  className="cursor-pointer hover:bg-muted/70"
+                  className="max-w-full cursor-pointer truncate hover:bg-muted/70"
                   onClick={() => removeFilter('methods', method)}
                 >
                   {method} ×
@@ -230,7 +233,7 @@ export default function StepRules({
           <div className="space-y-2">
             <Select value={newProduct} onValueChange={(value) => setNewProduct(value)}>
               <SelectTrigger aria-label="Filter by product">
-                <SelectValue placeholder="Select product" />
+                <SelectValue className="truncate" placeholder="Select product" />
               </SelectTrigger>
               <SelectContent>
                 {availableProducts.map((product) => (
@@ -257,7 +260,7 @@ export default function StepRules({
               {filters.products.map((product) => (
                 <Badge
                   key={product}
-                  className="cursor-pointer hover:bg-muted/70"
+                  className="max-w-full cursor-pointer truncate hover:bg-muted/70"
                   onClick={() => removeFilter('products', product)}
                 >
                   {product} ×
@@ -280,7 +283,7 @@ export default function StepRules({
               }
             >
               <SelectTrigger aria-label="Start month">
-                <SelectValue placeholder="Start month" />
+                <SelectValue className="truncate" placeholder="Start month" />
               </SelectTrigger>
 
               <SelectContent>
@@ -305,7 +308,7 @@ export default function StepRules({
               }
             >
               <SelectTrigger aria-label="End month">
-                <SelectValue placeholder="End month" />
+                <SelectValue className="truncate" placeholder="End month" />
               </SelectTrigger>
 
               <SelectContent>
@@ -319,6 +322,42 @@ export default function StepRules({
             </Select>
           </div>
         </div>
+
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <span className="text-xs text-muted-foreground">Advanced filters</span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAdvancedFilters((prev) => !prev)}
+          >
+            {showAdvancedFilters ? 'Hide advanced' : 'Advanced'}
+          </Button>
+        </div>
+
+        {showAdvancedFilters ? (
+          <div className="mt-3 space-y-2">
+            <label className="text-xs text-muted-foreground">Month basis</label>
+            <Select
+              value={filters.monthBasis}
+              onValueChange={(value) =>
+                onChangeFilters({
+                  ...filters,
+                  monthBasis: value as FiltersConfig['monthBasis']
+                })
+              }
+            >
+              <SelectTrigger aria-label="Month basis">
+                <SelectValue className="truncate" placeholder="Shipped month" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="shipped">Shipped month</SelectItem>
+                <SelectItem value="sla_due">SLA due month</SelectItem>
+                <SelectItem value="order">Order month</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        ) : null}
 
         {hasFiltersApplied ? (
           <p className="mt-3 text-xs text-muted-foreground">Filters applied.</p>

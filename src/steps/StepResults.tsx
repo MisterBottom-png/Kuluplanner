@@ -15,7 +15,7 @@ import { exportResultsToPdf } from '@/exports/pdf';
 import MonthlyTable from '@/results/MonthlyTable';
 import RowTable from '@/results/RowTable';
 import ExcludedRowTable from '@/results/ExcludedRowTable';
-import type { CalculationResult } from '@/types';
+import type { CalculationResult, FiltersConfig } from '@/types';
 import {
   Bar,
   BarChart,
@@ -31,6 +31,7 @@ import {
 
 interface StepResultsProps {
   calculation: CalculationResult | null;
+  filters: FiltersConfig;
   onNavigate?: (stepIndex: number) => void;
 }
 
@@ -42,7 +43,7 @@ const PALETTE = {
   almond: '#d5bdaf'
 };
 
-export default function StepResults({ calculation, onNavigate }: StepResultsProps) {
+export default function StepResults({ calculation, filters, onNavigate }: StepResultsProps) {
   const [activeTab, setActiveTab] = useState('summary');
   const [coverageOpen, setCoverageOpen] = useState(false);
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
@@ -67,6 +68,30 @@ export default function StepResults({ calculation, onNavigate }: StepResultsProp
       lateRate: shipped ? `${Math.round((late / shipped) * 100)}%` : '—'
     };
   }, [calculation]);
+
+  const filtersSummary = useMemo(() => {
+    const products = filters.products;
+    const productLabel = products.length
+      ? `${products.length} selected — ${products
+          .slice(0, 5)
+          .join(', ')}${products.length > 5 ? ` +${products.length - 5} more` : ''}`
+      : 'All';
+    const monthBasisLabel =
+      filters.monthBasis === 'shipped'
+        ? 'Shipped'
+        : filters.monthBasis === 'sla_due'
+          ? 'SLA due'
+          : 'Order';
+    const months = calculation?.monthly.map((row) => row.month) ?? [];
+    const startMonth = filters.monthRange[0] ?? months[0] ?? '—';
+    const endMonth = filters.monthRange[1] ?? months[months.length - 1] ?? '—';
+    return {
+      productLabel,
+      monthBasisLabel,
+      monthRange: `${startMonth} → ${endMonth}`,
+      deliveryLabel: filters.deliveryNotRequired ? 'Included' : 'Excluded'
+    };
+  }, [filters, calculation]);
 
   if (!calculation) {
     return (
@@ -195,6 +220,26 @@ export default function StepResults({ calculation, onNavigate }: StepResultsProp
 
       <TabsContent value="summary" className="space-y-6">
         <div ref={resultsRef} className="space-y-6">
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="space-y-2 text-sm">
+                <p>
+                  <span className="font-semibold">Products:</span> {filtersSummary.productLabel}
+                </p>
+                <p>
+                  <span className="font-semibold">Months ({filtersSummary.monthBasisLabel}):</span>{' '}
+                  {filtersSummary.monthRange}
+                </p>
+                <p>
+                  <span className="font-semibold">Delivery not required:</span> {filtersSummary.deliveryLabel}
+                </p>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={() => onNavigate?.(4)}>
+                Edit filters
+              </Button>
+            </div>
+          </div>
+
           {coverageWarning ? (
             <Alert>
               <div className="flex flex-wrap items-start justify-between gap-3">

@@ -71,7 +71,7 @@ export default function ExcludedRowTable({ data }: ExcludedRowTableProps) {
         <div className="w-full sm:w-[280px]">
           <Select value={reason} onValueChange={setReason}>
             <SelectTrigger aria-label="Filter by exclusion reason">
-              <SelectValue placeholder="Filter by reason" />
+              <SelectValue className="truncate" placeholder="Filter by reason" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">All reasons</SelectItem>
