@@ -17,7 +17,7 @@ export const OPTIONAL_FIELDS: Array<{ key: FieldKey; label: string }> = [
 
 export const DEFAULT_RULES = {
   excludeChina: true,
-  statusMatchers: ['shipped', 'shipped out', 'delivered'],
+  statusMatchers: ['shipped', 'shipped out', 'delivered', 'sampling finished'],
   statusRegex: ''
 };
 
