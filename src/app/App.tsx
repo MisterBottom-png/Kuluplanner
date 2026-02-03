@@ -18,7 +18,7 @@ import { DEFAULT_FILTERS, DEFAULT_RULES, OPTIONAL_FIELDS, REQUIRED_FIELDS } from
 import { getSheetRows, readWorkbook } from '@/excel/workbook';
 import { detectHeaderRow } from '@/parsing/headerDetection';
 import { formatMonthKey, normalizeDateInput } from '@/parsing/date';
-import { mapRowsToObjects } from '@/parsing/rows';
+import { mapRowsToObjects, normalizeCellValue } from '@/parsing/rows';
 import { suggestMapping } from '@/parsing/normalize';
 import {
   addPreset,
@@ -145,9 +145,10 @@ export default function App() {
 
   const availableMethods = useMemo(() => {
     if (!parsed || !mapping.method) return [] as string[];
-    return Array.from(
-      new Set(parsed.rows.map((row) => String(row.raw[mapping.method!] ?? '').trim()).filter(Boolean))
-    ).sort();
+    const cleanedMethods = parsed.rows
+      .map((row) => normalizeCellValue(row.raw[mapping.method!] ?? ''))
+      .filter((value) => value !== '' && !/^\d+$/.test(value));
+    return Array.from(new Set(cleanedMethods)).sort();
   }, [parsed, mapping.method]);
 
   const availableProducts = useMemo(() => {
