@@ -94,7 +94,7 @@ export default function StepMapping({
               onValueChange={(value) => onChange({ ...mapping, [field.key]: value === '__none__' ? null : value })}
             >
               <SelectTrigger aria-label={`Mapping for ${field.label}`}>
-                <SelectValue placeholder="Select column" />
+                <SelectValue className="truncate" placeholder="Select column" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none__">No column</SelectItem>

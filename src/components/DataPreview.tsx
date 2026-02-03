@@ -34,18 +34,18 @@ export default function DataPreview({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 space-y-2">
       {caption ? <div className="text-xs font-semibold text-muted-foreground">{caption}</div> : null}
       <div className="overflow-hidden rounded-lg border border-border">
-        <div className="max-h-[420px] overflow-auto">
-          <table className="w-full text-left text-xs">
+        <div className="max-h-[420px] max-w-full overflow-auto">
+          <table className="w-full table-fixed text-left text-xs">
             <thead className="sticky top-0 bg-card">
               <tr>
                 {previewHeaders.map((header) => (
                   <th
                     key={header}
                     className={cn(
-                      'whitespace-nowrap border-b border-border px-3 py-2 font-semibold',
+                      'truncate border-b border-border px-3 py-2 font-semibold',
                       highlightSet.has(header) ? 'bg-muted/60' : ''
                     )}
                   >
@@ -53,7 +53,7 @@ export default function DataPreview({
                   </th>
                 ))}
                 {hiddenColumnCount ? (
-                  <th className="whitespace-nowrap border-b border-border px-3 py-2 text-muted-foreground">
+                  <th className="truncate border-b border-border px-3 py-2 text-muted-foreground">
                     +{hiddenColumnCount} more
                   </th>
                 ) : null}
@@ -66,7 +66,7 @@ export default function DataPreview({
                     <td
                       key={header}
                       className={cn(
-                        'whitespace-nowrap px-3 py-2 text-foreground',
+                        'truncate px-3 py-2 text-foreground',
                         highlightSet.has(header) ? 'bg-muted/40' : ''
                       )}
                       title={String(row.raw[header] ?? '')}

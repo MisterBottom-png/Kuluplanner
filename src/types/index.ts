@@ -91,11 +91,14 @@ export interface RulesConfig {
   statusRegex: string;
 }
 
+export type MonthBasis = 'shipped' | 'sla_due' | 'order';
+
 export interface FiltersConfig {
   methods: string[];
   products: string[];
   monthRange: [string | null, string | null];
   deliveryNotRequired: boolean;
+  monthBasis: MonthBasis;
 }
 
 export interface Preset {

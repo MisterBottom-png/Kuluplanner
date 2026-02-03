@@ -25,5 +25,6 @@ export const DEFAULT_FILTERS = {
   methods: [],
   products: [],
   monthRange: [null, null] as [string | null, string | null],
-  deliveryNotRequired: false
+  deliveryNotRequired: false,
+  monthBasis: 'shipped' as const
 };

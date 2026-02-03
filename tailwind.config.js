@@ -11,11 +11,71 @@ export default {
     },
     extend: {
       colors: {
-        'rich-cerulean': '#007BA7',
-        'cobalt-blue': '#0047AB',
-        'iron-grey': '#4B5563',
-        'shadow-grey': '#D1D5DB',
-        black: '#000000',
+        'rich-cerulean': {
+          50: '#ecf2f8',
+          100: '#d9e6f2',
+          200: '#b4cce4',
+          300: '#8eb2d7',
+          400: '#6899ca',
+          500: '#427fbd',
+          600: '#356697',
+          700: '#284c71',
+          800: '#1b334b',
+          900: '#0d1926',
+          950: '#09121a'
+        },
+        'cobalt-blue': {
+          50: '#e5f1ff',
+          100: '#cce3ff',
+          200: '#99c7ff',
+          300: '#66abff',
+          400: '#338fff',
+          500: '#0073ff',
+          600: '#005ccc',
+          700: '#004599',
+          800: '#002e66',
+          900: '#001733',
+          950: '#001024'
+        },
+        'iron-grey': {
+          50: '#f1f2f4',
+          100: '#e3e6e8',
+          200: '#c7ccd1',
+          300: '#abb3ba',
+          400: '#8f99a3',
+          500: '#737f8c',
+          600: '#5c6670',
+          700: '#454c54',
+          800: '#2e3338',
+          900: '#17191c',
+          950: '#101214'
+        },
+        'shadow-grey': {
+          50: '#f1f2f3',
+          100: '#e3e5e8',
+          200: '#c7cbd1',
+          300: '#acb2b9',
+          400: '#9098a2',
+          500: '#747e8b',
+          600: '#5d656f',
+          700: '#464c53',
+          800: '#2e3238',
+          900: '#17191c',
+          950: '#101213'
+        },
+        black: {
+          50: '#f0f0f5',
+          100: '#e1e1ea',
+          200: '#c3c3d5',
+          300: '#a5a5c0',
+          400: '#8787ab',
+          500: '#696996',
+          600: '#545478',
+          700: '#3f3f5a',
+          800: '#2a2a3c',
+          900: '#15151e',
+          950: '#0f0f15'
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -44,6 +104,10 @@ export default {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))'
         }
       },
       borderRadius: {
