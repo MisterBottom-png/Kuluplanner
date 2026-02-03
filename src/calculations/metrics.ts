@@ -42,9 +42,18 @@ function getMappedValue(row: Record<string, unknown>, mapping: FieldMapping, key
   return row[column] ?? '';
 }
 
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function matchStatus(status: string, rules: RulesConfig) {
-  const normalized = status.toLowerCase();
-  const listMatch = rules.statusMatchers.some((matcher) => normalized.includes(matcher.toLowerCase()));
+  const listMatch = rules.statusMatchers.some((matcher) => {
+    const normalizedMatcher = matcher.trim().toLowerCase();
+    if (!normalizedMatcher) return false;
+    if (status.trim().toLowerCase() === normalizedMatcher) return true;
+    const regex = new RegExp(`\\b${escapeRegex(normalizedMatcher)}\\b`, 'i');
+    return regex.test(status);
+  });
   if (rules.statusRegex) {
     try {
       const regex = new RegExp(rules.statusRegex, 'i');
