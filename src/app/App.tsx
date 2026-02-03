@@ -341,7 +341,7 @@ export default function App() {
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold">Turnover &amp; SLA Dashboard</h1>
+              <h1 className="text-2xl font-semibold text-rich-cerulean-800">Turnover &amp; SLA Dashboard</h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 Guided workflow for parsing Excel workbooks into SLA metrics, with quality checks and export-ready outputs.
               </p>
@@ -354,7 +354,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-6xl items-start gap-6 px-6 py-6 lg:grid-cols-[280px_1fr]">
+      <main className="mx-auto grid max-w-6xl items-start gap-6 overflow-x-hidden px-6 py-6 lg:grid-cols-[280px_1fr]">
         <aside className="min-w-0 space-y-4">
           <div className="rounded-lg border border-border bg-card p-4">
             <p className="text-sm font-semibold">Quick Run</p>

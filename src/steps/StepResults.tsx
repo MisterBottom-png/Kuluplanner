@@ -36,11 +36,10 @@ interface StepResultsProps {
 }
 
 const PALETTE = {
-  parchment: '#edede9',
-  dust: '#d6ccc2',
-  linen: '#f5ebe0',
-  petal: '#e3d5ca',
-  almond: '#d5bdaf'
+  richCerulean: '#427fbd',
+  cobaltBlue: '#0073ff',
+  ironGrey: '#454c54',
+  shadowGrey: '#c7cbd1'
 };
 
 export default function StepResults({ calculation, filters, onNavigate }: StepResultsProps) {
@@ -220,21 +219,21 @@ export default function StepResults({ calculation, filters, onNavigate }: StepRe
 
       <TabsContent value="summary" className="space-y-6">
         <div ref={resultsRef} className="space-y-6">
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-lg border border-rich-cerulean-200 bg-card p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="space-y-2 text-sm">
                 <p>
-                  <span className="font-semibold">Products:</span> {filtersSummary.productLabel}
+                  <span className="font-semibold text-rich-cerulean-700">Products:</span> {filtersSummary.productLabel}
                 </p>
                 <p>
-                  <span className="font-semibold">Months ({filtersSummary.monthBasisLabel}):</span>{' '}
+                  <span className="font-semibold text-rich-cerulean-700">Months ({filtersSummary.monthBasisLabel}):</span>{' '}
                   {filtersSummary.monthRange}
                 </p>
                 <p>
-                  <span className="font-semibold">Delivery not required:</span> {filtersSummary.deliveryLabel}
+                  <span className="font-semibold text-rich-cerulean-700">Delivery not required:</span> {filtersSummary.deliveryLabel}
                 </p>
               </div>
-              <Button type="button" variant="outline" size="sm" onClick={() => onNavigate?.(4)}>
+              <Button type="button" variant="outline" size="sm" className="border-rich-cerulean-200 text-rich-cerulean-700" onClick={() => onNavigate?.(4)}>
                 Edit filters
               </Button>
             </div>
@@ -315,13 +314,13 @@ export default function StepResults({ calculation, filters, onNavigate }: StepRe
               <p className="mb-3 text-sm font-semibold">On-time vs late by month</p>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={calculation.monthly}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={PALETTE.dust} />
-                  <XAxis dataKey="month" stroke="#1f1e1c" />
-                  <YAxis stroke="#1f1e1c" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={PALETTE.shadowGrey} />
+                  <XAxis dataKey="month" stroke={PALETTE.ironGrey} />
+                  <YAxis stroke={PALETTE.ironGrey} />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="onTime" fill={PALETTE.almond} name="On-time" />
-                  <Bar dataKey="late" fill={PALETTE.petal} name="Late" />
+                  <Bar dataKey="onTime" fill={PALETTE.richCerulean} name="On-time" />
+                  <Bar dataKey="late" fill={PALETTE.cobaltBlue} name="Late" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -329,11 +328,11 @@ export default function StepResults({ calculation, filters, onNavigate }: StepRe
               <p className="mb-3 text-sm font-semibold">Average turnover by month</p>
               <ResponsiveContainer width="100%" height={260}>
                 <LineChart data={calculation.monthly}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={PALETTE.dust} />
-                  <XAxis dataKey="month" stroke="#1f1e1c" />
-                  <YAxis stroke="#1f1e1c" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={PALETTE.shadowGrey} />
+                  <XAxis dataKey="month" stroke={PALETTE.ironGrey} />
+                  <YAxis stroke={PALETTE.ironGrey} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="averageTurnover" stroke={PALETTE.almond} strokeWidth={3} dot={{ r: 2 }} />
+                  <Line type="monotone" dataKey="averageTurnover" stroke={PALETTE.richCerulean} strokeWidth={3} dot={{ r: 2, fill: PALETTE.richCerulean }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
