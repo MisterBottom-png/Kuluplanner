@@ -1,4 +1,5 @@
 import { formatMonthKey, normalizeDateInput } from '@/parsing/date';
+import { normalizeCellValue } from '@/parsing/rows';
 import type { CalculationResult, EnrichedRow, FieldMapping, FiltersConfig, MonthlySummary, RulesConfig } from '@/types';
 
 const REQUIRED_FIELDS: Array<keyof FieldMapping> = [
@@ -94,12 +95,12 @@ export function calculateMetrics(
       getMappedValue(row, mapping, 'required_arrival_date')
     );
 
-    const status = String(getMappedValue(row, mapping, 'status') ?? '').trim();
-    const method = String(getMappedValue(row, mapping, 'method') ?? '').trim();
-    const product = String(getMappedValue(row, mapping, 'product') ?? '').trim();
-    const destinationCountry = String(getMappedValue(row, mapping, 'destination_country') ?? '').trim();
-    const orderId = String(getMappedValue(row, mapping, 'order_id') ?? '').trim();
-    const customer = String(getMappedValue(row, mapping, 'customer') ?? '').trim();
+    const status = normalizeCellValue(getMappedValue(row, mapping, 'status'));
+    const method = normalizeCellValue(getMappedValue(row, mapping, 'method'));
+    const product = normalizeCellValue(getMappedValue(row, mapping, 'product'));
+    const destinationCountry = normalizeCellValue(getMappedValue(row, mapping, 'destination_country'));
+    const orderId = normalizeCellValue(getMappedValue(row, mapping, 'order_id'));
+    const customer = normalizeCellValue(getMappedValue(row, mapping, 'customer'));
 
     const turnoverDays =
       orderDate && shippingDate ? Math.max(daysBetween(orderDate, shippingDate), 0) : null;
