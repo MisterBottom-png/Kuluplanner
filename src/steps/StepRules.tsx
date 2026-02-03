@@ -12,6 +12,7 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DEFAULT_FILTERS } from '@/common/constants';
 import type { FiltersConfig, RulesConfig } from '@/types';
 
 interface StepRulesProps {
@@ -59,8 +60,22 @@ export default function StepRules({
   };
 
   const clearFilters = () => {
-    onChangeFilters({ ...filters, methods: [], products: [], monthRange: [null, null] });
+    onChangeFilters({
+      ...filters,
+      methods: [],
+      products: [],
+      monthRange: [null, null],
+      deliveryNotRequired: DEFAULT_FILTERS.deliveryNotRequired
+    });
   };
+
+  const hasFiltersApplied = Boolean(
+    filters.methods.length ||
+      filters.products.length ||
+      filters.monthRange[0] ||
+      filters.monthRange[1] ||
+      !filters.deliveryNotRequired
+  );
 
   return (
     <div className="space-y-4">
@@ -154,6 +169,22 @@ export default function StepRules({
         </div>
 
         <div className="mt-3 grid gap-4 md:grid-cols-2">
+          <div className="space-y-2 md:col-span-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-[hsl(var(--primary))]"
+                checked={filters.deliveryNotRequired}
+                onChange={(event) =>
+                  onChangeFilters({ ...filters, deliveryNotRequired: event.target.checked })
+                }
+              />
+              Include "Delivery not required"
+            </label>
+            <p className="text-xs text-muted-foreground">
+              When unchecked, rows using this shipping method will be excluded.
+            </p>
+          </div>
           <div className="space-y-2">
             <Select value={newMethod} onValueChange={(value) => setNewMethod(value)}>
               <SelectTrigger aria-label="Filter by method">
@@ -276,7 +307,7 @@ export default function StepRules({
           </div>
         </div>
 
-        {filters.methods.length || filters.products.length || filters.monthRange[0] || filters.monthRange[1] ? (
+        {hasFiltersApplied ? (
           <p className="mt-3 text-xs text-muted-foreground">Filters applied.</p>
         ) : (
           <p className="mt-3 text-xs text-muted-foreground">No filters applied.</p>

@@ -65,6 +65,7 @@ export default function StepReview({
     if (filters.monthRange[0] || filters.monthRange[1]) {
       parts.push(`months ${filters.monthRange[0] ?? '…'} → ${filters.monthRange[1] ?? '…'}`);
     }
+    if (!filters.deliveryNotRequired) parts.push('exclude "Delivery not required"');
     return parts.length ? parts.join(', ') : 'None';
   }, [filters]);
 

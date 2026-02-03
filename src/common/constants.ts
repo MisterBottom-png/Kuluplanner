@@ -24,5 +24,6 @@ export const DEFAULT_RULES = {
 export const DEFAULT_FILTERS = {
   methods: [],
   products: [],
-  monthRange: [null, null] as [string | null, string | null]
+  monthRange: [null, null] as [string | null, string | null],
+  deliveryNotRequired: false
 };

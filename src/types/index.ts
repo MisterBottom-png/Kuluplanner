@@ -95,6 +95,7 @@ export interface FiltersConfig {
   methods: string[];
   products: string[];
   monthRange: [string | null, string | null];
+  deliveryNotRequired: boolean;
 }
 
 export interface Preset {

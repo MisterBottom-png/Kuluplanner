@@ -61,6 +61,10 @@ function daysBetween(start: Date, end: Date) {
   return Math.round(diff / 86400000);
 }
 
+function cleanShippingMethod(method: string) {
+  return method.trim().replace(/\s+/g, ' ');
+}
+
 export function calculateMetrics(
   rawRows: Record<string, unknown>[],
   mapping: FieldMapping,
@@ -151,6 +155,12 @@ export function calculateMetrics(
     if (rules.excludeChina && row.destinationCountry.toLowerCase().includes('china')) {
       trackExclusion('Excluded country');
       excludedRows.push({ row, reason: 'Excluded country' });
+      return false;
+    }
+
+    if (!filters.deliveryNotRequired && cleanShippingMethod(row.method) === 'Delivery not required') {
+      trackExclusion('Excluded delivery not required');
+      excludedRows.push({ row, reason: 'Excluded delivery not required' });
       return false;
     }
 
