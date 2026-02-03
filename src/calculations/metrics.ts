@@ -1,4 +1,4 @@
-import { formatMonthKey, normalizeDateInput } from '@/parsing/date';
+import { formatMonthKey, getAxisDate, parseDateSafe } from '@/parsing/date';
 import { normalizeCellValue } from '@/parsing/rows';
 import type { CalculationResult, EnrichedRow, FieldMapping, FiltersConfig, MonthlySummary, RulesConfig } from '@/types';
 
@@ -89,11 +89,9 @@ export function calculateMetrics(
   };
 
   const enriched: EnrichedRow[] = rawRows.map((row) => {
-    const orderDate = normalizeDateInput(getMappedValue(row, mapping, 'order_date'));
-    const shippingDate = normalizeDateInput(getMappedValue(row, mapping, 'shipping_date'));
-    const requiredArrivalDate = normalizeDateInput(
-      getMappedValue(row, mapping, 'required_arrival_date')
-    );
+    const orderDate = parseDateSafe(getMappedValue(row, mapping, 'order_date'));
+    const shippingDate = parseDateSafe(getMappedValue(row, mapping, 'shipping_date'));
+    const requiredArrivalDate = parseDateSafe(getMappedValue(row, mapping, 'required_arrival_date'));
 
     const status = normalizeCellValue(getMappedValue(row, mapping, 'status'));
     const method = normalizeCellValue(getMappedValue(row, mapping, 'method'));
@@ -107,6 +105,12 @@ export function calculateMetrics(
     const isOnTime =
       shippingDate && requiredArrivalDate ? shippingDate <= requiredArrivalDate : null;
 
+    const axisDate = getAxisDate(filters.monthBasis, {
+      orderDate,
+      shippingDate,
+      requiredArrivalDate
+    });
+
     return {
       orderDate,
       shippingDate,
@@ -119,7 +123,7 @@ export function calculateMetrics(
       customer: customer || undefined,
       turnoverDays,
       isOnTime,
-      monthKey: formatMonthKey(shippingDate)
+      monthKey: formatMonthKey(axisDate)
     };
   });
 
@@ -199,8 +203,8 @@ export function calculateMetrics(
     }
 
     if (!row.monthKey) {
-      trackExclusion('Missing shipping month');
-      excludedRows.push({ row, reason: 'Missing shipping month' });
+      trackExclusion('Missing month basis');
+      excludedRows.push({ row, reason: 'Missing month basis' });
       return false;
     }
 

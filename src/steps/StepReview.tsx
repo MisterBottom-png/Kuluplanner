@@ -198,7 +198,7 @@ export default function StepReview({
                   <div className="min-w-[220px] flex-1">
                     <Select value={presetId} onValueChange={setPresetId}>
                       <SelectTrigger aria-label="Select preset">
-                        <SelectValue placeholder="Select a preset" />
+                        <SelectValue className="truncate" placeholder="Select a preset" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">Select a preset</SelectItem>

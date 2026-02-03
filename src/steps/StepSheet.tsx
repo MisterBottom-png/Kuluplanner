@@ -11,7 +11,7 @@ export default function StepSheet({ sheetNames, selectedSheet, onSelectSheet }: 
     <div className="space-y-3">
       <Select value={selectedSheet ?? ''} onValueChange={onSelectSheet}>
         <SelectTrigger aria-label="Select sheet">
-          <SelectValue placeholder="Select a sheet" />
+          <SelectValue className="truncate" placeholder="Select a sheet" />
         </SelectTrigger>
         <SelectContent>
           {sheetNames.map((sheet) => (

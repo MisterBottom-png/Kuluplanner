@@ -17,7 +17,6 @@ import { calculateMetrics } from '@/calculations/metrics';
 import { DEFAULT_FILTERS, DEFAULT_RULES, OPTIONAL_FIELDS, REQUIRED_FIELDS } from '@/common/constants';
 import { getSheetRows, readWorkbook } from '@/excel/workbook';
 import { detectHeaderRow } from '@/parsing/headerDetection';
-import { formatMonthKey, normalizeDateInput } from '@/parsing/date';
 import { mapRowsToObjects, normalizeCellValue } from '@/parsing/rows';
 import { suggestMapping } from '@/parsing/normalize';
 import {
@@ -159,13 +158,34 @@ export default function App() {
   }, [parsed, mapping.product]);
 
   const availableMonths = useMemo(() => {
-    if (!parsed || !mapping.shipping_date) return [] as string[];
-    const months = parsed.rows
-      .map((row) => normalizeDateInput(row.raw[mapping.shipping_date!] ?? null))
-      .map((date) => formatMonthKey(date))
-      .filter((value): value is string => Boolean(value));
-    return Array.from(new Set(months)).sort();
-  }, [parsed, mapping.shipping_date]);
+    if (!parsed || !mapping.order_date || !mapping.shipping_date || !mapping.required_arrival_date) {
+      return [] as string[];
+    }
+    const rawRows = parsed.rows.map((entry) => entry.raw);
+    const result = calculateMetrics(rawRows, mapping, rules, {
+      ...filters,
+      monthRange: [null, null]
+    });
+    return result.monthly.map((row) => row.month);
+  }, [parsed, mapping, rules, filters]);
+
+  useEffect(() => {
+    if (!availableMonths.length) return;
+    const clampMonth = (value: string | null) => {
+      if (!value) return null;
+      if (availableMonths.includes(value)) return value;
+      const next = availableMonths.find((month) => month >= value);
+      return next ?? availableMonths[availableMonths.length - 1] ?? null;
+    };
+    const nextStart = clampMonth(filters.monthRange[0]);
+    const nextEnd = clampMonth(filters.monthRange[1]);
+    if (nextStart !== filters.monthRange[0] || nextEnd !== filters.monthRange[1]) {
+      setFilters((prev) => ({
+        ...prev,
+        monthRange: [nextStart, nextEnd]
+      }));
+    }
+  }, [availableMonths, filters.monthRange]);
 
   useEffect(() => {
     if (hasSavedFilters !== false) return;
@@ -334,8 +354,8 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-6xl gap-6 px-6 py-6 lg:grid-cols-[280px_1fr]">
-        <aside className="space-y-4">
+      <main className="mx-auto grid max-w-6xl items-start gap-6 px-6 py-6 lg:grid-cols-[280px_1fr]">
+        <aside className="min-w-0 space-y-4">
           <div className="rounded-lg border border-border bg-card p-4">
             <p className="text-sm font-semibold">Quick Run</p>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -397,7 +417,7 @@ export default function App() {
           </div>
         </aside>
 
-        <section>
+        <section className="min-w-0">
           <Card>
             <CardHeader>
               <CardTitle>Quick Run</CardTitle>
@@ -429,7 +449,7 @@ export default function App() {
                 </Button>
               </div>
 
-              <StepResults calculation={calculation} onNavigate={handleNavigate} />
+              <StepResults calculation={calculation} filters={filters} onNavigate={handleNavigate} />
             </CardContent>
           </Card>
 
@@ -497,8 +517,8 @@ export default function App() {
                       Map required business fields to columns before results can auto-run.
                     </p>
                   </div>
-                  <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-                    <div>
+                  <div className="grid items-start gap-6 lg:grid-cols-[1fr_360px]">
+                    <div className="min-w-0">
                       <StepMapping
                         headers={parsed?.headers ?? []}
                         rows={parsed?.rows ?? []}
@@ -514,7 +534,7 @@ export default function App() {
                         onJumpToHeader={() => handleNavigate(2)}
                       />
                     </div>
-                    <div className="rounded-lg border border-border bg-card p-4">
+                    <div className="min-w-0 rounded-lg border border-border bg-card p-4">
                       <DataPreview
                         headers={parsed?.headers ?? []}
                         rows={parsed?.rows ?? []}
@@ -542,8 +562,8 @@ export default function App() {
                       Adjust shipped status matching and filter the dataset before calculating metrics.
                     </p>
                   </div>
-                  <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-                    <div>
+                  <div className="grid items-start gap-6 lg:grid-cols-[1fr_360px]">
+                    <div className="min-w-0">
                       <StepRules
                         rules={rules}
                         filters={filters}
@@ -562,7 +582,7 @@ export default function App() {
                         availableMonths={availableMonths}
                       />
                     </div>
-                    <div className="rounded-lg border border-border bg-card p-4">
+                    <div className="min-w-0 rounded-lg border border-border bg-card p-4">
                       <DataPreview
                         headers={parsed?.headers ?? []}
                         rows={parsed?.rows ?? []}
