@@ -1,3 +1,4 @@
+import { DEFAULT_FILTERS } from '@/common/constants';
 import type { FieldMapping, FiltersConfig, Preset, RulesConfig } from '@/types';
 
 const MAPPING_KEY = 'kuluplanner_mapping';
@@ -37,7 +38,14 @@ export function loadFilters(): FiltersConfig | null {
   const raw = localStorage.getItem(FILTERS_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as FiltersConfig;
+    const parsed = JSON.parse(raw) as FiltersConfig;
+    return {
+      ...parsed,
+      deliveryNotRequired:
+        typeof parsed.deliveryNotRequired === 'boolean'
+          ? parsed.deliveryNotRequired
+          : DEFAULT_FILTERS.deliveryNotRequired
+    };
   } catch {
     return null;
   }

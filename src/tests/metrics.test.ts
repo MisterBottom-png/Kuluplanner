@@ -23,7 +23,8 @@ describe('calculateMetrics', () => {
   const filters: FiltersConfig = {
     methods: [],
     products: [],
-    monthRange: [null, null]
+    monthRange: [null, null],
+    deliveryNotRequired: true
   };
 
   it('computes on-time and late counts by month', () => {

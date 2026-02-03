@@ -67,6 +67,8 @@ export default function App() {
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [presets, setPresets] = useState<Preset[]>([]);
   const [lastRunSignature, setLastRunSignature] = useState<string | null>(null);
+  const [hasSavedFilters, setHasSavedFilters] = useState<boolean | null>(null);
+  const autoAppliedFilters = useRef(false);
   const [pendingScroll, setPendingScroll] = useState<
     null | 'sheet' | 'header' | 'mapping' | 'rules' | 'review'
   >(null);
@@ -82,7 +84,12 @@ export default function App() {
     const storedRules = loadRules();
     if (storedRules) setRules(storedRules);
     const storedFilters = loadFilters();
-    if (storedFilters) setFilters(storedFilters);
+    if (storedFilters) {
+      setFilters(storedFilters);
+      setHasSavedFilters(true);
+    } else {
+      setHasSavedFilters(false);
+    }
     setPresets(loadPresets());
   }, []);
 
@@ -158,6 +165,21 @@ export default function App() {
       .filter((value): value is string => Boolean(value));
     return Array.from(new Set(months)).sort();
   }, [parsed, mapping.shipping_date]);
+
+  useEffect(() => {
+    if (hasSavedFilters !== false) return;
+    if (autoAppliedFilters.current) return;
+    if (!parsed) return;
+    const estoniaMethods = availableMethods.filter((method) =>
+      method.toLowerCase().includes('estonia')
+    );
+    setFilters((prev) => ({
+      ...prev,
+      methods: estoniaMethods,
+      deliveryNotRequired: true
+    }));
+    autoAppliedFilters.current = true;
+  }, [availableMethods, hasSavedFilters, parsed]);
 
   const currentSignature = useMemo(() => {
     return makeSignature({ selectedSheet, headerRowIndex, mapping, rules, filters });
