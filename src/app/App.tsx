@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -34,18 +34,6 @@ import {
 } from '@/lib/storage';
 import type { CalculationResult, FieldMapping, FiltersConfig, Preset, RulesConfig, WorkbookInfo } from '@/types';
 
-type StepId = 'upload' | 'sheet' | 'header' | 'mapping' | 'rules' | 'review' | 'results';
-
-const WIZARD_STEPS: Array<{ id: StepId; title: string; subtitle: string }> = [
-  { id: 'upload', title: 'Upload', subtitle: 'Choose an Excel workbook (.xlsx)' },
-  { id: 'sheet', title: 'Sheet', subtitle: 'Pick the sheet that contains the raw feed' },
-  { id: 'header', title: 'Header row', subtitle: 'Confirm which row contains column names' },
-  { id: 'mapping', title: 'Field mapping', subtitle: 'Map required business fields to columns' },
-  { id: 'rules', title: 'Rules & filters', subtitle: 'Define shipped statuses and optional filters' },
-  { id: 'review', title: 'Review & run', subtitle: 'Save presets and run the analysis' },
-  { id: 'results', title: 'Results', subtitle: 'KPI summary, trends, and exclusions' }
-];
-
 const emptyMapping: FieldMapping = {
   order_date: null,
   shipping_date: null,
@@ -67,7 +55,7 @@ function makeSignature(payload: unknown) {
 }
 
 export default function App() {
-  const [activeStep, setActiveStep] = useState(0);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
   const [workbookInfo, setWorkbookInfo] = useState<WorkbookInfo | null>(null);
   const [selectedSheet, setSelectedSheet] = useState<string | null>(null);
@@ -79,6 +67,14 @@ export default function App() {
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [presets, setPresets] = useState<Preset[]>([]);
   const [lastRunSignature, setLastRunSignature] = useState<string | null>(null);
+  const [pendingScroll, setPendingScroll] = useState<
+    null | 'sheet' | 'header' | 'mapping' | 'rules' | 'review'
+  >(null);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const mappingRef = useRef<HTMLDivElement | null>(null);
+  const rulesRef = useRef<HTMLDivElement | null>(null);
+  const reviewRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const storedMapping = loadMapping();
@@ -169,26 +165,6 @@ export default function App() {
 
   const resultsDirty = Boolean(calculation && lastRunSignature && lastRunSignature !== currentSignature);
 
-  const canAccessStep = (index: number) => {
-    if (index <= activeStep) return true;
-    switch (WIZARD_STEPS[index]?.id) {
-      case 'sheet':
-        return Boolean(workbook);
-      case 'header':
-        return Boolean(workbook && selectedSheet);
-      case 'mapping':
-        return Boolean(parsed?.headers?.length);
-      case 'rules':
-        return Boolean(parsed?.headers?.length && requiredMapped);
-      case 'review':
-        return Boolean(parsed?.headers?.length && requiredMapped);
-      case 'results':
-        return Boolean(calculation);
-      default:
-        return true;
-    }
-  };
-
   const handleFile = async (file: File) => {
     const wb = await readWorkbook(file);
     setWorkbook(wb);
@@ -197,7 +173,7 @@ export default function App() {
     setSelectedSheet(feed ?? wb.SheetNames[0] ?? null);
     setCalculation(null);
     setLastRunSignature(null);
-    setActiveStep(1);
+    setShowAdvanced(false);
   };
 
   const handleClear = () => {
@@ -211,7 +187,7 @@ export default function App() {
     setFilters(DEFAULT_FILTERS);
     setCalculation(null);
     setLastRunSignature(null);
-    setActiveStep(0);
+    setShowAdvanced(false);
   };
 
   const handleAutoMatch = () => {
@@ -250,17 +226,38 @@ export default function App() {
 
   const canRun = Boolean(parsed?.rows?.length && requiredMapped);
 
-  const handleCalculate = () => {
+  const handleCalculate = useCallback(() => {
     if (!parsed || !requiredMapped) return;
     const rawRows = parsed.rows.map((entry) => entry.raw);
     const result = calculateMetrics(rawRows, mapping, rules, filters);
     setCalculation(result);
     setLastRunSignature(currentSignature);
-    setActiveStep(6);
-  };
+  }, [parsed, requiredMapped, mapping, rules, filters, currentSignature]);
 
-  const stepTitle = WIZARD_STEPS[activeStep]?.title ?? 'Wizard';
-  const stepSubtitle = WIZARD_STEPS[activeStep]?.subtitle ?? '';
+  const readyToRun = Boolean(workbook && selectedSheet && parsed?.headers?.length && requiredMapped);
+
+  useEffect(() => {
+    if (!readyToRun) return;
+    if (lastRunSignature === currentSignature) return;
+    handleCalculate();
+  }, [readyToRun, lastRunSignature, currentSignature, handleCalculate]);
+
+  useEffect(() => {
+    if (!showAdvanced || !pendingScroll) return;
+    const target =
+      pendingScroll === 'sheet'
+        ? sheetRef.current
+        : pendingScroll === 'header'
+          ? headerRef.current
+          : pendingScroll === 'mapping'
+            ? mappingRef.current
+            : pendingScroll === 'rules'
+              ? rulesRef.current
+              : reviewRef.current;
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setPendingScroll(null);
+  }, [showAdvanced, pendingScroll]);
 
   const previewHighlights = useMemo(() => {
     const headers = parsed?.headers ?? [];
@@ -278,45 +275,22 @@ export default function App() {
     return candidates.filter((c) => headers.includes(c));
   }, [parsed, mapping]);
 
-  const footer = (
-    <div className="sticky bottom-0 mt-6 border-t border-border bg-background/80 p-4 backdrop-blur">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setActiveStep((s) => Math.max(0, s - 1))}
-          disabled={activeStep === 0}
-        >
-          Back
-        </Button>
-
-        <div className="flex flex-wrap gap-2">
-          {activeStep === 5 ? (
-            <Button type="button" onClick={handleCalculate} disabled={!canRun}>
-              Run analysis
-            </Button>
-          ) : activeStep === 6 ? (
-            <>
-              <Button type="button" variant="secondary" onClick={() => setActiveStep(5)}>
-                Back to review
-              </Button>
-              <Button type="button" onClick={handleCalculate} disabled={!canRun}>
-                Re-run analysis
-              </Button>
-            </>
-          ) : (
-            <Button
-              type="button"
-              onClick={() => setActiveStep((s) => Math.min(WIZARD_STEPS.length - 1, s + 1))}
-              disabled={!canAccessStep(activeStep + 1)}
-            >
-              Next
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  const handleNavigate = (stepIndex: number) => {
+    setShowAdvanced(true);
+    const nextTarget =
+      stepIndex === 1
+        ? 'sheet'
+        : stepIndex === 2
+          ? 'header'
+          : stepIndex === 3
+            ? 'mapping'
+            : stepIndex === 4
+              ? 'rules'
+              : stepIndex === 5
+                ? 'review'
+                : null;
+    if (nextTarget) setPendingScroll(nextTarget);
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -340,54 +314,40 @@ export default function App() {
       <main className="mx-auto grid max-w-6xl gap-6 px-6 py-6 lg:grid-cols-[280px_1fr]">
         <aside className="space-y-4">
           <div className="rounded-lg border border-border bg-card p-4">
-            <p className="text-sm font-semibold">Workflow</p>
+            <p className="text-sm font-semibold">Quick Run</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Complete steps top to bottom. You can jump back at any time.
+              Upload a workbook and we’ll auto-run as soon as the required mappings are satisfied.
             </p>
 
-            <div className="mt-4 space-y-2">
-              {WIZARD_STEPS.map((step, index) => {
-                const isCurrent = index === activeStep;
-                const isReachable = canAccessStep(index);
-                const isDone = index < activeStep && canAccessStep(index);
-                const issues = step.id === 'mapping' ? missingRequired.length : 0;
-                return (
-                  <button
-                    key={step.id}
-                    type="button"
-                    className={`flex w-full items-start gap-3 rounded-lg border px-3 py-2 text-left transition-colors ${
-                      isCurrent
-                        ? 'border-ring bg-muted/40'
-                        : 'border-border hover:bg-muted/30'
-                    } ${!isReachable ? 'opacity-50' : ''}`}
-                    onClick={() => {
-                      if (!isReachable) return;
-                      setActiveStep(index);
-                    }}
-                    disabled={!isReachable}
-                  >
-                    <div
-                      className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full border text-xs ${
-                        isCurrent ? 'border-ring' : isDone ? 'border-primary' : 'border-border'
-                      }`}
-                    >
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-semibold">{step.title}</span>
-                        {issues ? (
-                          <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold text-destructive">
-                            {issues} missing
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">{step.subtitle}</div>
-                    </div>
-                  </button>
-                );
-              })}
+            <div className="mt-4 space-y-3 text-xs">
+              <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+                <span className="font-semibold">Upload</span>
+                <span className={workbookInfo ? 'text-primary' : 'text-muted-foreground'}>
+                  {workbookInfo ? 'Ready' : 'Waiting'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+                <span className="font-semibold">Results</span>
+                <span className={calculation ? 'text-primary' : 'text-muted-foreground'}>
+                  {calculation ? 'Generated' : canRun ? 'Auto-running' : 'Waiting'}
+                </span>
+              </div>
+              {missingRequired.length ? (
+                <p className="text-muted-foreground">
+                  {missingRequired.length} required field{missingRequired.length === 1 ? '' : 's'} still need mapping.
+                </p>
+              ) : null}
             </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-4 w-full"
+              onClick={() => setShowAdvanced((prev) => !prev)}
+            >
+              {showAdvanced ? 'Hide Settings' : 'Show Settings'}
+            </Button>
           </div>
 
           <div className="rounded-lg border border-border bg-card p-4">
@@ -417,16 +377,60 @@ export default function App() {
         <section>
           <Card>
             <CardHeader>
-              <CardTitle>{stepTitle}</CardTitle>
-              <p className="text-sm text-muted-foreground">{stepSubtitle}</p>
+              <CardTitle>Quick Run</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Upload a workbook to generate KPI results automatically once the required fields are mapped.
+              </p>
             </CardHeader>
-            <CardContent>
-              {activeStep === 0 ? (
-                <StepUpload workbookInfo={workbookInfo} onFile={handleFile} onClear={handleClear} />
+            <CardContent className="space-y-6">
+              <StepUpload workbookInfo={workbookInfo} onFile={handleFile} onClear={handleClear} />
+
+              {resultsDirty ? (
+                <Alert>
+                  <AlertTitle>Settings changed</AlertTitle>
+                  <AlertDescription>
+                    The mapping, rules, or filters changed since the last run. Results will auto-refresh once ready.
+                  </AlertDescription>
+                </Alert>
               ) : null}
 
-              {activeStep === 1 ? (
-                <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold">Results</p>
+                  <p className="text-xs text-muted-foreground">
+                    {canRun ? 'Auto-run is enabled.' : 'Complete mapping to auto-run.'}
+                  </p>
+                </div>
+                <Button type="button" variant="secondary" onClick={handleCalculate} disabled={!canRun}>
+                  {calculation ? 'Re-run now' : 'Run now'}
+                </Button>
+              </div>
+
+              <StepResults calculation={calculation} onNavigate={handleNavigate} />
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
+            <CardHeader className="flex flex-row items-center justify-between gap-3">
+              <div>
+                <CardTitle>Settings &amp; Advanced</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Fine-tune the sheet, header, mappings, and filters. Hidden by default.
+                </p>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={() => setShowAdvanced((prev) => !prev)}>
+                {showAdvanced ? 'Collapse' : 'Expand'}
+              </Button>
+            </CardHeader>
+            {showAdvanced ? (
+              <CardContent className="space-y-6">
+                <div ref={sheetRef} className="space-y-4">
+                  <div>
+                    <p className="text-sm font-semibold">Sheet selection</p>
+                    <p className="text-xs text-muted-foreground">
+                      Choose the worksheet that contains the raw feed to analyze.
+                    </p>
+                  </div>
                   <StepSheet
                     sheetNames={workbookInfo?.sheetNames ?? []}
                     selectedSheet={selectedSheet}
@@ -436,146 +440,146 @@ export default function App() {
                       setLastRunSignature(null);
                     }}
                   />
-                  <Separator />
                   <div className="rounded-lg border border-border bg-card p-3 text-xs text-muted-foreground">
                     Tip: if your file contains multiple exports, pick the one that has the full order feed.
                   </div>
                 </div>
-              ) : null}
 
-              {activeStep === 2 ? (
-                <StepHeader
-                  headerRowIndex={headerRowIndex}
-                  rows={sheetRows}
-                  onChangeHeaderRowIndex={(index) => {
-                    setHeaderRowIndex(index);
-                    setCalculation(null);
-                    setLastRunSignature(null);
-                  }}
-                />
-              ) : null}
+                <Separator />
 
-              {activeStep === 3 ? (
-                <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+                <div ref={headerRef} className="space-y-4">
                   <div>
-                    <StepMapping
-                      headers={parsed?.headers ?? []}
-                      rows={parsed?.rows ?? []}
-                      mapping={mapping}
-                      onChange={(next) => {
-                        setMapping(next);
-                        setCalculation(null);
-                        setLastRunSignature(null);
-                      }}
-                      requiredFields={REQUIRED_FIELDS}
-                      optionalFields={OPTIONAL_FIELDS}
-                      onAutoMatch={handleAutoMatch}
-                      onJumpToHeader={() => setActiveStep(2)}
-                    />
+                    <p className="text-sm font-semibold">Header row</p>
+                    <p className="text-xs text-muted-foreground">
+                      Confirm which row contains column names so mapping works correctly.
+                    </p>
                   </div>
-                  <div className="rounded-lg border border-border bg-card p-4">
-                    <DataPreview
-                      headers={parsed?.headers ?? []}
-                      rows={parsed?.rows ?? []}
-                      highlightedHeaders={previewHighlights}
-                      caption="Preview (mapped columns highlighted)"
-                    />
-                  </div>
+                  <StepHeader
+                    headerRowIndex={headerRowIndex}
+                    rows={sheetRows}
+                    onChangeHeaderRowIndex={(index) => {
+                      setHeaderRowIndex(index);
+                      setCalculation(null);
+                      setLastRunSignature(null);
+                    }}
+                  />
                 </div>
-              ) : null}
 
-              {activeStep === 4 ? (
-                <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+                <Separator />
+
+                <div ref={mappingRef} className="space-y-4">
                   <div>
-                    <StepRules
-                      rules={rules}
-                      filters={filters}
-                      onChangeRules={(next) => {
-                        setRules(next);
-                        setCalculation(null);
-                        setLastRunSignature(null);
-                      }}
-                      onChangeFilters={(next) => {
-                        setFilters(next);
-                        setCalculation(null);
-                        setLastRunSignature(null);
-                      }}
-                      availableMethods={availableMethods}
-                      availableProducts={availableProducts}
-                      availableMonths={availableMonths}
-                    />
+                    <p className="text-sm font-semibold">Field mapping</p>
+                    <p className="text-xs text-muted-foreground">
+                      Map required business fields to columns before results can auto-run.
+                    </p>
                   </div>
-                  <div className="rounded-lg border border-border bg-card p-4">
-                    <DataPreview
-                      headers={parsed?.headers ?? []}
-                      rows={parsed?.rows ?? []}
-                      highlightedHeaders={previewHighlights}
-                      caption="Preview"
-                    />
+                  <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+                    <div>
+                      <StepMapping
+                        headers={parsed?.headers ?? []}
+                        rows={parsed?.rows ?? []}
+                        mapping={mapping}
+                        onChange={(next) => {
+                          setMapping(next);
+                          setCalculation(null);
+                          setLastRunSignature(null);
+                        }}
+                        requiredFields={REQUIRED_FIELDS}
+                        optionalFields={OPTIONAL_FIELDS}
+                        onAutoMatch={handleAutoMatch}
+                        onJumpToHeader={() => handleNavigate(2)}
+                      />
+                    </div>
+                    <div className="rounded-lg border border-border bg-card p-4">
+                      <DataPreview
+                        headers={parsed?.headers ?? []}
+                        rows={parsed?.rows ?? []}
+                        highlightedHeaders={previewHighlights}
+                        caption="Preview (mapped columns highlighted)"
+                      />
+                    </div>
                   </div>
-                </div>
-              ) : null}
-
-              {activeStep === 5 ? (
-                <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-                  <div>
-                    <StepReview
-                      workbookName={workbookInfo?.name ?? null}
-                      selectedSheet={selectedSheet}
-                      headerRowIndex={headerRowIndex}
-                      totalRows={parsed?.rows?.length ?? 0}
-                      headers={parsed?.headers ?? []}
-                      mapping={mapping}
-                      rules={rules}
-                      filters={filters}
-                      requiredFields={REQUIRED_FIELDS}
-                      presets={presets}
-                      canRun={canRun}
-                      onSavePreset={handleSavePreset}
-                      onLoadPreset={handleLoadPreset}
-                      onDeletePreset={handleDeletePreset}
-                      onNavigate={(step) => setActiveStep(step)}
-                    />
-                  </div>
-                  <div className="rounded-lg border border-border bg-card p-4">
-                    <DataPreview
-                      headers={parsed?.headers ?? []}
-                      rows={parsed?.rows ?? []}
-                      highlightedHeaders={previewHighlights}
-                      caption="Preview"
-                    />
-                  </div>
-                </div>
-              ) : null}
-
-              {activeStep === 6 ? (
-                <div className="space-y-4">
-                  {resultsDirty ? (
+                  {missingRequired.length ? (
                     <Alert>
-                      <AlertTitle>Settings changed</AlertTitle>
+                      <AlertTitle>Mapping is required to run</AlertTitle>
                       <AlertDescription>
-                        The mapping/rules/filters were updated after the last run. Re-run the analysis to refresh results.
+                        Map all required fields to unlock auto-run results.
                       </AlertDescription>
                     </Alert>
                   ) : null}
-                  <StepResults calculation={calculation} onNavigate={(step) => setActiveStep(step)} />
                 </div>
-              ) : null}
-            </CardContent>
+
+                <Separator />
+
+                <div ref={rulesRef} className="space-y-4">
+                  <div>
+                    <p className="text-sm font-semibold">Rules &amp; filters</p>
+                    <p className="text-xs text-muted-foreground">
+                      Adjust shipped status matching and filter the dataset before calculating metrics.
+                    </p>
+                  </div>
+                  <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+                    <div>
+                      <StepRules
+                        rules={rules}
+                        filters={filters}
+                        onChangeRules={(next) => {
+                          setRules(next);
+                          setCalculation(null);
+                          setLastRunSignature(null);
+                        }}
+                        onChangeFilters={(next) => {
+                          setFilters(next);
+                          setCalculation(null);
+                          setLastRunSignature(null);
+                        }}
+                        availableMethods={availableMethods}
+                        availableProducts={availableProducts}
+                        availableMonths={availableMonths}
+                      />
+                    </div>
+                    <div className="rounded-lg border border-border bg-card p-4">
+                      <DataPreview
+                        headers={parsed?.headers ?? []}
+                        rows={parsed?.rows ?? []}
+                        highlightedHeaders={previewHighlights}
+                        caption="Preview"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div ref={reviewRef} className="space-y-4">
+                  <div>
+                    <p className="text-sm font-semibold">Review &amp; presets</p>
+                    <p className="text-xs text-muted-foreground">
+                      Save reusable presets or validate the run summary before sharing results.
+                    </p>
+                  </div>
+                  <StepReview
+                    workbookName={workbookInfo?.name ?? null}
+                    selectedSheet={selectedSheet}
+                    headerRowIndex={headerRowIndex}
+                    totalRows={parsed?.rows?.length ?? 0}
+                    headers={parsed?.headers ?? []}
+                    mapping={mapping}
+                    rules={rules}
+                    filters={filters}
+                    requiredFields={REQUIRED_FIELDS}
+                    presets={presets}
+                    canRun={canRun}
+                    onSavePreset={handleSavePreset}
+                    onLoadPreset={handleLoadPreset}
+                    onDeletePreset={handleDeletePreset}
+                    onNavigate={handleNavigate}
+                  />
+                </div>
+              </CardContent>
+            ) : null}
           </Card>
-
-          {activeStep === 3 && missingRequired.length ? (
-            <div className="mt-4">
-              <Alert>
-                <AlertTitle>Mapping is required to continue</AlertTitle>
-                <AlertDescription>
-                  Map all required fields to unlock rules, review, and results.
-                </AlertDescription>
-              </Alert>
-            </div>
-          ) : null}
-
-          {footer}
         </section>
       </main>
     </div>

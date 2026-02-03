@@ -94,7 +94,7 @@ export default function StepReview({
         <Alert>
           <AlertTitle>Ready to run</AlertTitle>
           <AlertDescription>
-            All required fields are mapped. Run the analysis to generate SLA and turnover metrics.
+            All required fields are mapped. Results will auto-run as soon as the workbook is ready.
           </AlertDescription>
         </Alert>
       )}
@@ -125,7 +125,7 @@ export default function StepReview({
             <div className="rounded-lg border border-border bg-card p-3 text-xs">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-semibold">Rules & filters</span>
-                <span className="text-muted-foreground">Adjust on the previous step</span>
+                <span className="text-muted-foreground">Adjust in the settings panel</span>
               </div>
               <div className="mt-2 grid gap-1">
                 <div className="flex items-center justify-between">
@@ -146,7 +146,8 @@ export default function StepReview({
             <div className="rounded-lg border border-border bg-card p-3 text-xs">
               <p className="font-semibold">Next: run analysis</p>
               <p className="mt-1 text-muted-foreground">
-                Use the <span className="font-semibold">Run analysis</span> button in the footer. After running, you’ll see coverage and excluded-row reasons.
+                Results auto-run once mapping is complete, or use the <span className="font-semibold">Run now</span> button in Quick Run.
+                After running, you’ll see coverage and excluded-row reasons.
               </p>
               {!canRun ? (
                 <p className="mt-2 text-destructive">
