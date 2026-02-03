@@ -43,6 +43,9 @@ const PALETTE = {
 
 export default function StepResults({ calculation, onNavigate }: StepResultsProps) {
   const [coverageOpen, setCoverageOpen] = useState(false);
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [copyFallback, setCopyFallback] = useState('');
+  const [copyFeedback, setCopyFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const kpis = useMemo(() => {
     if (!calculation) return null;
@@ -116,7 +119,16 @@ export default function StepResults({ calculation, onNavigate }: StepResultsProp
       row.averageTurnover ?? ''
     ]);
     const csv = [header, ...rows].map((row) => row.join(',')).join('\n');
-    await navigator.clipboard.writeText(csv);
+    try {
+      await navigator.clipboard.writeText(csv);
+      setCopyFeedback({ type: 'success', message: 'Summary copied to clipboard.' });
+      setCopyDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to copy summary CSV', error);
+      setCopyFallback(csv);
+      setCopyFeedback({ type: 'error', message: 'Could not copy. Use the manual copy dialog instead.' });
+      setCopyDialogOpen(true);
+    }
   };
 
   const coverageRatio = calculation.quality.rawRows ? calculation.quality.includedRows / calculation.quality.rawRows : 1;
@@ -142,7 +154,30 @@ export default function StepResults({ calculation, onNavigate }: StepResultsProp
             Copy summary
           </Button>
         </div>
+        {copyFeedback ? (
+          <p
+            className={`text-xs ${copyFeedback.type === 'success' ? 'text-emerald-600' : 'text-destructive'}`}
+            role="status"
+          >
+            {copyFeedback.message}
+          </p>
+        ) : null}
       </div>
+      <Dialog open={copyDialogOpen} onOpenChange={setCopyDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Copy the summary CSV</DialogTitle>
+            <DialogDescription>
+              Clipboard access was blocked. Select and copy the CSV data below.
+            </DialogDescription>
+          </DialogHeader>
+          <textarea
+            className="min-h-[200px] w-full rounded-md border border-border bg-background p-3 text-xs"
+            readOnly
+            value={copyFallback}
+          />
+        </DialogContent>
+      </Dialog>
 
       <TabsContent value="summary" className="space-y-6">
         {coverageWarning ? (
