@@ -63,7 +63,15 @@ const FIELD_NEEDLES: Record<string, string[]> = {
   destination_country: ['Column1.country', 'country', 'destination_country', 'ship country', 'destination'],
 
   // Optional
-  order_id: ['Column1.order_id', 'order_id', 'order id', 'order number', 'order no', 'order_no'],
+  order_id: [
+    'Column1.order_id',
+    'Column1.order_number',
+    'order_id',
+    'order id',
+    'order number',
+    'order no',
+    'order_no'
+  ],
   customer: ['Column1.customer', 'customer', 'customer name', 'client']
 };
 
