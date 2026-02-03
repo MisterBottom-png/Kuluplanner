@@ -9,7 +9,25 @@ export function normalizeCellValue(value: unknown): string {
 
 export function extractHeaders(rows: unknown[][], headerRowIndex: number): string[] {
   const headerRow = rows[headerRowIndex] ?? [];
-  return headerRow.map((cell) => String(cell ?? '').trim());
+  const rawHeaders = headerRow.map((cell) => String(cell ?? '').trim());
+  const seen = new Map<string, number>();
+
+  return rawHeaders.map((header) => {
+    const base = header === '' ? '(empty)' : header;
+    const count = seen.get(base) ?? 0;
+    const nextCount = count + 1;
+    seen.set(base, nextCount);
+
+    if (nextCount === 1) {
+      return base;
+    }
+
+    if (base === '(empty)') {
+      return `(empty ${nextCount})`;
+    }
+
+    return `${base} (${nextCount})`;
+  });
 }
 
 export function mapRowsToObjects(rows: unknown[][], headerRowIndex: number) {
