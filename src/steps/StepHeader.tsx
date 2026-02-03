@@ -14,7 +14,12 @@ export default function StepHeader({ headerRowIndex, rows, onChangeHeaderRowInde
   const confidence = Math.round(detected.confidence * 100);
   const isWeak = confidence < 45;
 
-  const previewRows = rows.slice(0, Math.min(rows.length, 12));
+  const totalRows = rows.length;
+  const selectedRowNumber = headerRowIndex + 1;
+  const previewWindow = 5;
+  const previewStart = Math.max(0, headerRowIndex - previewWindow);
+  const previewEnd = Math.min(totalRows, headerRowIndex + previewWindow + 1);
+  const previewRows = rows.slice(previewStart, previewEnd);
   const maxCols = previewRows.reduce((acc, row) => Math.max(acc, row.length), 0);
   const colCount = Math.min(maxCols, 8);
 
@@ -41,6 +46,25 @@ export default function StepHeader({ headerRowIndex, rows, onChangeHeaderRowInde
             <p className="text-xs text-muted-foreground">Current selection: Row {headerRowIndex + 1}</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>Header row number</span>
+              <input
+                type="number"
+                min={1}
+                max={Math.max(totalRows, 1)}
+                value={selectedRowNumber}
+                className="w-20 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+                  if (Number.isNaN(value)) {
+                    return;
+                  }
+                  const clamped = Math.min(Math.max(1, value), Math.max(totalRows, 1));
+                  onChangeHeaderRowIndex(clamped - 1);
+                }}
+                disabled={!totalRows}
+              />
+            </label>
             <Button
               type="button"
               variant="secondary"
@@ -69,12 +93,13 @@ export default function StepHeader({ headerRowIndex, rows, onChangeHeaderRowInde
               </thead>
               <tbody>
                 {previewRows.map((row, idx) => {
-                  const isSelected = idx === headerRowIndex;
-                  const isSuggested = idx === detected.rowIndex;
+                  const rowIndex = previewStart + idx;
+                  const isSelected = rowIndex === headerRowIndex;
+                  const isSuggested = rowIndex === detected.rowIndex;
                   return (
                     <tr key={idx} className={isSelected ? 'bg-muted/40' : 'border-t border-border'}>
                       <td className="whitespace-nowrap px-2 py-2 font-semibold">
-                        {idx + 1}
+                        {rowIndex + 1}
                         {isSuggested ? <span className="ml-2 rounded-full bg-muted/60 px-2 py-0.5 text-[10px]">suggested</span> : null}
                       </td>
                       {Array.from({ length: colCount }).map((_, i) => (
@@ -87,7 +112,7 @@ export default function StepHeader({ headerRowIndex, rows, onChangeHeaderRowInde
                           type="button"
                           variant={isSelected ? 'outline' : 'secondary'}
                           size="sm"
-                          onClick={() => onChangeHeaderRowIndex(idx)}
+                          onClick={() => onChangeHeaderRowIndex(rowIndex)}
                         >
                           {isSelected ? 'Selected' : 'Use as header'}
                         </Button>
