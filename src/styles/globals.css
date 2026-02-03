@@ -11,33 +11,33 @@
   - Almond Silk:  #d5bdaf
 */
 :root {
-  --background: 60 10% 92%;
-  --foreground: 40 5% 12%;
+  --background: 216 12% 84%;
+  --foreground: 215 14% 34%;
 
-  --card: 31 51% 92%;
-  --card-foreground: 40 5% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 215 14% 34%;
 
-  --popover: 31 51% 92%;
-  --popover-foreground: 40 5% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 215 14% 34%;
 
-  --primary: 22 31% 76%;
-  --primary-foreground: 40 5% 12%;
+  --primary: 196 100% 33%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 26 31% 84%;
-  --secondary-foreground: 40 5% 12%;
+  --secondary: 216 12% 84%;
+  --secondary-foreground: 215 14% 34%;
 
-  --muted: 30 20% 80%;
-  --muted-foreground: 40 5% 28%;
+  --muted: 216 12% 84%;
+  --muted-foreground: 215 14% 34%;
 
-  --accent: 30 20% 80%;
-  --accent-foreground: 40 5% 12%;
+  --accent: 216 12% 84%;
+  --accent-foreground: 215 14% 34%;
 
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 30 20% 75%;
-  --input: 30 20% 75%;
-  --ring: 22 31% 76%;
+  --border: 216 12% 84%;
+  --input: 216 12% 84%;
+  --ring: 215 100% 34%;
 
   --radius: 0.9rem;
 }

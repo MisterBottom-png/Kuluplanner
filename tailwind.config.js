@@ -11,6 +11,11 @@ export default {
     },
     extend: {
       colors: {
+        'rich-cerulean': '#007BA7',
+        'cobalt-blue': '#0047AB',
+        'iron-grey': '#4B5563',
+        'shadow-grey': '#D1D5DB',
+        black: '#000000',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
