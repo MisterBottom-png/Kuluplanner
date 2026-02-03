@@ -49,10 +49,11 @@ export default function StepRules({
   }, [regexDraft]);
 
   const addFilter = (type: 'methods' | 'products', value: string) => {
-    if (!value) return;
+    if (!value) return false;
     const list = filters[type];
-    if (list.includes(value)) return;
+    if (list.includes(value)) return false;
     onChangeFilters({ ...filters, [type]: [...list, value] });
+    return true;
   };
 
   const removeFilter = (type: 'methods' | 'products', value: string) => {
@@ -76,6 +77,8 @@ export default function StepRules({
       filters.monthRange[1] ||
       !filters.deliveryNotRequired
   );
+  const isMethodAddDisabled = !newMethod || filters.methods.includes(newMethod);
+  const isProductAddDisabled = !newProduct || filters.products.includes(newProduct);
 
   return (
     <div className="space-y-4">
@@ -202,7 +205,12 @@ export default function StepRules({
               type="button"
               variant="secondary"
               size="sm"
-              onClick={() => addFilter('methods', newMethod)}
+              disabled={isMethodAddDisabled}
+              onClick={() => {
+                if (addFilter('methods', newMethod)) {
+                  setNewMethod('');
+                }
+              }}
             >
               Add method
             </Button>
@@ -236,7 +244,12 @@ export default function StepRules({
               type="button"
               variant="secondary"
               size="sm"
-              onClick={() => addFilter('products', newProduct)}
+              disabled={isProductAddDisabled}
+              onClick={() => {
+                if (addFilter('products', newProduct)) {
+                  setNewProduct('');
+                }
+              }}
             >
               Add product
             </Button>
